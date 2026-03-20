@@ -1,0 +1,146 @@
+ <div class="card">
+            <p-toast />
+            <p-toolbar class="mb-6">
+                <ng-template #start>
+                    <p-button label="New" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+                    <p-button severity="danger" label="Delete" icon="pi pi-trash" outlined (onClick)="deleteSelectedAlunos()" [disabled]="!selectedAlunos || !selectedAlunos.length" />
+                </ng-template>
+                <ng-template #end>
+                    <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Import" chooseLabel="Import" auto customUpload class="mr-2 inline-block" [chooseButtonProps]="{ severity: 'secondary' }" />
+                    <p-button label="Export" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+                </ng-template>
+            </p-toolbar>
+            <p-table
+                #dt
+                [value]="alunos"
+                [rows]="10"
+                [columns]="cols"
+                [paginator]="true"
+                [globalFilterFields]="['name', 'country.name', 'representative.name', 'status']"
+                [tableStyle]="{ 'min-width': '75rem' }"
+                [(selection)]="selectedAlunos"
+                [rowHover]="true"
+                dataKey="id"
+                currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+                [showCurrentPageReport]="true"
+            >
+                <ng-template #caption>
+                    <div class="flex items-center justify-between">
+                        <h5 class="m-0">Manage alunos</h5>
+                        <p-iconfield>
+                            <p-inputicon class="pi pi-search" />
+                            <input pInputText type="text" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Search..." />
+                        </p-iconfield>
+                    </div>
+                </ng-template>
+               <ng-template #header>
+    <tr>
+        <th style="width: 3rem">
+            <p-tableHeaderCheckbox />
+        </th>
+        <th pSortableColumn="nome" style="min-width:16rem">
+            <div class="flex items-center gap-2">
+                Nome
+                <p-sortIcon field="nome" />
+            </div>
+        </th>
+        <th pSortableColumn="cpfCnpj" style="min-width: 12rem">
+            <div class="flex items-center gap-2">
+                CPF/CNPJ
+                <p-sortIcon field="cpfCnpj" />
+            </div>
+        </th>
+        <th pSortableColumn="telefone" style="min-width:12rem">
+            <div class="flex items-center gap-2">
+                Telefone
+                <p-sortIcon field="telefone" />
+            </div>
+        </th>
+        <th pSortableColumn="matricula" style="min-width: 12rem">
+            <div class="flex items-center gap-2">
+                Matrícula
+                <p-sortIcon field="matricula" />
+            </div>
+        </th>
+        <th style="min-width: 10rem">Ações</th>
+    </tr>
+</ng-template>
+
+<ng-template #body let-aluno>
+    <tr>
+        <td style="width: 3rem">
+            <p-tableCheckbox [value]="aluno" />
+        </td>
+        <td style="min-width: 16rem">{{ aluno.nome }}</td>
+        <td style="min-width: 12rem">{{ aluno.cpfCnpj }}</td>
+        <td style="min-width: 12rem">{{ aluno.telefone }}</td>
+        <td style="min-width: 12rem">{{ aluno.matricula }}</td>
+        <td>
+            <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editAluno(aluno)" />
+            <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteAluno(aluno)" />
+        </td>
+    </tr>
+</ng-template>
+                <ng-template #body let-aluno>
+                    <tr>
+                        <td style="width: 3rem">
+                            <p-tableCheckbox [value]="aluno" />
+                        </td>
+                        <td style="min-width: 12rem">{{ aluno.code }}</td>
+                        <td style="min-width: 16rem">{{ aluno.name }}</td>
+                        <td>
+                            <img [src]="'https://primefaces.org/cdn/primeng/images/demo/aluno/' + aluno.image" [alt]="aluno.name" style="width: 64px" class="rounded" />
+                        </td>
+                        <td>{{ aluno.price | currency: 'USD' }}</td>
+                        <td>{{ aluno.category }}</td>
+                        <td>
+                            <p-rating [(ngModel)]="aluno.rating" [readonly]="true" />
+                        </td>
+                        <td>
+                            <p-tag [value]="aluno.inventoryStatus" [severity]="getSeverity(aluno.inventoryStatus)" />
+                        </td>
+                        <td>
+                            <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editAluno(aluno)" />
+                            <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteAluno(aluno)" />
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+            <p-dialog [(visible)]="alunoDialog" [style]="{ width: '450px' }" header="Aluno Details" [modal]="true">
+                <ng-template #content>
+    <div class="flex flex-col gap-6">
+        
+        <div>
+            <label for="nome" class="block font-bold mb-3">Nome</label>
+            <input type="text" pInputText id="nome" [(ngModel)]="aluno.nome" required autofocus fluid />
+            <small class="text-red-500" *ngIf="submitted && !aluno.nome">O Nome é obrigatório.</small>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4">
+            <div class="col-span-6">
+                <label for="cpf" class="block font-bold mb-3">CPF</label>
+                <input type="text" pInputText id="cpf" [(ngModel)]="aluno.cpfCnpj" fluid />
+                <small class="text-red-500" *ngIf="submitted && !aluno.cpfCnpj">O CPF é obrigatório.</small>
+            </div>
+            <div class="col-span-6">
+                <label for="telefone" class="block font-bold mb-3">Telefone</label>
+                <input type="text" pInputText id="telefone" [(ngModel)]="aluno.telefone" fluid />
+                <small class="text-red-500" *ngIf="submitted && !aluno.telefone">O Telefone é obrigatório.</small>
+            </div>
+        </div>
+
+        <div>
+            <label for="matricula" class="block font-bold mb-3">Matrícula</label>
+            <input type="text" pInputText id="matricula" [(ngModel)]="aluno.matricula" fluid />
+            <small class="text-red-500" *ngIf="submitted && !aluno.matricula">A Matrícula é obrigatória.</small>
+        </div>
+
+    </div>
+</ng-template>
+                <ng-template #footer>
+                    <p-button label="Cancel" icon="pi pi-times" text (click)="hideDialog()" />
+                    <p-button label="Save" icon="pi pi-check" (click)="confirmarSalvar()" />
+                </ng-template>
+            </p-dialog>
+            <p-confirmdialog [style]="{ width: '450px' }" />
+        </div>
