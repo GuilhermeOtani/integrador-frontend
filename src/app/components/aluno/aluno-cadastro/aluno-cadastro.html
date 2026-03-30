@@ -1,1 +1,54 @@
-<p>aluno-cadastro works!</p>
+<div class="flex flex-col gap-6">
+  <div>
+    <label for="nome" class="block font-bold mb-3">Nome</label>
+    <input type="text" pInputText id="nome" [(ngModel)]="aluno.nome" required autofocus fluid />
+    <small class="text-red-500" *ngIf="submitted && !aluno.nome">O Nome é obrigatório.</small>
+  </div>
+
+  <div class="grid grid-cols-12 gap-4">
+    <div class="col-span-6">
+      <label for="cpf" class="block font-bold mb-3">CPF</label>
+      <input type="text" pInputText id="cpf" [(ngModel)]="aluno.cpfCnpj" fluid />
+      <small class="text-red-500" *ngIf="submitted && !aluno.cpfCnpj">O CPF é obrigatório.</small>
+    </div>
+    <div class="col-span-6">
+      <label for="telefone" class="block font-bold mb-3">Telefone</label>
+      <input type="text" pInputText id="telefone" [(ngModel)]="aluno.telefone" fluid />
+      <small class="text-red-500" *ngIf="submitted && !aluno.telefone"
+        >O Telefone é obrigatório.</small
+      >
+    </div>
+  </div>
+
+  <div class="grid grid-cols-12 gap-4">
+    <div class="col-span-6">
+      <label for="matricula" class="block font-bold mb-3">Matrícula</label>
+      <input type="text" pInputText id="matricula" [(ngModel)]="aluno.matricula" fluid />
+      <small class="text-red-500" *ngIf="submitted && !aluno.matricula"
+        >A Matrícula é obrigatória.</small
+      >
+    </div>
+
+    <div class="col-span-6">
+      <label for="faculdade" class="block font-bold mb-3">Faculdade</label>
+      <p-select
+        id="faculdade"
+        [options]="faculdades"
+        [(ngModel)]="aluno.faculdadeId"
+        optionLabel="nome"
+        optionValue="id"
+        placeholder="Selecione uma faculdade"
+        [fluid]="true"
+        appendTo="body"
+      ></p-select>
+      <small class="text-red-500" *ngIf="submitted && !aluno.faculdadeId"
+        >A Faculdade é obrigatória.</small
+      >
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-2 mt-4">
+    <p-button label="Cancelar" icon="pi pi-times" text (onClick)="cancelar()" />
+    <p-button label="Salvar" icon="pi pi-check" (onClick)="confirmarSalvar()" />
+  </div>
+</div>

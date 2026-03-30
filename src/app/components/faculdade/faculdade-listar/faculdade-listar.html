@@ -8,8 +8,8 @@
         label="Delete"
         icon="pi pi-trash"
         outlined
-        (onClick)="deleteSelectedAlunos()"
-        [disabled]="!selectedAlunos || !selectedAlunos.length"
+        (onClick)="deleteSelectedFaculdades()"
+        [disabled]="!selectedFaculdades || !selectedFaculdades.length"
       />
     </ng-template>
     <ng-template #end>
@@ -29,13 +29,13 @@
   </p-toolbar>
   <p-table
     #dt
-    [value]="alunos"
+    [value]="faculdades"
     [rows]="10"
     [columns]="cols"
     [paginator]="true"
-    [globalFilterFields]="['id', 'nome', 'cpfCnpj', 'telefone', 'matricula']"
+    [globalFilterFields]="['id', 'nome', 'endereco']"
     [tableStyle]="{ 'min-width': '75rem' }"
-    [(selection)]="selectedAlunos"
+    [(selection)]="selectedFaculdades"
     [rowHover]="true"
     dataKey="id"
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
@@ -43,7 +43,7 @@
   >
     <ng-template #caption>
       <div class="flex items-center justify-between">
-        <h5 class="m-0">Gerenciar Alunos</h5>
+        <h5 class="m-0">Gerenciar Faculdades</h5>
         <p-iconfield>
           <p-inputicon class="pi pi-search" />
           <input
@@ -55,54 +55,33 @@
         </p-iconfield>
       </div>
     </ng-template>
-   <ng-template #header>
+    <ng-template #header>
       <tr>
-        <th style="width: 3rem" class="text-center">
+        <th style="width: 3rem">
           <p-tableHeaderCheckbox />
         </th>
-        
-        <th pSortableColumn="id" style="width: 5rem" class="text-center">
-          Id <p-sortIcon field="id" />
+        <th pSortableColumn="id" style="min-width: 5rem" class="text-center">
+          Id
+          <p-sortIcon field="id" />
         </th>
-        
         <th style="min-width: 16rem" class="text-center">
           Nome
         </th>
-        
-        <th style="min-width: 12rem" class="text-center">
-          CPF/CNPJ
+        <th  style="min-width: 12rem" class="text-center">
+          Endereço
         </th>
-        
-        <th style="min-width: 12rem" class="text-center">
-          Telefone
-        </th>
-        
-        <th style="min-width: 12rem" class="text-center">
-          Matrícula
-        </th>
-        
-        <th style="min-width: 12rem" class="text-center">
-          Faculdade
-        </th>
-        
         <th style="min-width: 10rem" class="text-center">Ações</th>
       </tr>
     </ng-template>
 
-    <ng-template #body let-aluno>
+    <ng-template #body let-faculdade>
       <tr>
-        <td style="width: 3rem" class="text-center">
-          <p-tableCheckbox [value]="aluno" />
+        <td style="width: 3rem">
+          <p-tableCheckbox [value]="faculdade" />
         </td>
-        <td style="min-width: 5rem" class="text-center">{{ aluno.id }}</td>
-        <td style="min-width: 16rem" class="text-center">{{ aluno.nome }}</td>
-        <td style="min-width: 12rem" class="text-center">{{ aluno.cpfCnpj }}</td>
-        <td style="min-width: 12rem" class="text-center">{{ aluno.telefone }}</td>
-        <td style="min-width: 12rem" class="text-center">{{ aluno.matricula }}</td>
-
-        <td style="min-width: 12rem" class="text-center">
-          {{ aluno.faculdade?.nome || 'Não Vinculada' }}
-        </td>
+        <td style="min-width: 5rem" class="text-center">{{ faculdade.id }}</td>
+        <td style="min-width: 16rem" class="text-center">{{ faculdade.nome }}</td>
+        <td style="min-width: 12rem" class="text-center">{{ faculdade.endereco }}</td>
         
             <td class="text-center">
           <div class="flex justify-center">
@@ -111,36 +90,35 @@
             class="mr-2"
             [rounded]="true"
             [outlined]="true"
-            (click)="editAluno(aluno)"
+            (click)="editFaculdade(faculdade)"
           />
           <p-button
             icon="pi pi-trash"
             severity="danger"
             [rounded]="true"
             [outlined]="true"
-            (click)="deleteAluno(aluno)"
+            (click)="deleteFaculdade(faculdade)"
           />
-          </div>
+            </div>
         </td>
       </tr>
     </ng-template>
   </p-table>
 
   <p-dialog
-    [(visible)]="alunoDialog"
+    [(visible)]="faculdadeDialog"
     [style]="{ width: '450px' }"
-    header="Detalhes do Aluno"
+    header="Detalhes do Faculdade"
     [modal]="true"
   >
     <ng-template #content>
-      <app-aluno-cadastro
-        *ngIf="alunoDialog"
-        [aluno]="aluno"
-        [faculdades]="faculdades"
-        (aoSalvar)="aoSalvarAluno()"
+      <app-faculdade-cadastro
+        *ngIf="faculdadeDialog"
+        [faculdade]="faculdade"
+        (aoSalvar)="aoSalvarFaculdade()"
         (aoCancelar)="hideDialog()"
       >
-      </app-aluno-cadastro>
+      </app-faculdade-cadastro>
     </ng-template>
   </p-dialog>
 

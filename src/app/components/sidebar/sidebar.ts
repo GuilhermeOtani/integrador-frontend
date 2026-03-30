@@ -3,14 +3,15 @@ import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { Drawer, DrawerModule } from 'primeng/drawer';
 import { RippleModule } from 'primeng/ripple';
-import { StyleClass } from 'primeng/styleclass'; 
+
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 
 @Component({
   standalone: true,
   selector: 'app-sidebar',
-  imports: [AvatarModule, ButtonModule, DrawerModule, RippleModule, CommonModule],
+  imports: [AvatarModule, ButtonModule, DrawerModule, RippleModule, CommonModule, RouterModule],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
   

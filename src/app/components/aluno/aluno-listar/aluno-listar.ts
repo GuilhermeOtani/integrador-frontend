@@ -20,7 +20,10 @@ import { AlunoService } from '../aluno-service';
 import { CommonModule } from '@angular/common';
 import { ViewChild } from '@angular/core';
 import { Table } from 'primeng/table';
-import { label } from '@primeuix/themes/aura/metergroup';
+import { AlunoCadastro } from '../aluno-cadastro/aluno-cadastro';
+import aluno from '../model/aluno';
+import { FaculdadeService } from '../../faculdade/faculdade-service';
+
 
 @Component({
   standalone: true,
@@ -43,6 +46,7 @@ import { label } from '@primeuix/themes/aura/metergroup';
     ToolbarModule,
     InputTextModule,
     FormsModule,
+    AlunoCadastro
   ],
   providers: [AlunoService, MessageService, ConfirmationService],
   templateUrl: './aluno-listar.html',
@@ -50,12 +54,14 @@ import { label } from '@primeuix/themes/aura/metergroup';
 })
 export class AlunoListar {
   private alunoService = inject(AlunoService);
+  private faculdadeService = inject(FaculdadeService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   alunoDialog: boolean = false;
-  alunos!: any;
-  aluno!: any;
-  selectedAlunos!: any | null;
+  alunos: aluno[] = []; 
+  aluno: aluno = {} as aluno; 
+  faculdades: any[] = [];
+  selectedAlunos: aluno[] | null = null;
   submitted: boolean = false;
   statuses!: any[];
   cols!: Column[];
@@ -66,8 +72,15 @@ export class AlunoListar {
     this.dt.exportCSV();
   }
 
+  aoSalvarAluno() {
+      this.alunoDialog = false;
+      this.aluno = {} as aluno;
+      this.carregarAlunos(); 
+  }
+
   ngOnInit() {
     this.carregarAlunos();
+    this.carregarFaculdades();
     this.cols = [
       { field: 'id', header: 'ID', customExportHeader: 'Aluno ID' },
       { field: 'nome', header: 'Nome' },
@@ -79,7 +92,7 @@ export class AlunoListar {
   }
 
   openNew() {
-    this.aluno = {};
+    this.aluno = {} as aluno;
     this.submitted = false;
     this.alunoDialog = true;
   }
@@ -93,46 +106,24 @@ export class AlunoListar {
     });
   }
 
-  editAluno(aluno: any) {
-    this.aluno = { ...aluno };
-    this.alunoDialog = true;
+  carregarFaculdades() {
+    this.faculdadeService.listarFaculdades().subscribe({
+      next: (data) => {
+        this.faculdades = data;
+        },
+        error:  (err) => console.error('Erro ao carregar faculdades:', err),
+      });
   }
 
-  confirmarSalvar() {
-        this.submitted = true;
-        
-        if (this.aluno.nome?.trim()) {
-            if (this.aluno.id) {
-                this.atualizarAlunoExistente(); 
-            } else {
-                this.cadastrarNovoAluno();      
-            }
-        }
-    }
-    atualizarAlunoExistente() {
-        this.alunoService.EditarAlunos(this.aluno).subscribe({
-            next: (res) => {
-                this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Aluno Atualizado!', life: 3000 });
-                this.finalizarAcao();
-            },
-            error: (err) => console.error("Erro ao atualizar:", err)
-        });
+  editAluno(aluno: aluno) {
+    this.aluno = { ...aluno };
+
+    if(this.aluno.faculdade) {
+      this.aluno.faculdadeId = this.aluno.faculdade.id;
     }
 
-    cadastrarNovoAluno() {
-        this.alunoService.CadastroAlunos(this.aluno).subscribe({
-            next: (res) => {
-                this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Aluno Cadastrado!', life: 3000 });
-                this.finalizarAcao();
-            },
-            error: (err) => console.error("Erro ao cadastrar:", err)
-        });
-    }
-    finalizarAcao() {
-        this.alunoDialog = false;
-        this.aluno = {};
-        this.carregarAlunos(); // Recarrega a tabela com os dados atualizados do banco
-    }
+    this.alunoDialog = true;
+  }
 
   deleteSelectedAlunos() {
     this.confirmationService.confirm({
@@ -149,7 +140,7 @@ export class AlunoListar {
         label: 'Yes',
       },
       accept: () => {
-        this.alunos = this.alunos.filter((val: any) => !this.selectedAlunos?.includes(val));
+        this.alunos = this.alunos.filter((val: aluno) => !this.selectedAlunos?.includes(val));
         this.selectedAlunos = null;
         this.messageService.add({
           severity: 'success',
@@ -166,7 +157,7 @@ export class AlunoListar {
     this.submitted = false;
   }
 
-  deleteAluno(aluno: any) {
+  deleteAluno(aluno: aluno) {
     this.confirmationService.confirm({
       message: 'Tem certeza que deseja excluir este aluno ' + aluno.nome + '?',
       header: 'Confirmar Exclusão',
@@ -187,38 +178,15 @@ export class AlunoListar {
   }
 });
     }
-  findIndexById(id: string): number {
+  findIndexById(id: number): number {
     let index = -1;
     for (let i = 0; i < this.alunos.length; i++) {
-      if (this.alunos[i].id === id) {
+      if (this.alunos[i].id == id) { 
         index = i;
         break;
       }
     }
-
     return index;
-  }
-
-  createId(): string {
-    let id = '';
-    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (var i = 0; i < 5; i++) {
-      id += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return id;
-  }
-
-  getSeverity(status: string) {
-    switch (status) {
-      case 'INSTOCK':
-        return 'success';
-      case 'LOWSTOCK':
-        return 'warn';
-      case 'OUTOFSTOCK':
-        return 'danger';
-      default:
-        return 'info';
-    }
   }
 }
 export interface Column {
