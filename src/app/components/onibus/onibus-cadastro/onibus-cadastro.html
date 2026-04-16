@@ -1,0 +1,84 @@
+<div class="flex flex-col gap-6 pt-2 px-1">
+  <div class="grid grid-cols-12 gap-4">
+    <div class="col-span-12 md:col-span-6">
+      <label for="numeroIdentificacao" class="block font-bold mb-3">Número de Identificação</label>
+      <input
+        type="text"
+        pInputText
+        id="numeroIdentificacao"
+        [(ngModel)]="onibus.numeroIdentificacao"
+        fluid
+      />
+      <small class="text-red-500" *ngIf="submitted && !onibus.numeroIdentificacao">
+        O Número de Identificação é obrigatório.
+      </small>
+    </div>
+
+    <div class="col-span-12 md:col-span-6">
+      <label for="placa" class="block font-bold mb-3">Placa</label>
+      <input type="text" pInputText id="placa" [(ngModel)]="onibus.placa" fluid />
+      <small class="text-red-500" *ngIf="submitted && !onibus.placa">A Placa é obrigatória.</small>
+    </div>
+
+    <div class="col-span-12 md:col-span-6">
+      <label for="modelo" class="block font-bold mb-3">Modelo</label>
+      <input type="text" pInputText id="modelo" [(ngModel)]="onibus.modelo" fluid />
+      <small class="text-red-500" *ngIf="submitted && !onibus.modelo"
+        >O Modelo é obrigatório.</small
+      >
+    </div>
+
+    <div class="col-span-12 md:col-span-6">
+      <label for="capacidade" class="block font-bold mb-3">Capacidade</label>
+      <input type="number" pInputText id="capacidade" [(ngModel)]="onibus.capacidade" fluid />
+      <small class="text-red-500" *ngIf="submitted && !onibus.capacidade"
+        >A Capacidade é obrigatória.</small
+      >
+    </div>
+
+    <div class="col-span-12 md:col-span-6">
+      <label for="statusOnibus" class="block font-bold mb-3">Status do Ônibus</label>
+      <p-select
+        id="statusOnibus"
+        [options]="listaStatus"
+        [(ngModel)]="onibus.statusOnibus"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Selecione um status"
+        [fluid]="true"
+        appendTo="body"
+      >
+      </p-select>
+      <small class="text-red-500" *ngIf="submitted && !onibus.statusOnibus"
+        >O Status é obrigatório.</small
+      >
+    </div>
+
+    <div class="col-span-12 md:col-span-6 flex flex-col justify-start">
+      <label class="block font-bold mb-3">Foto do Ônibus</label>
+      <p-fileupload
+        mode="basic"
+        accept="image/*"
+        [maxFileSize]="1000000"
+        chooseLabel="Escolher Imagem"
+        [auto]="true"
+        customUpload="true"
+        (onSelect)="aoSelecionarFoto($event)"
+        class="mb-3 w-full"
+      >
+      </p-fileupload>
+
+      <img
+        *ngIf="onibus.fotoUrl"
+        [src]="onibus.fotoUrl"
+        class="w-32 h-32 object-cover mt-2 rounded shadow-md border border-gray-200"
+        alt="Pré-visualização da foto"
+      />
+    </div>
+  </div>
+</div>
+
+<div class="flex justify-end gap-2 mt-6 border-t border-gray-200 pt-4">
+  <p-button label="Cancelar" icon="pi pi-times" text (onClick)="cancelar()" />
+  <p-button label="Salvar" icon="pi pi-check" (onClick)="confirmarSalvar()" />
+</div>

@@ -1,0 +1,140 @@
+<div class="card">
+  <p-toast />
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <p-button label="New" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+      <p-button
+        severity="danger"
+        label="Delete"
+        icon="pi pi-trash"
+        outlined
+        (onClick)="deleteSelectedOnibuss()"
+        [disabled]="!selectedOnibus || !selectedOnibus.length"
+      />
+    </ng-template>
+    <ng-template #end>
+      <p-fileUpload
+        mode="basic"
+        accept="image/*"
+        [maxFileSize]="1000000"
+        label="Import"
+        chooseLabel="Import"
+        auto
+        customUpload
+        class="mr-2 inline-block"
+        [chooseButtonProps]="{ severity: 'secondary' }"
+      />
+      <p-button label="Export" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+    </ng-template>
+  </p-toolbar>
+  <p-table
+    #dt
+    [value]="onibuss"
+    [rows]="10"
+    [columns]="cols"
+    [paginator]="true"
+    [globalFilterFields]="['name', 'country.name', 'representative.name', 'status']"
+    [tableStyle]="{ 'min-width': '75rem' }"
+    [(selection)]="selectedOnibus"
+    [rowHover]="true"
+    dataKey="id"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [showCurrentPageReport]="true"
+  >
+    <ng-template #caption>
+      <div class="flex items-center justify-between">
+        <h5 class="m-0">Gerenciar Ônibus</h5>
+        <p-iconfield>
+          <p-inputicon class="pi pi-search" />
+          <input
+            pInputText
+            type="text"
+            (input)="dt.filterGlobal($event.target.value, 'contains')"
+            placeholder="Search..."
+          />
+        </p-iconfield>
+      </div>
+    </ng-template>
+   <ng-template #header>
+      <tr>
+        <th style="width: 3rem">
+          <p-tableHeaderCheckbox />
+        </th>
+        <th pSortableColumn="id" style="min-width: 5rem" class="text-center">
+          Id
+          <p-sortIcon field="id" />
+        </th>
+        <th style="min-width: 16rem" class="text-center">Numero de Identificação</th>
+        <th style="min-width: 12rem" class="text-center">Placa</th>
+        <th style="min-width: 12rem" class="text-center">Modelo</th>
+        <th style="min-width: 12rem" class="text-center">Capacidade</th>
+        <th style="min-width: 12rem" class="text-center">Foto</th>
+        <th style="min-width: 10rem" class="text-center">Status</th>
+        <th style="min-width: 10rem" class="text-center">Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-onibus>
+      <tr>
+        <td style="width: 3rem">
+          <p-tableCheckbox [value]="onibus" />
+        </td>
+        <td class="text-center">{{ onibus.id }}</td>
+        <td class="text-center">{{ onibus.numeroIdentificacao }}</td>
+        <td class="text-center">{{ onibus.placa }}</td>
+        <td class="text-center">{{ onibus.modelo }}</td>
+        <td class="text-center">{{ onibus.capacidade }}</td>
+        
+        <td class="text-center">
+          <img 
+            *ngIf="onibus.fotoUrl"
+            [src]="onibus.fotoUrl"
+            [alt]="onibus.numeroIdentificacao"
+            style="width: 64px; height: 64px; object-fit: cover;"
+            class="rounded mx-auto block shadow-sm"
+          />
+          <span *ngIf="!onibus.fotoUrl" class="text-gray-400 text-sm">Sem foto</span>
+        </td>
+
+        <td class="text-center">
+          <p-tag [value]="onibus.statusOnibus" [severity]="getSeverity(onibus.statusOnibus)" />
+        </td>
+        <td class="text-center">
+          <div class="flex justify-center">
+            <p-button
+              icon="pi pi-pencil"
+              class="mr-2"
+              [rounded]="true"
+              [outlined]="true"
+              (click)="editOnibus(onibus)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              [rounded]="true"
+              [outlined]="true"
+              (click)="deleteOnibus(onibus)"
+            />
+          </div>
+        </td>
+      </tr> 
+    </ng-template></p-table>
+  <p-dialog
+    [(visible)]="onibusDialog"
+    [style]="{ width: '450px' }"
+    header="Detalhes do Ônibus"
+    [modal]="true"
+  >
+    <ng-template #content>
+      <app-onibus-cadastro
+        *ngIf="onibusDialog"
+        [onibus]="onibus"
+        (aoSalvar)="aoSalvarOnibus()"
+        (aoCancelar)="hideDialog()"
+      >
+      </app-onibus-cadastro>
+    </ng-template>
+  </p-dialog>
+
+  <p-confirmdialog [style]="{ width: '450px' }" />
+</div>

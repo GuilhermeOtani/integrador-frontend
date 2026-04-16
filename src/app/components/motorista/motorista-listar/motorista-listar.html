@@ -1,0 +1,138 @@
+<div class="card">
+  <p-toast />
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <p-button label="New" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+      <p-button
+        severity="danger"
+        label="Delete"
+        icon="pi pi-trash"
+        outlined
+        (onClick)="deleteSelectedMotoristas()"
+        [disabled]="!selectedMotoristas || !selectedMotoristas.length"
+      />
+    </ng-template>
+    <ng-template #end>
+      <p-fileUpload
+        mode="basic"
+        accept="image/*"
+        [maxFileSize]="1000000"
+        label="Import"
+        chooseLabel="Import"
+        auto
+        customUpload
+        class="mr-2 inline-block"
+        [chooseButtonProps]="{ severity: 'secondary' }"
+      />
+      <p-button label="Export" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+    </ng-template>
+  </p-toolbar>
+  <p-table
+    #dt
+    [value]="motoristas"
+    [rows]="10"
+    [columns]="cols"
+    [paginator]="true"
+    [globalFilterFields]="['id', 'nome', 'cpfCnpj', 'telefone', 'matricula']"
+    [tableStyle]="{ 'min-width': '75rem' }"
+    [(selection)]="selectedMotoristas"
+    [rowHover]="true"
+    dataKey="id"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [showCurrentPageReport]="true"
+  >
+    <ng-template #caption>
+      <div class="flex items-center justify-between">
+        <h5 class="m-0">Gerenciar Motoristas</h5>
+        <p-iconfield>
+          <p-inputicon class="pi pi-search" />
+          <input
+            pInputText
+            type="text"
+            (input)="dt.filterGlobal($event.target.value, 'contains')"
+            placeholder="Search..."
+          />
+        </p-iconfield>
+      </div>
+    </ng-template>
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem" class="text-center">
+          <p-tableHeaderCheckbox />
+        </th>
+
+        <th pSortableColumn="id" style="width: 5rem" class="text-center">
+          Id <p-sortIcon field="id" />
+        </th>
+
+        <th style="min-width: 16rem" class="text-center">Nome</th>
+
+        <th style="min-width: 12rem" class="text-center">CPF</th>
+
+        <th style="min-width: 12rem" class="text-center">Telefone</th>
+
+        <th style="min-width: 12rem" class="text-center">CNH</th>
+
+        <th style="min-width: 12rem" class="text-center">Ônibus</th>
+
+        <th style="min-width: 10rem" class="text-center">Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-motorista>
+  <tr>
+    <td style="width: 3rem" class="text-center">
+      <p-tableCheckbox [value]="motorista" />
+    </td>
+    <td style="min-width: 5rem" class="text-center">{{ motorista.id }}</td>
+    <td style="min-width: 16rem" class="text-center">{{ motorista.nome }}</td>
+    <td style="min-width: 12rem" class="text-center">{{ motorista.cpfCnpj }}</td>
+    <td style="min-width: 12rem" class="text-center">{{ motorista.telefone }}</td>
+    <td style="min-width: 12rem" class="text-center">{{ motorista.cnh }}</td>
+    
+    <td style="min-width: 12rem" class="text-center">
+      {{ motorista.numeroIdentificacao || 'Não Vinculado' }}
+    </td>
+
+    <td class="text-center">
+      <div class="flex justify-center">
+        <p-button
+          icon="pi pi-pencil"
+          class="mr-2"
+          [rounded]="true"
+          [outlined]="true"
+          (click)="editMotorista(motorista)"
+        />
+        <p-button
+          icon="pi pi-trash"
+          severity="danger"
+          [rounded]="true"
+          [outlined]="true"
+          (click)="deleteMotorista(motorista)"
+        />
+      </div>
+    </td>
+  </tr>
+</ng-template>
+  </p-table>
+
+  <p-dialog
+    [(visible)]="motoristaDialog"
+    [style]="{ width: '450px' }"
+    header="Detalhes do Motorista"
+    [modal]="true"
+  >
+    <ng-template #content>
+      <app-motorista-cadastro
+        *ngIf="motoristaDialog"
+        [motorista]="motorista"
+        [onibus]="onibuss"
+        (aoSalvar)="aoSalvarMotorista()"
+        (aoCancelar)="hideDialog()"
+      >
+      </app-motorista-cadastro>
+    </ng-template>
+  </p-dialog>
+
+  <p-confirmdialog [style]="{ width: '450px' }" />
+</div>
