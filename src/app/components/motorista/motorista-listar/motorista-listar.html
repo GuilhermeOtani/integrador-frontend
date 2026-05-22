@@ -60,60 +60,95 @@
         <th style="width: 3rem" class="text-center">
           <p-tableHeaderCheckbox />
         </th>
-
         <th pSortableColumn="id" style="width: 5rem" class="text-center">
           Id <p-sortIcon field="id" />
         </th>
-
         <th style="min-width: 16rem" class="text-center">Nome</th>
-
         <th style="min-width: 12rem" class="text-center">CPF</th>
-
         <th style="min-width: 12rem" class="text-center">Telefone</th>
-
         <th style="min-width: 12rem" class="text-center">CNH</th>
-
         <th style="min-width: 12rem" class="text-center">Ônibus</th>
+
+        <th style="min-width: 10rem" class="text-center">Salário</th>
 
         <th style="min-width: 10rem" class="text-center">Ações</th>
       </tr>
     </ng-template>
 
     <ng-template #body let-motorista>
-  <tr>
-    <td style="width: 3rem" class="text-center">
-      <p-tableCheckbox [value]="motorista" />
-    </td>
-    <td style="min-width: 5rem" class="text-center">{{ motorista.id }}</td>
-    <td style="min-width: 16rem" class="text-center">{{ motorista.nome }}</td>
-    <td style="min-width: 12rem" class="text-center">{{ motorista.cpfCnpj }}</td>
-    <td style="min-width: 12rem" class="text-center">{{ motorista.telefone }}</td>
-    <td style="min-width: 12rem" class="text-center">{{ motorista.cnh }}</td>
-    
-    <td style="min-width: 12rem" class="text-center">
-      {{ motorista.numeroIdentificacao || 'Não Vinculado' }}
-    </td>
+      <tr>
+        <td style="width: 3rem" class="text-center">
+          <p-tableCheckbox [value]="motorista" />
+        </td>
+        <td style="min-width: 5rem" class="text-center">{{ motorista.id }}</td>
+        <td style="min-width: 16rem" class="text-center">{{ motorista.nome }}</td>
+        <td style="min-width: 12rem" class="text-center">{{ motorista.cpfCnpj }}</td>
+        <td style="min-width: 12rem" class="text-center">{{ motorista.telefone }}</td>
+        <td style="min-width: 12rem" class="text-center">{{ motorista.cnh }}</td>
+        <td style="min-width: 12rem" class="text-center">
+          {{ motorista.numeroIdentificacao || 'Não Vinculado' }}
+        </td>
 
-    <td class="text-center">
-      <div class="flex justify-center">
-        <p-button
-          icon="pi pi-pencil"
-          class="mr-2"
-          [rounded]="true"
-          [outlined]="true"
-          (click)="editMotorista(motorista)"
-        />
-        <p-button
-          icon="pi pi-trash"
-          severity="danger"
-          [rounded]="true"
-          [outlined]="true"
-          (click)="deleteMotorista(motorista)"
-        />
-      </div>
-    </td>
-  </tr>
-</ng-template>
+        <td style="min-width: 10rem" class="text-center font-bold text-green-600">
+          {{ motorista.salario | currency: 'BRL' : 'symbol' }}
+        </td>
+
+        <td class="text-center">
+          <div class="flex justify-center">
+            <p-button
+              icon="pi pi-pencil"
+              class="mr-2"
+              [rounded]="true"
+              [outlined]="true"
+              (click)="editMotorista(motorista)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              [rounded]="true"
+              [outlined]="true"
+              (click)="deleteMotorista(motorista)"
+            />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-motorista>
+      <tr>
+        <td style="width: 3rem" class="text-center">
+          <p-tableCheckbox [value]="motorista" />
+        </td>
+        <td style="min-width: 5rem" class="text-center">{{ motorista.id }}</td>
+        <td style="min-width: 16rem" class="text-center">{{ motorista.nome }}</td>
+        <td style="min-width: 12rem" class="text-center">{{ motorista.cpfCnpj }}</td>
+        <td style="min-width: 12rem" class="text-center">{{ motorista.telefone }}</td>
+        <td style="min-width: 12rem" class="text-center">{{ motorista.cnh }}</td>
+
+        <td style="min-width: 12rem" class="text-center">
+          {{ motorista.numeroIdentificacao || 'Não Vinculado' }}
+        </td>
+
+        <td class="text-center">
+          <div class="flex justify-center">
+            <p-button
+              icon="pi pi-pencil"
+              class="mr-2"
+              [rounded]="true"
+              [outlined]="true"
+              (click)="editMotorista(motorista)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              [rounded]="true"
+              [outlined]="true"
+              (click)="deleteMotorista(motorista)"
+            />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
   </p-table>
 
   <p-dialog

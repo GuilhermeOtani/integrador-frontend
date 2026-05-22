@@ -76,7 +76,6 @@ export class OnibusListar {
   }
 
   ngOnInit() {
-    this.carregarOnibuss();
     this.carregaronibus();
 
     this.statuses = [

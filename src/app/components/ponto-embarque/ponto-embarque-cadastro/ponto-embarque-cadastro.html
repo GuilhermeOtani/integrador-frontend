@@ -1,0 +1,22 @@
+<div class="flex flex-col gap-6">
+    <div>
+        <label for="descricao" class="block font-bold mb-3">Descrição do Ponto</label>
+        <input type="text" pInputText id="descricao" [(ngModel)]="pontoEmbarque.descricao" required autofocus fluid placeholder="Ex: Praça Central" />
+        <small class="text-red-500" *ngIf="submitted && !pontoEmbarque.descricao">A Descrição é obrigatória.</small>
+    </div>
+
+    <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-6">
+            <label for="ordemParada" class="block font-bold mb-3">Ordem de Parada</label>
+            <input type="number" pInputText id="ordemParada" [(ngModel)]="pontoEmbarque.ordemParada" required fluid min="1" placeholder="Ex: 1" />
+            <small class="text-red-500" *ngIf="submitted && !pontoEmbarque.ordemParada">A Ordem de Parada é obrigatória.</small>
+        </div>
+    </div>
+
+    <hr class="border-t border-gray-200 dark:border-gray-700 mt-2" />
+
+    <div class="flex justify-end gap-2">
+        <p-button label="Cancelar" icon="pi pi-times" text (onClick)="cancelar()" />
+        <p-button label="Salvar" icon="pi pi-check" (onClick)="confirmarSalvar()" />
+    </div>
+</div>

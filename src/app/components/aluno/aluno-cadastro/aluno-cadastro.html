@@ -8,15 +8,25 @@
   <div class="grid grid-cols-12 gap-4">
     <div class="col-span-6">
       <label for="cpf" class="block font-bold mb-3">CPF</label>
-      <input type="text" pInputText id="cpf" [(ngModel)]="aluno.cpfCnpj" fluid />
+      <p-inputMask 
+        id="cpf" 
+        mask="999.999.999-99" 
+        [(ngModel)]="aluno.cpfCnpj" 
+        [fluid]="true" 
+        placeholder="000.000.000-00"
+      ></p-inputMask>
       <small class="text-red-500" *ngIf="submitted && !aluno.cpfCnpj">O CPF é obrigatório.</small>
     </div>
     <div class="col-span-6">
       <label for="telefone" class="block font-bold mb-3">Telefone</label>
-      <input type="text" pInputText id="telefone" [(ngModel)]="aluno.telefone" fluid />
-      <small class="text-red-500" *ngIf="submitted && !aluno.telefone"
-        >O Telefone é obrigatório.</small
-      >
+      <p-inputMask 
+        id="telefone" 
+        mask="(99) 99999-9999" 
+        [(ngModel)]="aluno.telefone" 
+        [fluid]="true" 
+        placeholder="(00) 00000-0000"
+      ></p-inputMask>
+      <small class="text-red-500" *ngIf="submitted && !aluno.telefone">O Telefone é obrigatório.</small>
     </div>
   </div>
 
@@ -24,9 +34,7 @@
     <div class="col-span-6">
       <label for="matricula" class="block font-bold mb-3">Matrícula</label>
       <input type="text" pInputText id="matricula" [(ngModel)]="aluno.matricula" fluid />
-      <small class="text-red-500" *ngIf="submitted && !aluno.matricula"
-        >A Matrícula é obrigatória.</small
-      >
+      <small class="text-red-500" *ngIf="submitted && !aluno.matricula">A Matrícula é obrigatória.</small>
     </div>
 
     <div class="col-span-6">
@@ -41,13 +49,13 @@
         [fluid]="true"
         appendTo="body"
       ></p-select>
-      <small class="text-red-500" *ngIf="submitted && !aluno.faculdadeId"
-        >A Faculdade é obrigatória.</small
-      >
+      <small class="text-red-500" *ngIf="submitted && !aluno.faculdadeId">A Faculdade é obrigatória.</small>
     </div>
   </div>
 
-  <div class="flex justify-end gap-2 mt-4">
+  <hr class="border-t border-gray-200 dark:border-gray-700 mt-2" />
+
+  <div class="flex justify-end gap-2">
     <p-button label="Cancelar" icon="pi pi-times" text (onClick)="cancelar()" />
     <p-button label="Salvar" icon="pi pi-check" (onClick)="confirmarSalvar()" />
   </div>

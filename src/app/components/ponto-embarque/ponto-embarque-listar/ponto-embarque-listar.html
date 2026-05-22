@@ -1,0 +1,117 @@
+<div class="card">
+  <p-toast />
+  
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+      <p-button
+        severity="danger"
+        label="Excluir"
+        icon="pi pi-trash"
+        outlined
+        (onClick)="deleteSelectedPontosEmbarque()"
+        [disabled]="!selectedPontosEmbarque || !selectedPontosEmbarque.length"
+      />
+    </ng-template>
+
+    <ng-template #end>
+      <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+    </ng-template>
+  </p-toolbar>
+
+  <p-table
+    #dt
+    [value]="pontosEmbarque"
+    [rows]="10"
+    [paginator]="true"
+    [globalFilterFields]="['id', 'descricao', 'ordemParada']"
+    [tableStyle]="{ 'min-width': '75rem' }"
+    [(selection)]="selectedPontosEmbarque"
+    [rowHover]="true"
+    dataKey="id"
+    currentPageReportTemplate="Mostrando {first} até {last} de {totalRecords} registros"
+    [showCurrentPageReport]="true"
+  >
+    <ng-template #caption>
+      <div class="flex items-center justify-between">
+        <h5 class="m-0">Gerenciar Pontos de Embarque</h5>
+        <p-iconfield>
+          <p-inputicon class="pi pi-search" />
+          <input
+            pInputText
+            type="text"
+            (input)="dt.filterGlobal($event.target.value, 'contains')"
+            placeholder="Pesquisar..."
+          />
+        </p-iconfield>
+      </div>
+    </ng-template>
+
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem">
+          <p-tableHeaderCheckbox />
+        </th>
+        <th pSortableColumn="id" style="min-width: 5rem" class="text-center">
+          Id <p-sortIcon field="id" />
+        </th>
+        <th pSortableColumn="descricao" style="min-width: 16rem" class="text-center">
+          Descrição <p-sortIcon field="descricao" />
+        </th>
+        <th pSortableColumn="ordemParada" style="min-width: 12rem" class="text-center">
+          Ordem <p-sortIcon field="ordemParada" />
+        </th>
+        <th style="min-width: 10rem" class="text-center">Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-ponto>
+      <tr>
+        <td style="width: 3rem">
+          <p-tableCheckbox [value]="ponto" />
+        </td>
+        <td style="min-width: 5rem" class="text-center">{{ ponto.id }}</td>
+        <td style="min-width: 16rem" class="text-center">{{ ponto.descricao }}</td>
+        <td style="min-width: 12rem" class="text-center">{{ ponto.ordemParada }}º</td>
+        
+        <td class="text-center">
+          <div class="flex justify-center">
+            <p-button
+              icon="pi pi-pencil"
+              class="mr-2"
+              [rounded]="true"
+              [outlined]="true"
+              (click)="editPontoEmbarque(ponto)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              [rounded]="true"
+              [outlined]="true"
+              (click)="deletePontoEmbarque(ponto)"
+            />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <p-dialog
+    [(visible)]="pontoEmbarqueDialog"
+    [style]="{ width: '450px' }"
+    header="Detalhes do Ponto de Embarque"
+    [modal]="true"
+  >
+    <ng-template #content>
+      <app-ponto-embarque-cadastro
+        *ngIf="pontoEmbarqueDialog"
+        [pontoEmbarque]="pontoEmbarque"
+        (aoSalvar)="aoSalvarPontoEmbarque()"
+        (aoCancelar)="hideDialog()"
+      >
+      </app-ponto-embarque-cadastro>
+    </ng-template>
+  </p-dialog>
+
+  <p-confirmdialog [style]="{ width: '450px' }" />
+</div>

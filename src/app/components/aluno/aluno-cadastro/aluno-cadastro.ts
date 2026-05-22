@@ -6,11 +6,12 @@ import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
 import { AlunoService } from '../aluno-service';
 import { SelectModule } from 'primeng/select';
+import { InputMaskModule } from 'primeng/inputmask';
 
 @Component({
   standalone: true,
   selector: 'app-aluno-cadastro',
-  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, SelectModule],
+  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, SelectModule, InputMaskModule],
   templateUrl: './aluno-cadastro.html',
   styleUrl: './aluno-cadastro.css'
 })

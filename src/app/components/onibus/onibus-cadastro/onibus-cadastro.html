@@ -1,5 +1,6 @@
 <div class="flex flex-col gap-6 pt-2 px-1">
   <div class="grid grid-cols-12 gap-4">
+    
     <div class="col-span-12 md:col-span-6">
       <label for="numeroIdentificacao" class="block font-bold mb-3">Número de Identificação</label>
       <input
@@ -16,24 +17,29 @@
 
     <div class="col-span-12 md:col-span-6">
       <label for="placa" class="block font-bold mb-3">Placa</label>
-      <input type="text" pInputText id="placa" [(ngModel)]="onibus.placa" fluid />
+      <input 
+        type="text" 
+        pInputText 
+        id="placa" 
+        [(ngModel)]="onibus.placa" 
+        fluid 
+        maxlength="7"
+        style="text-transform: uppercase;"
+        placeholder="ABC1D23"
+      />
       <small class="text-red-500" *ngIf="submitted && !onibus.placa">A Placa é obrigatória.</small>
     </div>
 
     <div class="col-span-12 md:col-span-6">
       <label for="modelo" class="block font-bold mb-3">Modelo</label>
       <input type="text" pInputText id="modelo" [(ngModel)]="onibus.modelo" fluid />
-      <small class="text-red-500" *ngIf="submitted && !onibus.modelo"
-        >O Modelo é obrigatório.</small
-      >
+      <small class="text-red-500" *ngIf="submitted && !onibus.modelo">O Modelo é obrigatório.</small>
     </div>
 
     <div class="col-span-12 md:col-span-6">
       <label for="capacidade" class="block font-bold mb-3">Capacidade</label>
       <input type="number" pInputText id="capacidade" [(ngModel)]="onibus.capacidade" fluid />
-      <small class="text-red-500" *ngIf="submitted && !onibus.capacidade"
-        >A Capacidade é obrigatória.</small
-      >
+      <small class="text-red-500" *ngIf="submitted && !onibus.capacidade">A Capacidade é obrigatória.</small>
     </div>
 
     <div class="col-span-12 md:col-span-6">
@@ -49,9 +55,7 @@
         appendTo="body"
       >
       </p-select>
-      <small class="text-red-500" *ngIf="submitted && !onibus.statusOnibus"
-        >O Status é obrigatório.</small
-      >
+      <small class="text-red-500" *ngIf="submitted && !onibus.statusOnibus">O Status é obrigatório.</small>
     </div>
 
     <div class="col-span-12 md:col-span-6 flex flex-col justify-start">
@@ -76,9 +80,11 @@
       />
     </div>
   </div>
-</div>
 
-<div class="flex justify-end gap-2 mt-6 border-t border-gray-200 pt-4">
-  <p-button label="Cancelar" icon="pi pi-times" text (onClick)="cancelar()" />
-  <p-button label="Salvar" icon="pi pi-check" (onClick)="confirmarSalvar()" />
+  <hr class="border-t border-gray-200 dark:border-gray-700 mt-2" />
+
+  <div class="flex justify-end gap-2">
+    <p-button label="Cancelar" icon="pi pi-times" text (onClick)="cancelar()" />
+    <p-button label="Salvar" icon="pi pi-check" (onClick)="confirmarSalvar()" />
+  </div>
 </div>

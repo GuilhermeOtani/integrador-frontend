@@ -24,7 +24,6 @@ import { MotoristaCadastro } from '../motorista-cadastro/motorista-cadastro';
 import motorista from '../model/motorista';
 import { OnibusService } from '../../onibus/onibus-service';
 
-
 @Component({
   standalone: true,
   selector: 'app-motorista-listar',
@@ -46,7 +45,7 @@ import { OnibusService } from '../../onibus/onibus-service';
     ToolbarModule,
     InputTextModule,
     FormsModule,
-    MotoristaCadastro
+    MotoristaCadastro,
   ],
   providers: [MotoristaService, MessageService, ConfirmationService],
   templateUrl: './motorista-listar.html',
@@ -58,8 +57,8 @@ export class MotoristaListar {
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   motoristaDialog: boolean = false;
-  motoristas: motorista[] = []; 
-  motorista: motorista = {} as motorista; 
+  motoristas: motorista[] = [];
+  motorista: motorista = {} as motorista;
   onibuss: any[] = [];
   selectedMotoristas: motorista[] | null = null;
   submitted: boolean = false;
@@ -73,9 +72,9 @@ export class MotoristaListar {
   }
 
   aoSalvarMotorista() {
-      this.motoristaDialog = false;
-      this.motorista = {} as motorista;
-      this.carregarMotoristas(); 
+    this.motoristaDialog = false;
+    this.motorista = {} as motorista;
+    this.carregarMotoristas();
   }
 
   ngOnInit() {
@@ -101,9 +100,9 @@ export class MotoristaListar {
   carregarMotoristas() {
     this.motoristaService.listarMotoristas().subscribe({
       next: (data) => {
-      this.motoristas = data;
+        this.motoristas = data;
       },
-      error:  (err) => console.error('Erro ao carregar motoristas:', err),
+      error: (err) => console.error('Erro ao carregar motoristas:', err),
     });
   }
 
@@ -111,15 +110,15 @@ export class MotoristaListar {
     this.onibusService.listarOnibus().subscribe({
       next: (data) => {
         this.onibuss = data;
-        },
-        error:  (err) => console.error('Erro ao carregar onibuss:', err),
-      });
+      },
+      error: (err) => console.error('Erro ao carregar onibuss:', err),
+    });
   }
 
   editMotorista(motorista: motorista) {
     this.motorista = { ...motorista };
 
-    if(this.motorista.onibus) {
+    if (this.motorista.onibus) {
       this.motorista.onibusId = this.motorista.onibus.id;
     }
 
@@ -141,7 +140,9 @@ export class MotoristaListar {
         label: 'Yes',
       },
       accept: () => {
-        this.motoristas = this.motoristas.filter((val: motorista) => !this.selectedMotoristas?.includes(val));
+        this.motoristas = this.motoristas.filter(
+          (val: motorista) => !this.selectedMotoristas?.includes(val),
+        );
         this.selectedMotoristas = null;
         this.messageService.add({
           severity: 'success',
@@ -163,26 +164,36 @@ export class MotoristaListar {
       message: 'Tem certeza que deseja excluir este motorista ' + motorista.nome + '?',
       header: 'Confirmar Exclusão',
       icon: 'pi pi-exclamation-triangle',
-      acceptButtonProps: {severity: 'danger', label: 'Sim'},
-      rejectButtonProps: {label: 'Não', severity: 'secondary', variant: 'text'},
+      acceptButtonProps: { severity: 'danger', label: 'Sim' },
+      rejectButtonProps: { label: 'Não', severity: 'secondary', variant: 'text' },
       accept: () => {
         this.motoristaService.ExcluirMotoristas(motorista.id).subscribe({
           next: () => {
-        this.messageService.add({severity: 'success', summary: 'Successful', detail: 'Motorista Deleted', life: 3000 });
-        this.carregarMotoristas();
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Successful',
+              detail: 'Motorista Deleted',
+              life: 3000,
+            });
+            this.carregarMotoristas();
+          },
+          error: (err) => {
+            console.error(err);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to delete motorista',
+              life: 3000,
+            });
+          },
+        });
       },
-      error: (err) => {
-        console.error(err);
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to delete motorista', life: 3000 });
-      }
     });
   }
-});
-    }
   findIndexById(id: number): number {
     let index = -1;
     for (let i = 0; i < this.motoristas.length; i++) {
-      if (this.motoristas[i].id == id) { 
+      if (this.motoristas[i].id == id) {
         index = i;
         break;
       }

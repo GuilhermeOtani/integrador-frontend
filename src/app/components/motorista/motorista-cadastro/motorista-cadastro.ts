@@ -6,11 +6,13 @@ import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
 import { MotoristaService } from '../motorista-service';
 import { SelectModule } from 'primeng/select';
+import { InputMask, InputMaskModule } from 'primeng/inputmask';
+import { InputNumber, InputNumberModule } from 'primeng/inputnumber';
 
 @Component({
   standalone: true,
   selector: 'app-motorista-cadastro',
-  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, SelectModule],
+  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, SelectModule, InputMaskModule, InputNumberModule],
   templateUrl: './motorista-cadastro.html',
   styleUrl: './motorista-cadastro.css'
 })

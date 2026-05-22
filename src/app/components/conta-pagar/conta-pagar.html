@@ -1,0 +1,308 @@
+<div class="card">
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <p-button
+        label="A Pagar (Pendentes)"
+        icon="pi pi-clock"
+        class="mr-2"
+        [severity]="!mostrarPagas ? 'primary' : 'secondary'"
+        [outlined]="mostrarPagas"
+        (onClick)="mostrarPagas = false"
+      >
+      </p-button>
+
+      <p-button
+        label="Histórico (Pagas)"
+        icon="pi pi-check-circle"
+        [severity]="mostrarPagas ? 'success' : 'secondary'"
+        [outlined]="!mostrarPagas"
+        (onClick)="mostrarPagas = true"
+      >
+      </p-button>
+    </ng-template>
+  </p-toolbar>
+
+  <p-table
+    *ngIf="!mostrarPagas"
+    #dtPendentes
+    [value]="contasPendentes"
+    [rows]="10"
+    [paginator]="true"
+    [globalFilterFields]="['descricao', 'motorista.nome']"
+    [tableStyle]="{ 'min-width': '75rem' }"
+    [rowHover]="true"
+    dataKey="id"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} contas"
+    [showCurrentPageReport]="true"
+  >
+    <ng-template #caption>
+      <div class="flex items-center justify-between">
+        <h5 class="m-0 text-xl font-bold">Contas a Pagar</h5>
+        <p-iconfield>
+          <p-inputicon class="pi pi-search" />
+          <input
+            pInputText
+            type="text"
+            (input)="dtPendentes.filterGlobal($any($event.target).value, 'contains')"
+            placeholder="Pesquisar..."
+          />
+        </p-iconfield>
+      </div>
+    </ng-template>
+
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="descricao" style="min-width: 16rem">
+          Descrição <p-sortIcon field="descricao" />
+        </th>
+        <th pSortableColumn="motorista.nome" style="min-width: 16rem">
+          Motorista <p-sortIcon field="motorista.nome" />
+        </th>
+        <th pSortableColumn="valor" style="min-width: 12rem" class="text-center">
+          Valor <p-sortIcon field="valor" />
+        </th>
+        <th pSortableColumn="dataVencimento" style="min-width: 12rem" class="text-center">
+          Vencimento <p-sortIcon field="dataVencimento" />
+        </th>
+        <th style="min-width: 10rem" class="text-center">Status</th>
+        <th style="min-width: 10rem" class="text-center">Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-conta>
+      <tr>
+        <td>{{ conta.descricao }}</td>
+        <td>{{ conta.motorista?.nome || 'Não vinculado' }}</td>
+        <td class="text-center font-bold text-red-500">
+          {{ conta.valor | currency: 'BRL' : 'symbol' }}
+        </td>
+        <td class="text-center">{{ conta.dataVencimento | date: 'dd/MM/yyyy' }}</td>
+        <td class="text-center">
+          <p-tag [value]="conta.status" [severity]="getSeverity(conta.status)"></p-tag>
+        </td>
+        <td class="text-center">
+          <p-button
+            icon="pi pi-check"
+            label="Pagar"
+            severity="success"
+            size="small"
+            [rounded]="true"
+            [outlined]="true"
+            (onClick)="abrirModalPagamento(conta)"
+          >
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center p-8">Nenhuma conta pendente. Tudo em dia!</td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <p-table
+    *ngIf="mostrarPagas"
+    #dtPagas
+    [value]="contasPagas"
+    [rows]="10"
+    [paginator]="true"
+    [globalFilterFields]="['descricao', 'motorista.nome']"
+    [tableStyle]="{ 'min-width': '75rem' }"
+    [rowHover]="true"
+    dataKey="id"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} contas"
+    [showCurrentPageReport]="true"
+  >
+    <ng-template #caption>
+      <div class="flex items-center justify-between">
+        <h5 class="m-0 text-xl font-bold">Histórico de Pagamentos</h5>
+        <p-iconfield>
+          <p-inputicon class="pi pi-search" />
+          <input
+            pInputText
+            type="text"
+            (input)="dtPagas.filterGlobal($any($event.target).value, 'contains')"
+            placeholder="Pesquisar..."
+          />
+        </p-iconfield>
+      </div>
+    </ng-template>
+
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="descricao" style="min-width: 16rem">
+          Descrição <p-sortIcon field="descricao" />
+        </th>
+        <th pSortableColumn="motorista.nome" style="min-width: 16rem">
+          Motorista <p-sortIcon field="motorista.nome" />
+        </th>
+        <th pSortableColumn="valor" style="min-width: 12rem" class="text-center">
+          Valor Pago <p-sortIcon field="valor" />
+        </th>
+        <th pSortableColumn="dataVencimento" style="min-width: 12rem" class="text-center">
+          Vencimento <p-sortIcon field="dataVencimento" />
+        </th>
+        <th style="min-width: 10rem" class="text-center">Status</th>
+        <th style="min-width: 8rem" class="text-center">Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-conta>
+      <tr>
+        <td>{{ conta.descricao }}</td>
+        <td>{{ conta.motorista?.nome || 'Não vinculado' }}</td>
+        <td class="text-center font-bold text-green-600">
+          {{ conta.valor | currency: 'BRL' : 'symbol' }}
+        </td>
+        <td class="text-center">{{ conta.dataVencimento | date: 'dd/MM/yyyy' }}</td>
+        <td class="text-center">
+          <p-tag [value]="conta.status" [severity]="getSeverity(conta.status)"></p-tag>
+        </td>
+        <td class="text-center">
+          <p-button
+            icon="pi pi-eye"
+            label="Ver"
+            severity="info"
+            size="small"
+            [text]="true"
+            (onClick)="abrirModalRecibo(conta)"
+          >
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center p-8">Nenhum histórico de conta paga encontrado.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+<p-dialog
+  header="Confirmar Pagamento"
+  [(visible)]="exibirModalPagamento"
+  [modal]="true"
+  [style]="{ width: '400px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <div class="flex flex-column pt-3" *ngIf="contaSelecionada">
+    <div class="field mb-2">
+      <label class="font-bold text-sm text-gray-600">Descrição da Conta</label>
+      <div class="text-lg">{{ contaSelecionada.descricao }}</div>
+    </div>
+
+    <div class="flex flex-column gap-2 mt-1">
+      <label for="valorPagar" class="font-bold text-sm text-gray-600">Valor a Pagar</label>
+      <p-inputNumber
+        inputId="valorPagar"
+        [(ngModel)]="valorInformado"
+        mode="currency"
+        currency="BRL"
+        locale="pt-BR"
+        [style]="{ width: '100%' }"
+      >
+      </p-inputNumber>
+    </div>
+
+    <div class="flex flex-column gap-2 mt-3">
+      <label for="formaPgto" class="font-bold text-sm text-gray-600">Forma de Pagamento</label>
+      <p-select
+        [options]="formasPagamento"
+        [(ngModel)]="formaPagamentoSelecionada"
+        optionLabel="label"
+        optionValue="value"
+        appendTo="body"
+        [style]="{ width: '100%' }"
+      >
+      </p-select>
+    </div>
+  </div>
+
+  <hr class="border-t border-gray-200 dark:border-gray-700 mt-4 mb-3" />
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-content-end gap-3">
+      <p-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="secondary"
+        [text]="true"
+        (onClick)="fecharModalPagamento()"
+      ></p-button>
+      <p-button
+        label="Confirmar Transação"
+        icon="pi pi-check"
+        severity="success"
+        (onClick)="confirmarPagamento()"
+      ></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog 
+  header="Detalhes do Pagamento" 
+  [(visible)]="exibirModalRecibo" 
+  [modal]="true" 
+  [style]="{ width: '450px' }" 
+  [draggable]="false" 
+  [resizable]="false">
+  
+  <div class="flex flex-column gap-3 pt-3" *ngIf="contaSelecionada && reciboSelecionado">
+    
+    <div class="flex align-items-center justify-content-center mb-2">
+      <i class="pi pi-check-circle text-green-500" style="font-size: 3rem;"></i>
+    </div>
+
+    <div class="field">
+      <label class="font-bold text-sm text-gray-500">Descrição</label>
+      <div class="text-xl font-semibold">{{ contaSelecionada.descricao }}</div>
+    </div>
+
+    <div class="field">
+      <label class="font-bold text-sm text-gray-500">Valor Pago</label>
+      <div class="text-2xl font-bold text-green-600">
+        {{ reciboSelecionado.valor | currency:'BRL':'symbol' }}
+      </div>
+    </div>
+
+    <div class="flex flex-row justify-content-between">
+        <div class="field">
+          <label class="font-bold text-sm text-gray-500">Data do Pagamento</label>
+          <div class="text-lg text-green-600 font-bold">
+            {{ reciboSelecionado.dataPagamento | date: 'dd/MM/yyyy' }}
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="font-bold text-sm text-gray-500">Forma de Pagamento</label>
+          <div class="text-lg">
+            <p-tag [value]="reciboSelecionado.formaPagamento" severity="info"></p-tag>
+          </div>
+        </div>
+    </div>
+
+    <div class="field">
+      <label class="font-bold text-sm text-gray-500">Motorista Favorecido</label>
+      <div class="text-lg">{{ contaSelecionada.motorista?.nome || 'N/A' }}</div>
+    </div>
+
+    <div class="field">
+      <label class="font-bold text-sm text-gray-500">Vencimento Original</label>
+      <div class="text-md text-gray-600">{{ contaSelecionada.dataVencimento | date: 'dd/MM/yyyy' }}</div>
+    </div>
+    
+  </div>
+
+  <hr class="border-t border-gray-200 dark:border-gray-700 mt-4 mb-3" />
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-content-end">
+      <p-button label="Fechar" icon="pi pi-times" severity="secondary" (onClick)="fecharModalRecibo()"></p-button>
+    </div>
+  </ng-template>
+
+</p-dialog>

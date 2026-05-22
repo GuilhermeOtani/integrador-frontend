@@ -24,7 +24,6 @@ import { AlunoCadastro } from '../aluno-cadastro/aluno-cadastro';
 import aluno from '../model/aluno';
 import { FaculdadeService } from '../../faculdade/faculdade-service';
 
-
 @Component({
   standalone: true,
   selector: 'app-aluno-listar',
@@ -46,7 +45,7 @@ import { FaculdadeService } from '../../faculdade/faculdade-service';
     ToolbarModule,
     InputTextModule,
     FormsModule,
-    AlunoCadastro
+    AlunoCadastro,
   ],
   providers: [AlunoService, MessageService, ConfirmationService],
   templateUrl: './aluno-listar.html',
@@ -58,8 +57,8 @@ export class AlunoListar {
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   alunoDialog: boolean = false;
-  alunos: aluno[] = []; 
-  aluno: aluno = {} as aluno; 
+  alunos: aluno[] = [];
+  aluno: aluno = {} as aluno;
   faculdades: any[] = [];
   selectedAlunos: aluno[] | null = null;
   submitted: boolean = false;
@@ -73,9 +72,9 @@ export class AlunoListar {
   }
 
   aoSalvarAluno() {
-      this.alunoDialog = false;
-      this.aluno = {} as aluno;
-      this.carregarAlunos(); 
+    this.alunoDialog = false;
+    this.aluno = {} as aluno;
+    this.carregarAlunos();
   }
 
   ngOnInit() {
@@ -100,9 +99,9 @@ export class AlunoListar {
   carregarAlunos() {
     this.alunoService.listarAlunos().subscribe({
       next: (data) => {
-      this.alunos = data;
+        this.alunos = data;
       },
-      error:  (err) => console.error('Erro ao carregar alunos:', err),
+      error: (err) => console.error('Erro ao carregar alunos:', err),
     });
   }
 
@@ -110,15 +109,15 @@ export class AlunoListar {
     this.faculdadeService.listarFaculdades().subscribe({
       next: (data) => {
         this.faculdades = data;
-        },
-        error:  (err) => console.error('Erro ao carregar faculdades:', err),
-      });
+      },
+      error: (err) => console.error('Erro ao carregar faculdades:', err),
+    });
   }
 
   editAluno(aluno: aluno) {
     this.aluno = { ...aluno };
 
-    if(this.aluno.faculdade) {
+    if (this.aluno.faculdade) {
       this.aluno.faculdadeId = this.aluno.faculdade.id;
     }
 
@@ -162,26 +161,36 @@ export class AlunoListar {
       message: 'Tem certeza que deseja excluir este aluno ' + aluno.nome + '?',
       header: 'Confirmar Exclusão',
       icon: 'pi pi-exclamation-triangle',
-      acceptButtonProps: {severity: 'danger', label: 'Sim'},
-      rejectButtonProps: {label: 'Não', severity: 'secondary', variant: 'text'},
+      acceptButtonProps: { severity: 'danger', label: 'Sim' },
+      rejectButtonProps: { label: 'Não', severity: 'secondary', variant: 'text' },
       accept: () => {
         this.alunoService.ExcluirAlunos(aluno.id).subscribe({
           next: () => {
-        this.messageService.add({severity: 'success', summary: 'Successful', detail: 'Aluno Deleted', life: 3000 });
-        this.carregarAlunos();
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Successful',
+              detail: 'Aluno Deleted',
+              life: 3000,
+            });
+            this.carregarAlunos();
+          },
+          error: (err) => {
+            console.error(err);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Failed to delete aluno',
+              life: 3000,
+            });
+          },
+        });
       },
-      error: (err) => {
-        console.error(err);
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'Failed to delete aluno', life: 3000 });
-      }
     });
   }
-});
-    }
   findIndexById(id: number): number {
     let index = -1;
     for (let i = 0; i < this.alunos.length; i++) {
-      if (this.alunos[i].id == id) { 
+      if (this.alunos[i].id == id) {
         index = i;
         break;
       }
