@@ -60,7 +60,7 @@ export class OnibusCadastro {
   atualizarOnibusExistente() {
     this.onibusService.EditarOnibus(this.onibus).subscribe({
         next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Onibus Atualizada!', life: 3000 });
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Onibus Atualizado!', life: 3000 });
             this.aoSalvar.emit(); 
         },
         error: (err) => console.error("Erro ao atualizar:", err)

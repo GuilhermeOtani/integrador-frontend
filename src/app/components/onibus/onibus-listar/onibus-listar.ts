@@ -108,7 +108,7 @@ export class OnibusListar {
       next: (data) => {
         this.onibuss = data;
       },
-      error: (err) => console.error('Erro ao carregar onibuss:', err),
+      error: (err) => console.error('Erro ao carregar onibus:', err),
     });
   }
 
@@ -117,7 +117,7 @@ export class OnibusListar {
       next: (data) => {
         this.onibuss = data;
       },
-      error: (err) => console.error('Erro ao carregar onibuss:', err),
+      error: (err) => console.error('Erro ao carregar onibus:', err),
     });
   }
 
@@ -143,11 +143,11 @@ export class OnibusListar {
 
   deleteSelectedOnibuss() {
     this.confirmationService.confirm({
-      message: 'Are you sure you want to delete the selected onibuss?',
-      header: 'Confirm',
+      message: 'Você tem certeza que deseja excluir os onibus selecionados?',
+      header: 'Confirmar',
       icon: 'pi pi-exclamation-triangle',
       rejectButtonProps: {
-        label: 'No',
+        label: 'Sim',
         severity: 'secondary',
         variant: 'text',
       },
@@ -160,8 +160,8 @@ export class OnibusListar {
         this.selectedOnibus = null;
         this.messageService.add({
           severity: 'success',
-          summary: 'Successful',
-          detail: 'Onibus Deleted',
+          summary: 'Successo',
+          detail: 'Onibus Deletedo',
           life: 3000,
         });
       },
@@ -185,8 +185,8 @@ export class OnibusListar {
           next: () => {
             this.messageService.add({
               severity: 'success',
-              summary: 'Successful',
-              detail: 'Onibus Deleted',
+              summary: 'Successo',
+              detail: 'Onibus Deletedo',
               life: 3000,
             });
             this.carregarOnibuss();
@@ -196,7 +196,7 @@ export class OnibusListar {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'Failed to delete onibus',
+              detail: 'Erro ao deletar onibus',
               life: 3000,
             });
           },

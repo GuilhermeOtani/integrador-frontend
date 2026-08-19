@@ -18,7 +18,6 @@ import { InputNumber, InputNumberModule } from 'primeng/inputnumber';
 })
 export class MotoristaCadastro {
   @Input() motorista: any = {}; 
-  @Input() onibus: any[] = [];
   @Output() aoSalvar = new EventEmitter<void>(); 
   @Output() aoCancelar = new EventEmitter<void>(); 
 

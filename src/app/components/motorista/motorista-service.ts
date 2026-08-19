@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import Motorista from './model/motorista';
 
 
 @Injectable({
@@ -14,20 +15,20 @@ export class MotoristaService {
 
   constructor(private httpCliente: HttpClient) {}
 
-  listarMotoristas(): Observable<any[]> {
-    return this.httpCliente.get<any[]>(`${this.urlUsuario}/listar`);
+  listarMotoristas(): Observable<Motorista[]> {
+    return this.httpCliente.get<Motorista[]>(`${this.urlUsuario}/listar`);
   }
 
-  CadastroMotoristas(motorista: any): Observable<any> {
-    return this.httpCliente.post<any>(`${this.urlUsuario}/salvar-motorista`, motorista);
+  CadastroMotoristas(motorista: Motorista): Observable<Motorista> {
+    return this.httpCliente.post<Motorista>(`${this.urlUsuario}/salvar-motorista`, motorista);
   }
 
   ExcluirMotoristas(id: string | number):Observable<void>{
-    return this.httpCliente.delete<any>(`${this.urlUsuario}/deletar-motorista/${id}`);
+    return this.httpCliente.delete<void>(`${this.urlUsuario}/deletar-motorista/${id}`);
   }
 
-  EditarMotoristas(motorista:any):Observable<any>{
-    return this.httpCliente.put<any>(`${this.urlUsuario}/atualizar-motorista/${motorista.id}`,motorista);
+  EditarMotoristas(motorista: Motorista):Observable<Motorista>{
+    return this.httpCliente.put<Motorista>(`${this.urlUsuario}/atualizar-motorista/${motorista.id}`,motorista);
   }
 
 }

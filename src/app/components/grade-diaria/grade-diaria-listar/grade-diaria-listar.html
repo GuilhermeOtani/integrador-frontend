@@ -1,0 +1,155 @@
+<div class="card">
+  <p-toast />
+  
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+      <p-button severity="danger" label="Excluir" icon="pi pi-trash" outlined (onClick)="deleteSelectedGrades()" [disabled]="!selectedGrade || !selectedGrade.length" />
+    </ng-template>
+    <ng-template #end>
+      <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Importar" chooseLabel="Importar" auto customUpload class="mr-2 inline-block" [chooseButtonProps]="{ severity: 'secondary' }" />
+      <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+    </ng-template>
+  </p-toolbar>
+
+  <p-table #dt [value]="grades" [rows]="10" [columns]="cols" [paginator]="true" [globalFilterFields]="['diaSemana', 'descricao']" [tableStyle]="{ 'min-width': '75rem' }" [(selection)]="selectedGrade" [rowHover]="true" dataKey="id" currentPageReportTemplate="Exibindo {first} a {last} de {totalRecords} registros" [showCurrentPageReport]="true">
+    <ng-template #caption>
+      <div class="flex flex-wrap gap-2 items-center justify-between">
+        <h4 class="m-0 font-bold text-lg text-color">Gerenciar Grades Diárias</h4>
+        <p-iconField iconPosition="left">
+          <p-inputIcon styleClass="pi pi-search" />
+          <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Pesquisar..." />
+        </p-iconField>
+      </div>
+    </ng-template>
+
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem"><p-tableHeaderCheckbox /></th>
+        <th pSortableColumn="id" class="text-center">Id <p-sortIcon field="id" /></th>
+        <th pSortableColumn="diaSemana" class="text-center">Dia da Semana <p-sortIcon field="diaSemana" /></th>
+        
+        <th class="text-center">Descrição</th>
+        
+        <th class="text-center">Qtd. Viagens</th>
+        <th class="text-center w-[140px]">Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-grade>
+      <tr>
+        <td><p-tableCheckbox [value]="grade" /></td>
+        <td class="text-center">{{ grade.id }}</td>
+        <td class="text-center"><p-tag [value]="grade.diaSemana" severity="info"></p-tag></td>
+        
+        <td class="text-center">{{ grade.descricao || 'Sem Descrição' }}</td>
+        
+        <td class="text-center"><span class="font-bold">{{ grade.viagens?.length || 0 }}</span></td>
+        <td class="text-center">
+          <div class="flex items-center justify-center gap-2">
+            <p-button icon="pi pi-search" severity="info" [rounded]="true" [outlined]="true" (click)="abrirDetalhes(grade)" />
+            <p-button icon="pi pi-pencil" severity="success" [rounded]="true" [outlined]="true" (click)="editGrade(grade)" />
+            <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteGrade(grade)" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <p-dialog [(visible)]="gradeDialog" [style]="{ width: '900px' }" header="Gerenciar Grade Diária" [modal]="true">
+    <ng-template #content>
+      <app-grade-diaria-cadastro *ngIf="gradeDialog" [grade]="grade" (aoSalvar)="aoSalvarGrade()" (aoCancelar)="hideDialog()"></app-grade-diaria-cadastro>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Modal de Detalhes Atualizado (Corrigido para o Tema Escuro) -->
+  <p-dialog [(visible)]="detalhesDialog" [style]="{ width: '850px' }" header="Visão Geral da Grade" [modal]="true" [dismissableMask]="true">
+    <ng-template #content>
+      <div *ngIf="gradeSelecionadaParaDetalhes" class="flex flex-col gap-5 pt-2">
+        
+        <!-- Mini Dashboard nos Detalhes -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+          
+          <!-- Card: Dia da Semana -->
+          <div class="p-4 rounded-xl border border-gray-700 flex items-center gap-4">
+            <div class="bg-blue-900/40 p-3 rounded-lg text-blue-400">
+              <i class="pi pi-calendar text-2xl"></i>
+            </div>
+            <div>
+              <span class="block text-xs uppercase font-bold text-gray-400 mb-1">Dia da Semana</span>
+              <p-tag [value]="gradeSelecionadaParaDetalhes.diaSemana" severity="info"></p-tag>
+            </div>
+          </div>
+
+          <!-- Card: Total de Viagens -->
+          <div class="p-4 rounded-xl border border-gray-700 flex items-center gap-4">
+            <div class="bg-green-900/40 p-3 rounded-lg text-green-400">
+              <i class="pi pi-map-marker text-2xl"></i>
+            </div>
+            <div>
+              <span class="block text-xs uppercase font-bold text-gray-400 mb-1">Rotas Escaladas</span>
+              <strong class="text-xl text-white">{{ gradeSelecionadaParaDetalhes.viagens?.length || 0 }}</strong>
+            </div>
+          </div>
+
+          <!-- Card: Descrição -->
+          <div class="p-4 rounded-xl border border-gray-700 flex items-start gap-4 col-span-1 md:col-span-3">
+            <div class="bg-purple-900/40 p-3 rounded-lg text-purple-400">
+              <i class="pi pi-align-left text-xl"></i>
+            </div>
+            <div class="flex-1">
+              <span class="block text-xs uppercase font-bold text-gray-400 mb-1">Descrição / Observações</span>
+              <p class="text-white text-base m-0">{{ gradeSelecionadaParaDetalhes.descricao || 'Nenhuma descrição fornecida.' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela de Viagens -->
+        <div>
+          <h3 class="text-lg font-bold text-color mb-3 flex items-center gap-2">
+            <i class="pi pi-list"></i> Veículos e Motoristas Escalados
+          </h3>
+          <p-table [value]="gradeSelecionadaParaDetalhes.viagens" styleClass="p-datatable-striped" responsiveLayout="scroll">
+            <ng-template pTemplate="header">
+              <tr>
+                <th class="text-left">Rota</th>
+                <th class="text-left">Veículo</th>
+                <th class="text-left">Motorista</th>
+                <th class="text-left">Faculdades</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-viagem>
+              <tr>
+                <td class="font-semibold text-color text-left">{{ viagem.rotaNome }}</td>
+                <td class="text-color text-left">
+                  <i class="pi pi-car text-gray-400 mr-2 text-sm"></i>{{ viagem.onibusPlaca || viagem.numeroIdentificacao }}
+                </td>
+                <td class="text-color text-left">
+                  <i class="pi pi-id-card text-gray-400 mr-2 text-sm"></i>{{ viagem.motoristaNome }}
+                </td>
+                <td class="text-left">
+                  <div class="flex gap-1 flex-wrap items-center">
+                    <ng-container *ngIf="viagem.faculdades && viagem.faculdades.length > 0; else semFaculListar">
+                      <p-tag *ngFor="let faculdade of viagem.faculdades" [value]="extrairNomeFaculdade(faculdade)" severity="info" [rounded]="true"></p-tag>
+                    </ng-container>
+                    <ng-template #semFaculListar>
+                      <span class="text-gray-500 text-sm italic">Nenhuma faculdade</span>
+                    </ng-template>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="4" class="text-center p-4 text-color">Nenhuma viagem cadastrada nesta grade.</td></tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </ng-template>
+    <ng-template #footer>
+      <p-button label="Fechar Detalhes" icon="pi pi-times" severity="secondary" text (onClick)="detalhesDialog = false" />
+    </ng-template>
+  </p-dialog>
+
+  <p-confirmdialog [style]="{ width: '450px' }" />
+</div>

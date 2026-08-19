@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import Faculdade from './model/faculdade';
 
 @Injectable({
   providedIn: 'root',
@@ -12,20 +13,20 @@ export class FaculdadeService {
 
   constructor(private httpCliente: HttpClient) {}
 
-  listarFaculdades(): Observable<any[]> {
-    return this.httpCliente.get<any[]>(`${this.urlUsuario}/listar`);
+  listarFaculdades(): Observable<Faculdade[]> {
+    return this.httpCliente.get<Faculdade[]>(`${this.urlUsuario}/listar`);
   }
 
-  CadastroFaculdades(faculdade: any): Observable<any> {
-    return this.httpCliente.post<any>(`${this.urlUsuario}/salvar-faculdade`, faculdade);
+  CadastroFaculdades(faculdade: Faculdade): Observable<Faculdade> {
+    return this.httpCliente.post<Faculdade>(`${this.urlUsuario}/salvar-faculdade`, faculdade);
   }
 
   ExcluirFaculdades(id: string | number):Observable<void>{
-    return this.httpCliente.delete<any>(`${this.urlUsuario}/deletar-faculdade/${id}`);
+    return this.httpCliente.delete<void>(`${this.urlUsuario}/deletar-faculdade/${id}`);
   }
 
-  EditarFaculdades(faculdade:any):Observable<any>{
-    return this.httpCliente.put<any>(`${this.urlUsuario}/atualizar-faculdade/${faculdade.id}`,faculdade);
+  EditarFaculdades(faculdade: Faculdade):Observable<Faculdade>{
+    return this.httpCliente.put<Faculdade>(`${this.urlUsuario}/atualizar-faculdade/${faculdade.id}`,faculdade);
   }
 
 }

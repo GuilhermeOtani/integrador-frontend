@@ -2,7 +2,7 @@
   <p-toast />
   <p-toolbar class="mb-6">
     <ng-template #start>
-      <p-button label="New" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+      <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
       <p-button
         severity="danger"
         label="Delete"
@@ -18,13 +18,13 @@
         accept="image/*"
         [maxFileSize]="1000000"
         label="Import"
-        chooseLabel="Import"
+        chooseLabel="Importar"
         auto
         customUpload
         class="mr-2 inline-block"
         [chooseButtonProps]="{ severity: 'secondary' }"
       />
-      <p-button label="Export" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+      <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
     </ng-template>
   </p-toolbar>
   <p-table
@@ -38,7 +38,7 @@
     [(selection)]="selectedAlunos"
     [rowHover]="true"
     dataKey="id"
-    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
     [showCurrentPageReport]="true"
   >
     <ng-template #caption>
@@ -50,7 +50,7 @@
             pInputText
             type="text"
             (input)="dt.filterGlobal($event.target.value, 'contains')"
-            placeholder="Search..."
+            placeholder="Pesquisar..."
           />
         </p-iconfield>
       </div>

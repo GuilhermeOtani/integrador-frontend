@@ -6,6 +6,8 @@ import { OnibusListar } from './components/onibus/onibus-listar/onibus-listar';
 import { MotoristaListar } from './components/motorista/motorista-listar/motorista-listar';
 import { ContaPagarComponent } from './components/conta-pagar/conta-pagar';
 import { PontoEmbarqueListar } from './components/ponto-embarque/ponto-embarque-listar/ponto-embarque-listar';
+import { RotaListar } from './components/rota/rota-listar/rota-listar';
+import { GradeDiariaListar } from './components/grade-diaria/grade-diaria-listar/grade-diaria-listar';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'alunos', pathMatch: 'full' },
@@ -14,6 +16,9 @@ export const routes: Routes = [
   { path: 'onibuss', component: OnibusListar },
   { path: 'motoristas', component: MotoristaListar },
   { path: 'contapagar', component: ContaPagarComponent },
-    { path: 'pontosembarque', component: PontoEmbarqueListar },
+  { path: 'pontosembarque', component: PontoEmbarqueListar },
+  { path: 'rotas', component: RotaListar },
+   { path: 'grades', component: GradeDiariaListar },
+  
 
 ];

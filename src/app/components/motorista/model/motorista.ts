@@ -8,8 +8,6 @@ export default class motorista {
   cpfCnpj!: string;
   cnh!: string;
   salario!: number;
-  onibusId!: number;
-  onibus!: onibus;
   numeroIdentificacao!: string;
 }
 

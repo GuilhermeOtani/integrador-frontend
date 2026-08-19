@@ -126,25 +126,25 @@ export class AlunoListar {
 
   deleteSelectedAlunos() {
     this.confirmationService.confirm({
-      message: 'Are you sure you want to delete the selected alunos?',
-      header: 'Confirm',
+      message: 'Você tem certeza que quer deletar o aluno selecionado?',
+      header: 'Confirmar',
       icon: 'pi pi-exclamation-triangle',
       rejectButtonProps: {
-        label: 'No',
+        label: 'Não',
         severity: 'secondary',
         variant: 'text',
       },
       acceptButtonProps: {
         severity: 'danger',
-        label: 'Yes',
+        label: 'Sim',
       },
       accept: () => {
         this.alunos = this.alunos.filter((val: aluno) => !this.selectedAlunos?.includes(val));
         this.selectedAlunos = null;
         this.messageService.add({
           severity: 'success',
-          summary: 'Successful',
-          detail: 'Alunos Deleted',
+          summary: 'Successo',
+          detail: 'Alunos Deletados',
           life: 3000,
         });
       },
@@ -168,8 +168,8 @@ export class AlunoListar {
           next: () => {
             this.messageService.add({
               severity: 'success',
-              summary: 'Successful',
-              detail: 'Aluno Deleted',
+              summary: 'Successo',
+              detail: 'Aluno Deletado',
               life: 3000,
             });
             this.carregarAlunos();

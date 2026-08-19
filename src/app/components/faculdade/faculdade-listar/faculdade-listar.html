@@ -2,10 +2,10 @@
   <p-toast />
   <p-toolbar class="mb-6">
     <ng-template #start>
-      <p-button label="New" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+      <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
       <p-button
         severity="danger"
-        label="Delete"
+        label="Excluir"
         icon="pi pi-trash"
         outlined
         (onClick)="deleteSelectedFaculdades()"
@@ -17,16 +17,17 @@
         mode="basic"
         accept="image/*"
         [maxFileSize]="1000000"
-        label="Import"
-        chooseLabel="Import"
+        label="Importar"
+        chooseLabel="Importar"
         auto
         customUpload
         class="mr-2 inline-block"
         [chooseButtonProps]="{ severity: 'secondary' }"
       />
-      <p-button label="Export" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+      <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
     </ng-template>
   </p-toolbar>
+
   <p-table
     #dt
     [value]="faculdades"
@@ -38,7 +39,7 @@
     [(selection)]="selectedFaculdades"
     [rowHover]="true"
     dataKey="id"
-    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    currentPageReportTemplate="Exibindo {first} a {last} de {totalRecords} registros"
     [showCurrentPageReport]="true"
   >
     <ng-template #caption>
@@ -50,11 +51,12 @@
             pInputText
             type="text"
             (input)="dt.filterGlobal($event.target.value, 'contains')"
-            placeholder="Search..."
+            placeholder="Pesquisar..."
           />
         </p-iconfield>
       </div>
     </ng-template>
+
     <ng-template #header>
       <tr>
         <th style="width: 3rem">
@@ -67,7 +69,7 @@
         <th style="min-width: 16rem" class="text-center">
           Nome
         </th>
-        <th  style="min-width: 12rem" class="text-center">
+        <th style="min-width: 12rem" class="text-center">
           Endereço
         </th>
         <th style="min-width: 10rem" class="text-center">Ações</th>
@@ -83,23 +85,23 @@
         <td style="min-width: 16rem" class="text-center">{{ faculdade.nome }}</td>
         <td style="min-width: 12rem" class="text-center">{{ faculdade.endereco }}</td>
         
-            <td class="text-center">
+        <td class="text-center">
           <div class="flex justify-center">
-          <p-button
-            icon="pi pi-pencil"
-            class="mr-2"
-            [rounded]="true"
-            [outlined]="true"
-            (click)="editFaculdade(faculdade)"
-          />
-          <p-button
-            icon="pi pi-trash"
-            severity="danger"
-            [rounded]="true"
-            [outlined]="true"
-            (click)="deleteFaculdade(faculdade)"
-          />
-            </div>
+            <p-button
+              icon="pi pi-pencil"
+              class="mr-2"
+              [rounded]="true"
+              [outlined]="true"
+              (click)="editFaculdade(faculdade)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              [rounded]="true"
+              [outlined]="true"
+              (click)="deleteFaculdade(faculdade)"
+            />
+          </div>
         </td>
       </tr>
     </ng-template>
@@ -108,7 +110,7 @@
   <p-dialog
     [(visible)]="faculdadeDialog"
     [style]="{ width: '450px' }"
-    header="Detalhes do Faculdade"
+    header="Detalhes da Faculdade"
     [modal]="true"
   >
     <ng-template #content>

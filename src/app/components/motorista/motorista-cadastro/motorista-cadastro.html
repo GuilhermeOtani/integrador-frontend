@@ -61,20 +61,6 @@
     </small>
 </div>
 
-    <div class="col-span-6">
-      <label for="onibus" class="block font-bold mb-3">Ônibus</label>
-      <p-select
-        id="onibus"
-        [options]="onibus"
-        [(ngModel)]="motorista.onibusId"
-        optionLabel="numeroIdentificacao"
-        optionValue="id"
-        placeholder="Selecione um Ônibus"
-        [fluid]="true"
-        appendTo="body"
-      ></p-select>
-      <small class="text-red-500" *ngIf="submitted && !motorista.onibusId">O Ônibus é obrigatório.</small>
-    </div>
   </div>
 
   <hr class="border-t border-gray-200 dark:border-gray-700 mt-2" />

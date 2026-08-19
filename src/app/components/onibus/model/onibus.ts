@@ -1,4 +1,3 @@
-import motorista from "../../motorista/model/motorista";
 
 export default class onibus {
     id!: number;

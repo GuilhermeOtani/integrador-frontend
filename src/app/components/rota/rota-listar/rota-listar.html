@@ -1,0 +1,251 @@
+<div class="card">
+  <p-toast />
+  
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+      <p-button
+        severity="danger"
+        label="Excluir"
+        icon="pi pi-trash"
+        outlined
+        (onClick)="deleteSelectedRotas()"
+        [disabled]="!selectedRotas || !selectedRotas.length"
+      />
+    </ng-template>
+    <ng-template #end>
+      <p-fileUpload
+        mode="basic"
+        accept="image/*"
+        [maxFileSize]="1000000"
+        label="Importar"
+        chooseLabel="Importar"
+        auto
+        customUpload
+        class="mr-2 inline-block"
+        [chooseButtonProps]="{ severity: 'secondary' }"
+      />
+      <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+    </ng-template>
+  </p-toolbar>
+
+  <p-table
+    #dt
+    [value]="rotas"
+    [rows]="10"
+    [paginator]="true"
+    [globalFilterFields]="['nome', 'descricao', 'faculdade.nome']"
+    [tableStyle]="{ 'min-width': '75rem' }"
+    [(selection)]="selectedRotas"
+    [rowHover]="true"
+    dataKey="id"
+    currentPageReportTemplate="Exibindo {first} a {last} de {totalRecords} registros"
+    [showCurrentPageReport]="true"
+  >
+    <ng-template #caption>
+      <div class="flex items-center justify-between">
+        <h5 class="m-0 font-bold text-lg text-color">Gerenciar Rotas</h5>
+        <p-iconfield>
+          <p-inputicon class="pi pi-search" />
+          <input
+            pInputText
+            type="text"
+            (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+            placeholder="Pesquisar..."
+          />
+        </p-iconfield>
+      </div>
+    </ng-template>
+
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem">
+          <p-tableHeaderCheckbox />
+        </th>
+        <th pSortableColumn="id" style="min-width: 5rem" class="text-center">
+          Id
+          <p-sortIcon field="id" />
+        </th>
+        <th pSortableColumn="nome" style="min-width: 16rem" class="text-center">
+          Nome da Rota
+          <p-sortIcon field="nome" />
+        </th>
+        <th style="min-width: 16rem" class="text-center">Descrição</th>
+        <th pSortableColumn="faculdade.nome" style="min-width: 16rem" class="text-center">
+          Faculdade Destino
+          <p-sortIcon field="faculdade.nome" />
+        </th>
+        <th style="min-width: 10rem" class="text-center">Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-rota>
+      <tr>
+        <td style="width: 3rem">
+          <p-tableCheckbox [value]="rota" />
+        </td>
+        <td class="text-center">{{ rota.id }}</td>
+        <td class="text-center font-medium">{{ rota.nome }}</td>
+        <td class="text-center">{{ rota.descricao || 'Sem Descrição' }}</td>
+        <td class="text-center">
+          <p-tag [value]="rota.faculdade?.nome || 'Sem Destino'" [severity]="rota.faculdade?.nome ? 'info' : 'secondary'" />
+        </td>
+
+        <td class="text-center">
+          <div class="flex items-center justify-center gap-2">
+            <p-button
+              icon="pi pi-search"
+              [rounded]="true"
+              [outlined]="true"
+              severity="info"
+              (onClick)="verDetalhes(rota)"
+            />
+            <p-button
+              icon="pi pi-pencil"
+              [rounded]="true"
+              [outlined]="true"
+              severity="success"
+              (click)="editRota(rota)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              [rounded]="true"
+              [outlined]="true"
+              (click)="deleteRota(rota)"
+            />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <p-dialog
+    [(visible)]="rotaDialog"
+    [style]="{ width: '800px' }"
+    header="Detalhes da Rota"
+    [modal]="true"
+  >
+    <ng-template #content>
+      <app-rota-cadastro
+        *ngIf="rotaDialog"
+        [rota]="rota"
+        (aoSalvar)="aoSalvarRota()"
+        (aoCancelar)="hideDialog()"
+      >
+      </app-rota-cadastro>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Modal de Detalhes Melhorado -->
+  <p-dialog
+    [(visible)]="detalhesDialog"
+    [style]="{ width: '700px' }"
+    header="Visão Geral da Rota"
+    [modal]="true"
+    styleClass="p-fluid"
+    [dismissableMask]="true"
+  >
+    <ng-template pTemplate="content">
+      <div class="flex flex-col gap-5 pt-2" *ngIf="rotaDetalhe">
+        
+        <!-- Mini Dashboard nos Detalhes -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+          
+          <!-- Card: Nome da Rota -->
+          <div class="p-4 rounded-xl border border-gray-700 flex items-center gap-4">
+            <div class="bg-blue-900/40 p-3 rounded-lg text-blue-400">
+              <i class="pi pi-map text-2xl"></i>
+            </div>
+            <div>
+              <span class="block text-xs uppercase font-bold text-gray-400 mb-1">Nome da Rota</span>
+              <strong class="text-xl text-white">{{ rotaDetalhe.nome }}</strong>
+            </div>
+          </div>
+
+          <!-- Card: Faculdade Destino -->
+          <div class="p-4 rounded-xl border border-gray-700 flex items-center gap-4">
+            <div class="bg-green-900/40 p-3 rounded-lg text-green-400">
+              <i class="pi pi-building text-2xl"></i>
+            </div>
+            <div>
+              <span class="block text-xs uppercase font-bold text-gray-400 mb-1">Faculdade Destino</span>
+              <p-tag [value]="rotaDetalhe.faculdade?.nome || 'Não informada'" [severity]="rotaDetalhe.faculdade?.nome ? 'success' : 'secondary'"></p-tag>
+            </div>
+          </div>
+
+          <!-- Card: Descrição -->
+          <div class="p-4 rounded-xl border border-gray-700 flex items-start gap-4 col-span-1 md:col-span-2">
+            <div class="bg-purple-900/40 p-3 rounded-lg text-purple-400">
+              <i class="pi pi-align-left text-xl"></i>
+            </div>
+            <div class="flex-1">
+              <span class="block text-xs uppercase font-bold text-gray-400 mb-1">Descrição</span>
+              <p class="text-white text-base m-0">{{ rotaDetalhe.descricao || 'Nenhuma descrição fornecida.' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Itinerário (Visual de Timeline) -->
+        <div class="mt-2">
+          <h3 class="text-lg font-bold text-color mb-3 flex items-center gap-2">
+            <i class="pi pi-directions text-primary"></i> Itinerário (Pontos de Embarque)
+          </h3>
+          
+          <div class="bg-gray-800/30 border border-gray-700 rounded-xl p-5">
+            <ng-container
+              *ngIf="rotaDetalhe.pontosEmbarque && rotaDetalhe.pontosEmbarque.length > 0; else semPontos"
+            >
+              <div class="relative flex flex-col">
+                <div
+                  *ngFor="let ponto of rotaDetalhe.pontosEmbarque; let i = index; let last = last"
+                  class="flex items-start gap-4 relative"
+                  [class.pb-6]="!last"
+                >
+                  <!-- Linha conectora vertical -->
+                  <div
+                    *ngIf="!last"
+                    class="absolute left-[15px] top-8 bottom-0 w-[2px] bg-primary/30"
+                  ></div>
+
+                  <!-- Bolinha do Número -->
+                  <div
+                    class="flex-none bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg z-10 ring-4 ring-gray-900"
+                    style="width: 32px; height: 32px; min-width: 32px"
+                  >
+                    {{ i + 1 }}
+                  </div>
+
+                  <!-- Nome do Ponto -->
+                  <div class="flex flex-col pt-1">
+                    <span class="text-base font-medium text-gray-200">{{ ponto.descricao }}</span>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+
+            <ng-template #semPontos>
+              <div class="text-center py-4">
+                <i class="pi pi-map-marker text-gray-600 text-3xl mb-3 block"></i>
+                <span class="text-gray-400 italic block text-base">Nenhum ponto de embarque definido para esta rota.</span>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Fechar Detalhes"
+        icon="pi pi-times"
+        [text]="true"
+        severity="secondary"
+        (onClick)="detalhesDialog = false"
+      />
+    </ng-template>
+    
+  </p-dialog>
+
+  <p-confirmdialog [style]="{ width: '450px' }" />
+</div>

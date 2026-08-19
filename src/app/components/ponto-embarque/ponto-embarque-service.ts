@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { PontoEmbarque } from './model/ponto-embarque';
 
 @Injectable({
   providedIn: 'root',
@@ -12,20 +13,20 @@ export class PontoEmbarqueService {
 
   constructor(private httpCliente: HttpClient) {}
 
-  listarPontoEmbarque(): Observable<any[]> {
-    return this.httpCliente.get<any[]>(`${this.urlUsuario}/listar`);
+  listarPontoEmbarque(): Observable<PontoEmbarque[]> {
+    return this.httpCliente.get<PontoEmbarque[]>(`${this.urlUsuario}/listar`);
   }
 
-  CadastroPontoEmbarque(pontoEmbarque: any): Observable<any> {
-    return this.httpCliente.post<any>(`${this.urlUsuario}/salvar-pontoEmbarque`, pontoEmbarque);
+  CadastroPontoEmbarque(pontoEmbarque: PontoEmbarque): Observable<PontoEmbarque> {
+    return this.httpCliente.post<PontoEmbarque>(`${this.urlUsuario}/salvar-pontoEmbarque`, pontoEmbarque);
   }
 
   ExcluirPontoEmbarque(id: string | number):Observable<void>{
-    return this.httpCliente.delete<any>(`${this.urlUsuario}/deletar-pontoEmbarque/${id}`);
+    return this.httpCliente.delete<void>(`${this.urlUsuario}/deletar-pontoEmbarque/${id}`);
   }
 
-  EditarPontoEmbarque(pontoEmbarque:any):Observable<any>{
-    return this.httpCliente.put<any>(`${this.urlUsuario}/atualizar-pontoEmbarque/${pontoEmbarque.id}`,pontoEmbarque);
+  EditarPontoEmbarque(pontoEmbarque: PontoEmbarque):Observable<PontoEmbarque>{
+    return this.httpCliente.put<PontoEmbarque>(`${this.urlUsuario}/atualizar-pontoEmbarque/${pontoEmbarque.id}`,pontoEmbarque);
   }
   
 }

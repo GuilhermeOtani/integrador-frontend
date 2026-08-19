@@ -1,33 +1,29 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-
+import Onibus from './model/onibus';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class OnibusService {
-
-  
-  private urlUsuario: string = "http://localhost:8080/onibus";
-
+  private urlUsuario: string = 'http://localhost:8080/onibus';
 
   constructor(private httpCliente: HttpClient) {}
 
-  listarOnibus(): Observable<any[]> {
-    return this.httpCliente.get<any[]>(`${this.urlUsuario}/listar`);
+  listarOnibus(): Observable<Onibus[]> {
+    return this.httpCliente.get<Onibus[]>(`${this.urlUsuario}/listar`);
   }
 
-  CadastroOnibus(Onibus: any): Observable<any> {
-    return this.httpCliente.post<any>(`${this.urlUsuario}/salvar-onibus`, Onibus);
+  CadastroOnibus(Onibus: Onibus): Observable<Onibus> {
+    return this.httpCliente.post<Onibus>(`${this.urlUsuario}/salvar-onibus`, Onibus);
   }
 
-  ExcluirOnibus(id: string | number):Observable<void>{
-    return this.httpCliente.delete<any>(`${this.urlUsuario}/deletar-onibus/${id}`);
+  ExcluirOnibus(id: string | number): Observable<void> {
+    return this.httpCliente.delete<void>(`${this.urlUsuario}/deletar-onibus/${id}`);
   }
 
-  EditarOnibus(Onibus:any):Observable<any>{
-    return this.httpCliente.put<any>(`${this.urlUsuario}/atualizar-onibus/${Onibus.id}`,Onibus);
+  EditarOnibus(Onibus: Onibus): Observable<Onibus> {
+    return this.httpCliente.put<Onibus>(`${this.urlUsuario}/atualizar-onibus/${Onibus.id}`, Onibus);
   }
-
 }

@@ -79,7 +79,6 @@ export class MotoristaListar {
 
   ngOnInit() {
     this.carregarMotoristas();
-    this.carregarOnibus();
     this.cols = [
       { field: 'id', header: 'ID', customExportHeader: 'Motorista ID' },
       { field: 'nome', header: 'Nome' },
@@ -106,22 +105,10 @@ export class MotoristaListar {
     });
   }
 
-  carregarOnibus() {
-    this.onibusService.listarOnibus().subscribe({
-      next: (data) => {
-        this.onibuss = data;
-      },
-      error: (err) => console.error('Erro ao carregar onibuss:', err),
-    });
-  }
+ 
 
   editMotorista(motorista: motorista) {
     this.motorista = { ...motorista };
-
-    if (this.motorista.onibus) {
-      this.motorista.onibusId = this.motorista.onibus.id;
-    }
-
     this.motoristaDialog = true;
   }
 
@@ -172,7 +159,7 @@ export class MotoristaListar {
             this.messageService.add({
               severity: 'success',
               summary: 'Successful',
-              detail: 'Motorista Deleted',
+              detail: 'Motorista Deletado',
               life: 3000,
             });
             this.carregarMotoristas();

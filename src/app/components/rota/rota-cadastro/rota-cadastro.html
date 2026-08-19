@@ -1,0 +1,84 @@
+<div class="flex flex-col gap-6 pt-2 px-1">
+  <div class="grid grid-cols-12 gap-4">
+    
+    <div class="col-span-12 md:col-span-6">
+      <label for="nome" class="block font-bold mb-3">Nome da Rota</label>
+      <input
+        type="text"
+        pInputText
+        id="nome"
+        [(ngModel)]="rota.nome"
+        fluid
+        autofocus
+        placeholder="Ex: Rota Noturna UTFPR"
+      />
+      <small class="text-red-500" *ngIf="submitted && !rota.nome">
+        O Nome da Rota é obrigatório.
+      </small>
+    </div>
+
+    <div class="col-span-12 md:col-span-6">
+      <label for="descricao" class="block font-bold mb-3">Descrição</label>
+      <input 
+        type="text" 
+        pInputText 
+        id="descricao" 
+        [(ngModel)]="rota.descricao" 
+        fluid 
+        placeholder="Ex: Rota passando pelo centro"
+      />
+    </div>
+
+    <div class="col-span-12 md:col-span-6">
+      <label for="faculdade" class="block font-bold mb-3">Faculdade Destino</label>
+      <p-select
+        id="faculdade"
+        [options]="faculdades"
+        [(ngModel)]="rota.faculdade"
+        optionLabel="nome"
+        placeholder="Selecione a Faculdade"
+        [filter]="true"
+        [showClear]="true"
+        [fluid]="true"
+        appendTo="body"
+      >
+      </p-select>
+      <small class="text-red-500" *ngIf="submitted && !rota.faculdade">
+        A Faculdade Destino é obrigatória.
+      </small>
+    </div>
+
+
+    <div class="col-span-12">
+      <label class="block font-bold mb-3">Itinerário (Pontos de Embarque)</label>
+      <p-pickList 
+        [source]="pontosDisponiveis" 
+        [target]="pontosSelecionados" 
+        sourceHeader="Pontos Disponíveis" 
+        targetHeader="Pontos Selecionados (Ordem da Rota)" 
+        [dragdrop]="true" 
+        [responsive]="true" 
+        [sourceStyle]="{ height: '15rem' }" 
+        [targetStyle]="{ height: '15rem' }"
+      >
+        <ng-template let-ponto pTemplate="item">
+          <div class="flex items-center gap-2 p-2">
+            <i class="pi pi-map-marker text-primary"></i>
+            <span>{{ ponto.descricao }}</span>
+          </div>
+        </ng-template>
+      </p-pickList>
+      <small class="text-gray-500 block mt-2">
+        Arraste os pontos para a direita para adicioná-los à rota. Você pode reordenar a lista da direita para definir o trajeto exato.
+      </small>
+    </div>
+
+  </div>
+
+  <hr class="border-t border-gray-200 dark:border-gray-700 mt-2" />
+
+  <div class="flex justify-end gap-2">
+    <p-button label="Cancelar" icon="pi pi-times" text (onClick)="cancelar()" />
+    <p-button label="Salvar" icon="pi pi-check" (onClick)="confirmarSalvar()" />
+  </div>
+</div>

@@ -2,10 +2,10 @@
   <p-toast />
   <p-toolbar class="mb-6">
     <ng-template #start>
-      <p-button label="New" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+      <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
       <p-button
         severity="danger"
-        label="Delete"
+        label="Excluir"
         icon="pi pi-trash"
         outlined
         (onClick)="deleteSelectedOnibuss()"
@@ -17,16 +17,17 @@
         mode="basic"
         accept="image/*"
         [maxFileSize]="1000000"
-        label="Import"
-        chooseLabel="Import"
+        label="Importar"
+        chooseLabel="Importar"
         auto
         customUpload
         class="mr-2 inline-block"
         [chooseButtonProps]="{ severity: 'secondary' }"
       />
-      <p-button label="Export" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+      <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
     </ng-template>
   </p-toolbar>
+
   <p-table
     #dt
     [value]="onibuss"
@@ -38,7 +39,7 @@
     [(selection)]="selectedOnibus"
     [rowHover]="true"
     dataKey="id"
-    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    currentPageReportTemplate="Exibindo {first} a {last} de {totalRecords} registros"
     [showCurrentPageReport]="true"
   >
     <ng-template #caption>
@@ -50,12 +51,13 @@
             pInputText
             type="text"
             (input)="dt.filterGlobal($event.target.value, 'contains')"
-            placeholder="Search..."
+            placeholder="Pesquisar..."
           />
         </p-iconfield>
       </div>
     </ng-template>
-   <ng-template #header>
+
+    <ng-template #header>
       <tr>
         <th style="width: 3rem">
           <p-tableHeaderCheckbox />
@@ -64,7 +66,7 @@
           Id
           <p-sortIcon field="id" />
         </th>
-        <th style="min-width: 16rem" class="text-center">Numero de Identificação</th>
+        <th style="min-width: 16rem" class="text-center">Número de Identificação</th>
         <th style="min-width: 12rem" class="text-center">Placa</th>
         <th style="min-width: 12rem" class="text-center">Modelo</th>
         <th style="min-width: 12rem" class="text-center">Capacidade</th>
@@ -118,7 +120,9 @@
           </div>
         </td>
       </tr> 
-    </ng-template></p-table>
+    </ng-template>
+  </p-table>
+
   <p-dialog
     [(visible)]="onibusDialog"
     [style]="{ width: '450px' }"

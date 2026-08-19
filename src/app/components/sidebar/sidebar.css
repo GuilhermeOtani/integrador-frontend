@@ -1,8 +1,63 @@
+/* Remove a barra de rolagem visualmente mas mantém o scroll funcional */
 .no-scrollbar::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 .no-scrollbar {
-    -ms-overflow-style: none; 
-    scrollbar-width: none; 
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Estilo para os links da sidebar (Visual Flutuante Moderno) */
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  margin: 0.2rem 0; /* Espaçamento vertical entre os itens */
+  cursor: pointer;
+  border-radius: 10px; /* Cantos arredondados */
+  color: var(--surface-700);
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+  font-weight: 500;
+  border-left: 4px solid transparent; /* Borda invisível padrão */
+}
+
+/* Efeito de Hover e Ativo */
+.nav-link:hover, .nav-link.active-route {
+  background-color: var(--surface-100);
+  color: var(--primary-color);
+  border-left-color: var(--primary-color); /* Mostra a bordinha colorida */
+  padding-left: 0.75rem; /* Ajuste leve no padding para compensar a borda */
+}
+
+/* Ícones dentro dos links */
+.nav-link i {
+  font-size: 1.1rem;
+  color: var(--surface-500);
+  transition: color 0.2s;
+}
+
+.nav-link:hover i, .nav-link.active-route i {
+  color: var(--primary-color);
+}
+
+/* Estilo do Título do Tópico (Subtítulo) */
+.nav-category-title {
+  padding-left: 1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--surface-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Modo escuro (se estiver usando) */
+:host-context(.dark) .nav-link {
+  color: var(--surface-100);
+}
+:host-context(.dark) .nav-link:hover, :host-context(.dark) .nav-link.active-route {
+  background-color: var(--surface-800);
 }
