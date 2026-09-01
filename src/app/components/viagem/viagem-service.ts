@@ -2,17 +2,22 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import Viagem from '../viagem/model/viagem';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ViagemService {
-  private apiUrl = 'http://localhost:8080/viagem';
+  private readonly apiUrl = `${environment.apiUrl}/viagem`;
 
   constructor(private http: HttpClient) {}
 
   listarTodasViagens(): Observable<Viagem[]> {
     return this.http.get<Viagem[]>(`${this.apiUrl}/listar`);
+  }
+
+  listarMinhas(): Observable<Viagem[]> {
+    return this.http.get<Viagem[]>(`${this.apiUrl}/minhas`);
   }
 
   salvarViagem(viagem: Viagem): Observable<Viagem> {

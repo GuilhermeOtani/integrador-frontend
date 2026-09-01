@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import GradeDiaria  from '../grade-diaria/model/grade-diaria';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GradeDiariaService {
   
-  private apiUrl = 'http://localhost:8080/grade-diaria';
+  private readonly apiUrl = `${environment.apiUrl}/grade-diaria`;
 
   constructor(private http: HttpClient) { }
 

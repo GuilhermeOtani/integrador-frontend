@@ -2,13 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { PontoEmbarque } from './model/ponto-embarque';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PontoEmbarqueService {
 
-   private urlUsuario: string = "http://localhost:8080/ponto-embarque";
+  private readonly urlUsuario = `${environment.apiUrl}/ponto-embarque`;
 
 
   constructor(private httpCliente: HttpClient) {}

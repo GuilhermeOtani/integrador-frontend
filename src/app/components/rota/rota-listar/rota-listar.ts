@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, computed, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -18,6 +18,7 @@ import { ToolbarModule } from 'primeng/toolbar';
 import rota from '../model/rota';
 import { RotaService } from '../../rota/rota-service';
 import { RotaCadastro } from '../rota-cadastro/rota-cadastro';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   standalone: true,
@@ -47,6 +48,8 @@ export class RotaListar implements OnInit {
   private rotaService = inject(RotaService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
+  private readonly auth = inject(AuthService);
+  readonly podeEditar = computed(() => this.auth.temPapel('ADMIN'));
 
   rotaDialog: boolean = false;
   rotas: rota[] = [];

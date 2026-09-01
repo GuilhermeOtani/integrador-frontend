@@ -1,0 +1,64 @@
+<div class="login-page min-h-screen flex align-items-center justify-content-center p-4">
+  <form
+    class="surface-card border-round-2xl shadow-4 p-5 w-full border-1 surface-border"
+    style="max-width: 28rem"
+    [formGroup]="form"
+    (ngSubmit)="entrar()"
+  >
+    <div class="flex align-items-center gap-3 mb-5">
+      <div class="brand-mark flex align-items-center justify-content-center border-round-xl">
+        <i class="pi pi-send text-2xl text-white"></i>
+      </div>
+      <div>
+        <span class="block text-primary font-bold text-2xl">BusSystem</span>
+        <span class="text-color-secondary text-sm">Transporte universitário</span>
+      </div>
+    </div>
+
+    <h1 class="mt-0 mb-2 text-3xl">Entrar</h1>
+    <p class="text-color-secondary mt-0 mb-5">Use a conta criada pelo administrador.</p>
+
+    <label for="email" class="block font-semibold mb-2">E-mail</label>
+    <input
+      id="email"
+      pInputText
+      type="email"
+      autocomplete="username"
+      formControlName="email"
+      class="w-full"
+      [class.ng-invalid]="form.controls.email.touched && form.controls.email.invalid"
+    />
+    @if (form.controls.email.touched && form.controls.email.invalid) {
+      <small class="text-red-500 block mt-1 mb-3">Informe um e-mail válido.</small>
+    } @else {
+      <div class="mb-3"></div>
+    }
+
+    <label for="senha" class="block font-semibold mb-2">Senha</label>
+    <p-password
+      inputId="senha"
+      formControlName="senha"
+      autocomplete="current-password"
+      [feedback]="false"
+      [toggleMask]="true"
+      styleClass="w-full"
+      inputStyleClass="w-full"
+    />
+    @if (form.controls.senha.touched && form.controls.senha.invalid) {
+      <small class="text-red-500 block mt-1">Informe a senha.</small>
+    }
+
+    @if (erro()) {
+      <p-message severity="error" [text]="erro()!" styleClass="w-full mt-4" />
+    }
+
+    <p-button
+      type="submit"
+      label="Entrar"
+      icon="pi pi-sign-in"
+      styleClass="w-full mt-5"
+      [loading]="carregando()"
+      [disabled]="form.invalid"
+    />
+  </form>
+</div>

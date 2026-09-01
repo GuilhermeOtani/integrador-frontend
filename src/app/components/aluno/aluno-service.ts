@@ -1,7 +1,8 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import Aluno from '../aluno/model/aluno';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,7 @@ import Aluno from '../aluno/model/aluno';
 export class AlunoService {
 
   
-  private urlUsuario: string = "http://localhost:8080/aluno";
+  private readonly urlUsuario = `${environment.apiUrl}/aluno`;
 
 
   constructor(private httpCliente: HttpClient) {}

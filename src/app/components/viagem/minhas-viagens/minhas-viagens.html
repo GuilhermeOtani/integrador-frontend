@@ -1,0 +1,45 @@
+<section>
+  <div class="mb-5">
+    <span class="text-primary font-semibold uppercase text-sm">Operação</span>
+    <h1 class="mt-2 mb-1 text-3xl">Minhas viagens</h1>
+    <p class="text-color-secondary mt-0">Viagens atribuídas ao motorista autenticado.</p>
+  </div>
+
+  @if (carregando()) {
+    <div class="flex justify-content-center p-8"><p-progressSpinner ariaLabel="Carregando viagens" /></div>
+  } @else if (erro()) {
+    <p-message severity="error" [text]="erro()!" />
+  } @else {
+    <div class="surface-card border-1 surface-border border-round-xl p-4">
+      <p-table [value]="viagens()" [paginator]="true" [rows]="10" dataKey="id" responsiveLayout="scroll">
+        <ng-template #header>
+          <tr><th>Data</th><th>Rota</th><th>Ônibus</th><th>Faculdades</th></tr>
+        </ng-template>
+        <ng-template #body let-viagem>
+          <tr>
+            <td>{{ viagem.data ? (viagem.data | date: 'dd/MM/yyyy') : 'Não informada' }}</td>
+            <td>{{ viagem.rotaNome || 'Não informada' }}</td>
+            <td>{{ viagem.onibusPlaca || viagem.numeroIdentificacao || 'Não informado' }}</td>
+            <td>
+              <div class="flex flex-wrap gap-2">
+                @for (faculdade of viagem.faculdades; track faculdade.id) {
+                  <p-tag [value]="faculdade.nome" severity="info" />
+                } @empty {
+                  <span class="text-color-secondary">Nenhuma faculdade</span>
+                }
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="4" class="text-center p-7 text-color-secondary">
+              <i class="pi pi-calendar-times text-3xl block mb-3"></i>
+              Nenhuma viagem atribuída à sua conta.
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  }
+</section>

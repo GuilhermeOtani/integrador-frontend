@@ -3,11 +3,15 @@
   
   <p-toolbar class="mb-6">
     <ng-template #start>
-      <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
-      <p-button severity="danger" label="Excluir" icon="pi pi-trash" outlined (onClick)="deleteSelectedGrades()" [disabled]="!selectedGrade || !selectedGrade.length" />
+      @if (podeEditar()) {
+        <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+        <p-button severity="danger" label="Excluir" icon="pi pi-trash" outlined (onClick)="deleteSelectedGrades()" [disabled]="!selectedGrade || !selectedGrade.length" />
+      }
     </ng-template>
     <ng-template #end>
-      <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Importar" chooseLabel="Importar" auto customUpload class="mr-2 inline-block" [chooseButtonProps]="{ severity: 'secondary' }" />
+      @if (podeEditar()) {
+        <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Importar" chooseLabel="Importar" auto customUpload class="mr-2 inline-block" [chooseButtonProps]="{ severity: 'secondary' }" />
+      }
       <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
     </ng-template>
   </p-toolbar>
@@ -25,7 +29,7 @@
 
     <ng-template #header>
       <tr>
-        <th style="width: 3rem"><p-tableHeaderCheckbox /></th>
+        @if (podeEditar()) { <th style="width: 3rem"><p-tableHeaderCheckbox /></th> }
         <th pSortableColumn="id" class="text-center">Id <p-sortIcon field="id" /></th>
         <th pSortableColumn="diaSemana" class="text-center">Dia da Semana <p-sortIcon field="diaSemana" /></th>
         
@@ -38,7 +42,7 @@
 
     <ng-template #body let-grade>
       <tr>
-        <td><p-tableCheckbox [value]="grade" /></td>
+        @if (podeEditar()) { <td><p-tableCheckbox [value]="grade" /></td> }
         <td class="text-center">{{ grade.id }}</td>
         <td class="text-center"><p-tag [value]="grade.diaSemana" severity="info"></p-tag></td>
         
@@ -48,8 +52,10 @@
         <td class="text-center">
           <div class="flex items-center justify-center gap-2">
             <p-button icon="pi pi-search" severity="info" [rounded]="true" [outlined]="true" (click)="abrirDetalhes(grade)" />
-            <p-button icon="pi pi-pencil" severity="success" [rounded]="true" [outlined]="true" (click)="editGrade(grade)" />
-            <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteGrade(grade)" />
+            @if (podeEditar()) {
+              <p-button icon="pi pi-pencil" severity="success" [rounded]="true" [outlined]="true" (click)="editGrade(grade)" />
+              <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteGrade(grade)" />
+            }
           </div>
         </td>
       </tr>
@@ -88,7 +94,7 @@
             </div>
             <div>
               <span class="block text-xs uppercase font-bold text-gray-400 mb-1">Rotas Escaladas</span>
-              <strong class="text-xl text-white">{{ gradeSelecionadaParaDetalhes.viagens?.length || 0 }}</strong>
+              <strong class="text-xl text-white">{{ gradeSelecionadaParaDetalhes.viagens.length || 0 }}</strong>
             </div>
           </div>
 

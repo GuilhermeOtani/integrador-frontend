@@ -1,110 +1,63 @@
 <div style="margin-top: 1rem; margin-left: 1rem">
-  <p-button (click)="visible = true" icon="pi pi-bars" />
+  <p-button (onClick)="visible = true" icon="pi pi-bars" ariaLabel="Abrir menu" />
 </div>
 
-<div class="card flex justify-center">
-  <p-drawer #drawerRef [(visible)]="visible" [style]="{ width: '270px', border: 'none' }">
-    <ng-template #headless>
-      <div class="flex flex-col h-full bg-surface-0 dark:bg-surface-900">
-        
-        <div class="flex items-center gap-3 px-5 py-4 shrink-0 border-b border-surface-200 dark:border-surface-700">
-            <svg width="35" height="35" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="block drop-shadow-md">
-                <path d="M12 2L2 7.5L12 13L22 7.5L12 2Z" fill="var(--p-primary-color)" />
-                <path d="M2 7.5V16.5L12 22V13L2 7.5Z" fill="var(--p-primary-color)" fill-opacity="0.8" />
-                <path d="M22 7.5V16.5L12 22V13L22 7.5Z" fill="var(--p-primary-color)" fill-opacity="0.5" />
-             </svg>
-            <span class="font-extrabold text-2xl text-primary tracking-tight">BusSystem</span>
+<p-drawer [(visible)]="visible" [style]="{ width: '290px', border: 'none' }">
+  <ng-template #headless>
+    <div class="flex flex-column h-full bg-surface-0 dark:bg-surface-900">
+      <div class="flex align-items-center gap-3 px-5 py-4 shrink-0 border-bottom-1 surface-border">
+        <div class="brand-icon flex align-items-center justify-content-center border-round-lg text-white">
+          <i class="pi pi-send text-xl"></i>
         </div>
+        <span class="font-extrabold text-2xl text-primary tracking-tight">BusSystem</span>
+      </div>
 
-        <div class="flex-1 overflow-y-auto no-scrollbar p-3">
+      <nav class="flex-1 overflow-y-auto no-scrollbar p-3" aria-label="Navegação principal">
+        @for (secao of secoes(); track secao.titulo) {
+          <div class="nav-category-title px-3">{{ secao.titulo }}</div>
           <ul class="list-none p-0 m-0">
-            
-            <li>
-              <div class="nav-category-title px-3">Cadastros Base</div>
-              <ul class="list-none p-0 m-0">
-                <li>
-                  <a pRipple routerLink="/alunos" routerLinkActive="active-route" (click)="visible = false" class="nav-link">
-                    <i class="pi pi-users mr-3"></i>
-                    <span>Alunos</span>
-                  </a>
-                </li>
-                <li>
-                  <a pRipple routerLink="/faculdades" routerLinkActive="active-route" (click)="visible = false" class="nav-link">
-                    <i class="pi pi-building mr-3"></i>
-                    <span>Faculdades</span>
-                  </a>
-                </li>
-                <li>
-                  <a pRipple routerLink="/motoristas" routerLinkActive="active-route" (click)="visible = false" class="nav-link">
-                    <i class="pi pi-id-card mr-3"></i>
-                    <span>Motoristas</span>
-                  </a>
-                </li>
-                <li>
-                  <a pRipple routerLink="/onibuss" routerLinkActive="active-route" (click)="visible = false" class="nav-link">
-                    <i class="pi pi-truck mr-3"></i>
-                    <span>Ônibus</span>
-                  </a>
-                </li>
-              </ul>
-            </li>
-
-            <li>
-              <div class="nav-category-title px-3">Financeiro</div>
-              <ul class="list-none p-0 m-0">
-                <li>
-                  <a pRipple routerLink="/contapagar" routerLinkActive="active-route" (click)="visible = false" class="nav-link">
-                    <i class="pi pi-money-bill mr-3"></i>
-                    <span>Contas a Pagar</span>
-                  </a>
-                </li>
-              </ul>
-            </li>
-
-            <li>
-              <div class="nav-category-title px-3">Logística</div>
-              <ul class="list-none p-0 m-0">
-                <li>
-                  <a pRipple routerLink="/pontosembarque" routerLinkActive="active-route" (click)="visible = false" class="nav-link">
-                    <i class="pi pi-map-marker mr-3"></i>
-                    <span>Pontos de Embarque</span>
-                  </a>
-                </li>
-                <li>
-                  <a pRipple routerLink="/rotas" routerLinkActive="active-route" (click)="visible = false" class="nav-link">
-                    <i class="pi pi-map mr-3"></i>
-                    <span>Rotas</span>
-                  </a>
-                </li>
-                 <li>
-                  <a pRipple routerLink="/grades" routerLinkActive="active-route" (click)="visible = false" class="nav-link">
-                    <i class="pi pi-map mr-3"></i>
-                    <span>Grades</span>
-                  </a>
-                </li>
-
-              </ul>
-            </li>
+            @for (item of secao.itens; track item.rota) {
+              <li>
+                <a
+                  pRipple
+                  [routerLink]="item.rota"
+                  routerLinkActive="active-route"
+                  (click)="visible = false"
+                  class="nav-link"
+                >
+                  <i [class]="item.icon + ' mr-3'"></i>
+                  <span>{{ item.label }}</span>
+                </a>
+              </li>
+            }
           </ul>
-        </div>
+        }
+      </nav>
 
-        <div class="mt-auto border-t border-surface-200 dark:border-surface-700 p-3 shrink-0 bg-surface-50 dark:bg-surface-950">
-          <div class="flex items-center justify-between gap-2">
-            
-            <div class="flex items-center gap-2">
-                <p-avatar image="data:image/jpeg;base64,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" shape="circle" size="normal" />
-                
-                <div class="flex flex-col">
-                    <span class="font-semibold text-sm text-surface-900 dark:text-surface-0 leading-tight">Usuário Admin</span>
-                    <span class="text-xs text-green-500 font-medium">Online</span>
-                </div>
+      <div class="mt-auto border-top-1 surface-border p-3 shrink-0 bg-surface-50 dark:bg-surface-950">
+        <div class="flex align-items-center justify-content-between gap-2">
+          <div class="flex align-items-center gap-2 min-w-0">
+            <p-avatar [label]="iniciais()" shape="circle" />
+            <div class="flex flex-column min-w-0">
+              <span class="font-semibold text-sm text-color white-space-nowrap overflow-hidden text-overflow-ellipsis">
+                {{ auth.usuario()?.nome }}
+              </span>
+              <span class="text-xs text-color-secondary">{{ rotuloPapel() }}</span>
             </div>
-
-            <p-button icon="pi pi-sign-out" [rounded]="true" [text]="true" severity="secondary" size="small" pTooltip="Sair do Sistema" tooltipPosition="top"></p-button>
           </div>
+          <p-button
+            icon="pi pi-sign-out"
+            [rounded]="true"
+            [text]="true"
+            severity="secondary"
+            size="small"
+            pTooltip="Sair do sistema"
+            tooltipPosition="top"
+            ariaLabel="Sair do sistema"
+            (onClick)="sair()"
+          />
         </div>
       </div>
-    </ng-template>
-  </p-drawer>
-</div>
-
+    </div>
+  </ng-template>
+</p-drawer>

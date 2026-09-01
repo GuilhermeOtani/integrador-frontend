@@ -1,7 +1,8 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import Motorista from './model/motorista';
+import { environment } from '../../../environments/environment';
 
 
 @Injectable({
@@ -10,7 +11,7 @@ import Motorista from './model/motorista';
 export class MotoristaService {
 
   
-  private urlUsuario: string = "http://localhost:8080/motorista";
+  private readonly urlUsuario = `${environment.apiUrl}/motorista`;
 
 
   constructor(private httpCliente: HttpClient) {}

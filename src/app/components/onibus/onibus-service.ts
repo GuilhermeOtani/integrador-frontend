@@ -1,13 +1,14 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import Onibus from './model/onibus';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class OnibusService {
-  private urlUsuario: string = 'http://localhost:8080/onibus';
+  private readonly urlUsuario = `${environment.apiUrl}/onibus`;
 
   constructor(private httpCliente: HttpClient) {}
 

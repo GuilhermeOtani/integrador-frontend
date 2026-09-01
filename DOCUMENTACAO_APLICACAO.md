@@ -1,905 +1,406 @@
-# 📚 Documentação Completa - Integrador Frontend
+# Documentação da Aplicação — Integrador Frontend
 
-## 1. Visão Geral da Aplicação
+## 1. Visão geral
 
-**Integrador Frontend** é uma aplicação web moderna desenvolvida em **Angular 21** que funciona como interface administrativa para gerenciar dados de uma instituição educacional de transporte. A aplicação permite gerenciar:
+O **Integrador Frontend** é uma SPA administrativa para uma operação de transporte universitário. A aplicação foi desenvolvida com Angular, usa componentes standalone e consome uma API REST cuja URL está centralizada em `src/environments/environment.ts`.
 
-- ✅ **Alunos** - Cadastro, listagem, edição e exclusão de alunos
-- ✅ **Faculdades** - Gerenciamento de instituições de ensino
-- ✅ **Ônibus** - Gestão de veículos e sua frota
-- ✅ **Motoristas** - Cadastro e gerenciamento de motoristas
-- ✅ **Contas a Pagar** - Controle de pagamentos e faturas
+O sistema possui autenticação JWT e três papéis:
 
----
+- `ADMIN`: administra usuários e acessa todos os módulos existentes;
+- `ALUNO`: consulta rotas, pontos de embarque e grades diárias;
+- `MOTORISTA`: consulta o próprio perfil e suas viagens.
 
-## 2. Tecnologias Utilizadas
+Além da autenticação, o frontend oferece cadastro e consulta de alunos, faculdades, ônibus, motoristas, pontos de embarque, rotas e grades diárias, bem como consulta de contas a pagar, pagamento e recibo.
 
-### Frontend Framework
-- **Angular**: v21.2.3 - Framework principal para construção da UI
-- **TypeScript**: Linguagem de programação fortemente tipada
-- **RxJS**: v7.8.0 - Programação reativa para gerenciamento de streams de dados
-
-### UI Components & Styling
-- **PrimeNG**: v21.1.3 - Biblioteca de componentes UI rico
-- **PrimeFlex**: v4.0.0 - Sistema de grid baseado em flexbox
-- **PrimeIcons**: v7.0.0 - Ícones vetoriais
-- **Tailwind CSS**: v4.2.1 - Framework CSS utilitário
-- **Autoprefixer**: v10.4.27 - Compatibilidade com navegadores antigos
-
-### Testing
-- **Jasmine**: v5.9.0 - Framework de testes unitários
-- **Karma**: v6.4.0 - Test runner
-- **Karma Chrome Launcher**: v3.2.0 - Suporte para Chrome nos testes
-
-### Build & Development
-- **Angular CLI**: v21.2.2 - Ferramenta de linha de comando
-- **Angular Build**: v21.2.2 - Ferramenta de build
-- **Angular Compiler CLI**: v21.2.3 - Compilador
-
-### HTTP & Comunicação
-- **@angular/platform-browser**: v21.2.3 - Plataforma de navegador
-- **HttpClient**: Para requisições HTTP com o backend
+> **Estado da revisão:** o código-fonte foi revisado em 01/09/2026 após a implementação da autenticação. A compilação TypeScript, os 52 testes automatizados e o build de produção foram aprovados. A validação integrada dos três papéis ainda depende de credenciais e dados no backend local.
 
 ---
 
-## 3. Estrutura do Projeto
+## 2. Tecnologias e versões
 
-```
-integrador-frontend/
-│
-├── src/                          # Código-fonte da aplicação
-│   ├── index.html               # HTML principal
-│   ├── main.ts                  # Ponto de entrada da aplicação
-│   ├── styles.css               # Estilos globais
-│   │
-│   └── app/                     # Módulo principal da aplicação
-│       ├── app.ts               # Componente raiz
-│       ├── app.html             # Template do componente raiz
-│       ├── app.css              # Estilos do componente raiz
-│       ├── app.routes.ts        # Configuração de rotas
-│       ├── app.config.ts        # Configuração da aplicação
-│       ├── app.spec.ts          # Testes do componente raiz
-│       │
-│       └── components/          # Componentes da aplicação
-│           │
-│           ├── aluno/           # Módulo de gerenciamento de alunos
-│           │   ├── aluno-service.ts          # Serviço HTTP para alunos
-│           │   ├── aluno-service.spec.ts     # Testes do serviço
-│           │   ├── model/
-│           │   │   └── aluno.ts              # Modelo/Interface Aluno
-│           │   ├── aluno-cadastro/           # Componente de cadastro
-│           │   │   ├── aluno-cadastro.ts
-│           │   │   ├── aluno-cadastro.html
-│           │   │   ├── aluno-cadastro.css
-│           │   │   └── aluno-cadastro.spec.ts
-│           │   └── aluno-listar/             # Componente de listagem
-│           │       ├── aluno-listar.ts
-│           │       ├── aluno-listar.html
-│           │       ├── aluno-listar.css
-│           │       └── aluno-listar.spec.ts
-│           │
-│           ├── faculdade/       # Módulo de gerenciamento de faculdades
-│           │   ├── faculdade-service.ts
-│           │   ├── faculdade-service.spec.ts
-│           │   ├── model/
-│           │   │   └── faculdade.ts
-│           │   ├── faculdade-cadastro/
-│           │   │   ├── faculdade-cadastro.ts
-│           │   │   ├── faculdade-cadastro.html
-│           │   │   ├── faculdade-cadastro.css
-│           │   │   └── faculdade-cadastro.spec.ts
-│           │   └── faculdade-listar/
-│           │       ├── faculdade-listar.ts
-│           │       ├── faculdade-listar.html
-│           │       ├── faculdade-listar.css
-│           │       └── faculdade-listar.spec.ts
-│           │
-│           ├── onibus/          # Módulo de gerenciamento de ônibus
-│           │   ├── onibus-service.ts
-│           │   ├── onibus-service.spec.ts
-│           │   ├── model/
-│           │   │   └── onibus.ts
-│           │   ├── onibus-cadastro/
-│           │   │   ├── onibus-cadastro.ts
-│           │   │   ├── onibus-cadastro.html
-│           │   │   ├── onibus-cadastro.css
-│           │   │   └── onibus-cadastro.spec.ts
-│           │   └── onibus-listar/
-│           │       ├── onibus-listar.ts
-│           │       ├── onibus-listar.html
-│           │       ├── onibus-listar.css
-│           │       └── onibus-listar.spec.ts
-│           │
-│           ├── motorista/       # Módulo de gerenciamento de motoristas
-│           │   ├── motorista-service.ts
-│           │   ├── motorista-service.spec.ts
-│           │   ├── model/
-│           │   │   └── motorista.ts
-│           │   ├── motorista-cadastro/
-│           │   │   ├── motorista-cadastro.ts
-│           │   │   ├── motorista-cadastro.html
-│           │   │   ├── motorista-cadastro.css
-│           │   │   └── motorista-cadastro.spec.ts
-│           │   └── motorista-listar/
-│           │       ├── motorista-listar.ts
-│           │       ├── motorista-listar.html
-│           │       ├── motorista-listar.css
-│           │       └── motorista-listar.spec.ts
-│           │
-│           ├── conta-pagar/     # Módulo de contas a pagar
-│           │   ├── conta-pagar.ts             # Componente principal
-│           │   ├── conta-pagar.html
-│           │   ├── conta-pagar.css
-│           │   ├── conta-pagar-service.ts     # Serviço HTTP
-│           │   ├── conta-pagar-service.spec.ts
-│           │   ├── pagamento-service.ts       # Serviço de pagamentos
-│           │   ├── pagamento-service.spec.ts
-│           │   ├── model/
-│           │   │   └── conta-pagar.ts         # Interface ContaPagar
-│           │   └── conta-pagar.spec.ts
-│           │
-│           └── sidebar/         # Componente de navegação lateral
-│               ├── sidebar.ts
-│               ├── sidebar.html
-│               ├── sidebar.css
-│               └── sidebar.spec.ts
-│
-├── public/                      # Arquivos estáticos públicos
-├── angular.json                 # Configuração do Angular CLI
-├── package.json                 # Dependências e scripts do projeto
-├── tsconfig.json                # Configuração TypeScript base
-├── tsconfig.app.json            # Configuração TypeScript da app
-├── tsconfig.spec.json           # Configuração TypeScript dos testes
-├── tailwind.config.js           # Configuração Tailwind CSS
-└── README.md                    # Documentação básica do projeto
+### Dependências de execução
+
+| Tecnologia | Versão | Uso |
+|---|---:|---|
+| Angular | `^21.2.3` | Aplicação, formulários, HTTP e roteamento |
+| Angular Animations | `^21.2.3` | Animações exigidas pelos componentes PrimeNG |
+| PrimeNG | `^21.1.3` | Componentes visuais |
+| PrimeIcons | `^7.0.0` | Ícones |
+| PrimeFlex | `^4.0.0` | Classes utilitárias |
+| RxJS | `~7.8.0` | Fluxos HTTP e tratamento de respostas |
+| Chart.js | `^4.5.1` | Dependência disponível para gráficos |
+| Zone.js | `~0.15.0` | Integração Angular |
+
+### Desenvolvimento e build
+
+| Tecnologia | Versão |
+|---|---:|
+| Angular CLI | `^21.2.2` |
+| Angular Build | `^21.2.2` |
+| TypeScript | `~5.9.2` |
+| Jasmine | `~5.9.0` |
+| Karma | `~6.4.0` |
+| Tailwind CSS | `^3.4.19` |
+| PostCSS | `^8.5.8` |
+
+O Angular 21 requer Node.js `^20.19.0`, `^22.12.0` ou `>=24.0.0`.
+
+---
+
+## 3. Arquitetura
+
+### Inicialização global
+
+`src/main.ts` inicializa a aplicação com `bootstrapApplication()`. `src/app/app.config.ts` registra:
+
+- roteamento;
+- `provideHttpClient()` com o interceptor JWT funcional;
+- animações assíncronas;
+- tema Aura do PrimeNG;
+- `MessageService` global para notificações.
+
+O componente raiz contém o toast global, oculta completamente a sidebar quando não existe sessão e renderiza o conteúdo por `router-outlet`.
+
+### Organização principal
+
+```text
+src/
+├── app/
+│   ├── core/auth/
+│   │   ├── api-error.ts
+│   │   ├── auth.guards.ts
+│   │   ├── auth.interceptor.ts
+│   │   ├── auth.models.ts
+│   │   ├── auth.service.ts
+│   │   └── usuario.service.ts
+│   ├── components/
+│   │   ├── login/
+│   │   ├── perfil/
+│   │   ├── sem-permissao/
+│   │   ├── usuarios/
+│   │   ├── aluno/
+│   │   ├── faculdade/
+│   │   ├── onibus/
+│   │   ├── motorista/
+│   │   ├── ponto-embarque/
+│   │   ├── rota/
+│   │   ├── grade-diaria/
+│   │   ├── viagem/
+│   │   ├── conta-pagar/
+│   │   └── sidebar/
+│   ├── app.config.ts
+│   ├── app.routes.ts
+│   └── app.ts
+└── environments/
+    └── environment.ts
 ```
 
+As páginas são carregadas com `loadComponent`, reduzindo o bundle inicial por lazy loading. Os módulos CRUD antigos mantêm o padrão modelo + serviço + listagem + cadastro.
+
 ---
 
-## 4. Componentes Principais
+## 4. Autenticação e autorização
 
-### 4.1 Componente Raiz (App)
-**Arquivo**: [src/app/app.ts](src/app/app.ts)
+### Sessão
 
-```typescript
-- Importa RouterOutlet para renderizar componentes de rota
-- Usa PrimeNG PrimeNG config para inicializar ripple effect
-- Importa Sidebar para navegação lateral
-- Configura módulos: TableModule, ButtonModule, TagModule
+`AuthService` mantém a sessão em um signal e persiste apenas na aba atual pelo `sessionStorage`, sob a chave:
+
+```text
+integrador.sessao
 ```
 
-**Funcionalidades**:
-- Renderiza a sidebar de navegação
-- Utiliza sistema de roteamento do Angular
-- Aplica configurações do PrimeNG (ripple effect)
+A sessão contém o access token, o tipo `Bearer`, o instante absoluto de expiração e o resumo do usuário. Na inicialização, o JSON armazenado é validado; conteúdo inválido, papel desconhecido ou sessão expirada são descartados.
+
+Após login ou restauração, um temporizador é agendado para encerrar a sessão exatamente em `expiresAt`. O logout cancela o temporizador, remove o armazenamento e redireciona para `/login`. Não há refresh token nem persistência em `localStorage`.
+
+### Interceptor HTTP
+
+O interceptor:
+
+- envia `Authorization: Bearer <token>` somente para a URL configurada da API;
+- não envia token em `POST /auth/login`;
+- em `401`, limpa a sessão e volta ao login;
+- em `403`, preserva a sessão e abre `/sem-permissao`;
+- em status `0`, informa globalmente que o backend está indisponível;
+- devolve o erro original às telas para tratamentos específicos.
+
+### Guards
+
+- `authGuard`: exige sessão válida;
+- `guestGuard`: impede que usuário autenticado volte ao login;
+- `roleGuard`: exige um dos papéis declarados na rota e retorna um `UrlTree` quando o acesso não é permitido.
+
+Os guards e a ocultação de elementos melhoram a experiência, mas o backend continua sendo a autoridade final de autorização.
+
+### Destinos após login
+
+Uma URL interna de retorno é preservada quando o usuário é enviado ao login. Sem retorno, os destinos são:
+
+| Papel | Destino |
+|---|---|
+| `ADMIN` | `/alunos` |
+| `ALUNO` | `/rotas` |
+| `MOTORISTA` | `/minhas-viagens` |
 
 ---
 
-### 4.2 Sidebar (Navegação)
-**Arquivo**: `src/app/components/sidebar/`
+## 5. Rotas e menus por papel
 
-Componente responsável pela navegação lateral da aplicação. Fornece links para:
-- Alunos
-- Faculdades
-- Ônibus
-- Motoristas
-- Contas a Pagar
+| URL | Acesso | Finalidade |
+|---|---|---|
+| `/login` | Pública, apenas visitante | Autenticação |
+| `/perfil` | Autenticado | Dados de `/auth/me` |
+| `/sem-permissao` | Autenticado | Aviso de acesso negado |
+| `/usuarios` | `ADMIN` | Administração de contas |
+| `/alunos` | `ADMIN` | CRUD de alunos |
+| `/faculdades` | `ADMIN` | CRUD de faculdades |
+| `/onibus` | `ADMIN` | CRUD de ônibus |
+| `/motoristas` | `ADMIN` | CRUD de motoristas |
+| `/contapagar` | `ADMIN` | Contas, pagamentos e recibos |
+| `/rotas` | `ADMIN`, `ALUNO` | Rotas e itinerários |
+| `/pontosembarque` | `ADMIN`, `ALUNO` | Pontos de embarque |
+| `/grades` | `ADMIN`, `ALUNO` | Grades diárias e viagens |
+| `/minhas-viagens` | `MOTORISTA` | Viagens do motorista autenticado |
 
----
+`/onibuss` foi mantida como redirecionamento de compatibilidade para `/onibus`. A raiz e URLs desconhecidas redirecionam para `/perfil`.
 
-### 4.3 Módulo Aluno
-**Arquivos**: `src/app/components/aluno/`
+A sidebar calcula os itens pelo papel, exibe nome, papel e iniciais reais do usuário e executa o logout. Ela fica invisível no login e sempre que não existe sessão.
 
-#### Estrutura:
-- **aluno-listar**: Lista todos os alunos com opções de editar/deletar
-- **aluno-cadastro**: Formulário para criar/editar alunos
-- **aluno-service**: Serviço HTTP para comunicação com backend
-
-#### Funcionalidades:
-- ✅ Listar alunos
-- ✅ Cadastrar novo aluno
-- ✅ Editar aluno existente
-- ✅ Deletar aluno
-- ✅ Filtro e busca
-- ✅ Integração com faculdades
+Para `ALUNO`, rotas, grades e pontos ficam em modo de leitura: botões de criar, importar, excluir em massa, editar e excluir não são renderizados. Pesquisa, paginação, exportação e detalhes continuam disponíveis.
 
 ---
 
-### 4.4 Módulo Faculdade
-**Arquivos**: `src/app/components/faculdade/`
+## 6. Telas de autenticação e usuários
 
-#### Funcionalidades:
-- ✅ Listar faculdades
-- ✅ Cadastrar nova faculdade
-- ✅ Editar faculdade
-- ✅ Deletar faculdade
+### Login
 
----
+Formulário reativo com e-mail e senha, validação, estado de carregamento e mensagem genérica para credenciais inválidas. Erro de conexão é apresentado como backend indisponível.
 
-### 4.5 Módulo Ônibus
-**Arquivos**: `src/app/components/onibus/`
+### Meu perfil
 
-#### Funcionalidades:
-- ✅ Listar ônibus
-- ✅ Cadastrar novo ônibus
-- ✅ Editar ônibus
-- ✅ Deletar ônibus
-- ✅ Gerenciar status do ônibus
-- ✅ Upload de foto
+Consome `GET /auth/me`, mostra dados comuns da pessoa e blocos específicos de aluno ou motorista. O enum de matrícula é mantido conforme o contrato do backend: `ATIV0`, `INATIV0` e `PENDENTE`; apenas a apresentação converte os textos para o usuário.
 
----
+### Sem permissão
 
-### 4.6 Módulo Motorista
-**Arquivos**: `src/app/components/motorista/`
+Informa o bloqueio sem encerrar a sessão e oferece retorno ao perfil ou ao início adequado ao papel.
 
-#### Funcionalidades:
-- ✅ Listar motoristas
-- ✅ Cadastrar novo motorista
-- ✅ Editar motorista
-- ✅ Deletar motorista
-- ✅ Associar ônibus ao motorista
-- ✅ Gerenciar dados de CNH e salário
+### Administração de usuários
+
+A tela `/usuarios` permite ao administrador:
+
+- listar contas existentes;
+- listar alunos e motoristas que ainda não possuem usuário;
+- criar conta vinculada a uma pessoa;
+- criar outro administrador.
+
+Os formulários usam e-mail, senha entre 8 e 72 caracteres e confirmação local. Em `409`, o diálogo permanece aberto e mostra o conflito de e-mail ou pessoa. Após uma criação bem-sucedida, as listas de contas e pessoas disponíveis são atualizadas.
+
+### Minhas viagens
+
+A página chama somente `GET /viagem/minhas`; o frontend não envia `motoristaId`. Ela apresenta data, rota, ônibus e faculdades, além dos estados de carregamento, lista vazia e erro.
 
 ---
 
-### 4.7 Módulo Contas a Pagar
-**Arquivos**: `src/app/components/conta-pagar/`
+## 7. Módulos administrativos existentes
 
-#### Estrutura:
-- **conta-pagar.ts**: Componente principal
-- **conta-pagar-service.ts**: Serviço para gerenciar contas
-- **pagamento-service.ts**: Serviço para processar pagamentos
+### Cadastros principais
 
-#### Funcionalidades:
-- ✅ Listar contas a pagar
-- ✅ Criar nova conta
-- ✅ Editar conta
-- ✅ Marcar como paga
-- ✅ Filtrar por status (PENDENTE, PAGO, ATRASADO)
-- ✅ Integração com motoristas
+- **Alunos:** dados pessoais, matrícula, status, mensalidade e faculdade;
+- **Faculdades:** nome, endereço e telefone;
+- **Ônibus:** identificação, placa, modelo, capacidade, status e foto em Data URL/base64;
+- **Motoristas:** dados pessoais, CNH e salário;
+- **Pontos de embarque:** descrição e ordem de parada;
+- **Rotas:** nome, descrição, faculdade e sequência de pontos;
+- **Grades diárias:** data, descrição e viagens aninhadas com rota, ônibus, motorista e faculdades.
 
----
+### Contas a pagar
 
-## 5. Modelos de Dados
+A interface lista contas, separa pagas das pendentes/atrasadas, realiza pagamento e consulta recibo. O serviço possui atualização de conta, mas a tela não oferece CRUD completo de contas.
 
-### 5.1 Aluno
-```typescript
-export default class aluno {
-    id: number;                          // ID único
-    nome: string;                        // Nome do aluno
-    email: string;                       // Email
-    telefone: string;                    // Telefone de contato
-    matricula: string;                   // Número de matrícula
-    status_matricula: string;            // Status (Ativo, Inativo, Trancado)
-    data_cadastro: Date;                 // Data de cadastro no sistema
-    cpfCnpj: string;                     // CPF do aluno
-    faculdadeId: number;                 // ID da faculdade (FK)
-    faculdade: any;                      // Objeto faculdade relacionado
-}
-```
+### Limitações legadas ainda existentes
 
-### 5.2 Faculdade
-```typescript
-export default class faculdade {
-    id: number;                          // ID único
-    nome: string;                        // Nome da faculdade/universidade
-    endereco: string;                    // Endereço completo
-}
-```
-
-### 5.3 Ônibus
-```typescript
-export default class onibus {
-    id: number;                          // ID único
-    numeroIdentificacao: string;         // Número de identificação
-    placa: string;                       // Placa do veículo (ABC-1234)
-    modelo: string;                      // Modelo do ônibus
-    statusOnibus: string;                // Status (Ativo, Manutenção, Inativo)
-    fotoUrl: string;                     // URL da foto do ônibus
-    capacidade: number;                  // Capacidade de passageiros
-}
-```
-
-### 5.4 Motorista
-```typescript
-export default class motorista {
-    id: number;                          // ID único
-    nome: string;                        // Nome do motorista
-    email: string;                       // Email
-    telefone: string;                    // Telefone
-    cpfCnpj: string;                     // CPF
-    cnh: string;                         // Número da CNH
-    salario: number;                     // Salário mensal
-    onibusId: number;                    // ID do ônibus associado (FK)
-    onibus: onibus;                      // Objeto ônibus relacionado
-    numeroIdentificacao: string;         // Número de identificação
-}
-```
-
-### 5.5 Conta a Pagar
-```typescript
-export interface ContaPagar {
-    id?: number;                         // ID único
-    descricao: string;                   // Descrição da conta
-    valor: number;                       // Valor em reais
-    dataVencimento: string;              // Data de vencimento
-    status: 'PENDENTE' | 'PAGO' | 'ATRASADO'; // Status do pagamento
-    motorista?: motorista;               // Motorista associado (opcional)
-}
-```
+- os botões de importação de alguns cadastros são apenas visuais;
+- a exclusão em massa remove itens apenas da tabela local e não envia todos os `DELETE` ao backend;
+- parte dos formulários legados usa validação visual/incompleta, sem formulário reativo;
+- máscaras de CPF/CNPJ e CNH não validam dígitos verificadores;
+- o componente `Dashboard` continua como placeholder sem rota;
+- a relação motorista–ônibus não existe no modelo de motorista atual.
 
 ---
 
-## 6. Serviços HTTP
+## 8. Contratos de autenticação
 
-### 6.1 AlunoService
-**URL Base**: `http://localhost:8080/aluno`
+| Método | Endpoint | Corpo/retorno principal |
+|---|---|---|
+| POST | `/auth/login` | `{ email, senha }` → token, expiração e usuário |
+| GET | `/auth/me` | Perfil completo do usuário autenticado |
+| GET | `/usuarios` | `UsuarioResumo[]` |
+| GET | `/usuarios/pessoas-sem-usuario` | Pessoas disponíveis para vinculação |
+| POST | `/usuarios` | `{ pessoaId, email, senha }` |
+| POST | `/usuarios/admin` | `{ nome, email, senha }` |
+| GET | `/viagem/minhas` | `Viagem[]` do token autenticado |
 
-```typescript
-listarAlunos(): Observable<any[]>
-  GET /aluno/listar
-  Retorna: Array de alunos
+Papéis aceitos: `ADMIN`, `ALUNO` e `MOTORISTA`.
 
-CadastroAlunos(aluno: any): Observable<any>
-  POST /aluno/salvar-aluno
-  Body: Dados do aluno
-  Retorna: Aluno criado
-
-EditarAlunos(aluno: any): Observable<any>
-  PUT /aluno/atualizar-aluno/{id}
-  Body: Dados do aluno atualizado
-  Retorna: Aluno atualizado
-
-ExcluirAlunos(id: string | number): Observable<void>
-  DELETE /aluno/deletar-aluno/{id}
-  Retorna: void
-```
-
-### 6.2 FaculdadeService
-**URL Base**: `http://localhost:8080/faculdade`
-
-Estrutura similar ao AlunoService:
-- `listarFaculdades()`
-- `CadastroFaculdades(faculdade: any)`
-- `EditarFaculdades(faculdade: any)`
-- `ExcluirFaculdades(id: string | number)`
-
-### 6.3 OnibusService
-**URL Base**: `http://localhost:8080/onibus`
-
-Estrutura similar ao AlunoService:
-- `listarOnibus()`
-- `CadastroOnibus(onibus: any)`
-- `EditarOnibus(onibus: any)`
-- `ExcluirOnibus(id: string | number)`
-
-### 6.4 MotoristaService
-**URL Base**: `http://localhost:8080/motorista`
-
-Estrutura similar ao AlunoService:
-- `listarMotoristas()`
-- `CadastroMotoristas(motorista: any)`
-- `EditarMotoristas(motorista: any)`
-- `ExcluirMotoristas(id: string | number)`
-
-### 6.5 ContaPagarService
-**URL Base**: `http://localhost:8080/conta-pagar`
-
-- `listarContas()`
-- `CadastroContas(conta: ContaPagar)`
-- `EditarContas(conta: ContaPagar)`
-- `ExcluirContas(id: string | number)`
-
-### 6.6 PagamentoService
-Serviço responsável por processar pagamentos:
-- `processarPagamento(contaId: number, valor: number)`
-- `obterRecibo(pagamentoId: number)`
+O utilitário de erro aceita respostas no formato Problem Detail, inclusive o mapa `errors`, e fornece mensagens para `400`, `401`, `403`, `404`, `409`, status `0` e erros inesperados.
 
 ---
 
-## 7. Sistema de Roteamento
+## 9. Endpoints dos módulos existentes
 
-**Arquivo**: [src/app/app.routes.ts](src/app/app.routes.ts)
+A base é obtida de `environment.apiUrl`, atualmente `http://localhost:8080`.
 
-```typescript
-export const routes: Routes = [
-  // Rota padrão - redireciona para alunos
-  { path: '', redirectTo: 'alunos', pathMatch: 'full' },
-  
-  // Rotas principais
-  { path: 'alunos', component: AlunoListar },
-  { path: 'faculdades', component: FaculdadeListar },
-  { path: 'onibuss', component: OnibusListar },
-  { path: 'motoristas', component: MotoristaListar },
-  { path: 'contapagar', component: ContaPagarComponent },
-];
-```
+### CRUDs
 
-### Navegação Disponível:
-- `/` → Redireciona para `/alunos`
-- `/alunos` → Tela de listagem e cadastro de alunos
-- `/faculdades` → Tela de listagem e cadastro de faculdades
-- `/onibuss` → Tela de listagem e cadastro de ônibus
-- `/motoristas` → Tela de listagem e cadastro de motoristas
-- `/contapagar` → Tela de gestão de contas a pagar
+| Recurso | Listar | Criar | Atualizar | Excluir |
+|---|---|---|---|---|
+| Aluno | `GET /aluno/listar` | `POST /aluno/salvar-aluno` | `PUT /aluno/atualizar-aluno/{id}` | `DELETE /aluno/deletar-aluno/{id}` |
+| Faculdade | `GET /faculdade/listar` | `POST /faculdade/salvar-faculdade` | `PUT /faculdade/atualizar-faculdade/{id}` | `DELETE /faculdade/deletar-faculdade/{id}` |
+| Ônibus | `GET /onibus/listar` | `POST /onibus/salvar-onibus` | `PUT /onibus/atualizar-onibus/{id}` | `DELETE /onibus/deletar-onibus/{id}` |
+| Motorista | `GET /motorista/listar` | `POST /motorista/salvar-motorista` | `PUT /motorista/atualizar-motorista/{id}` | `DELETE /motorista/deletar-motorista/{id}` |
+| Ponto | `GET /ponto-embarque/listar` | `POST /ponto-embarque/salvar-pontoEmbarque` | `PUT /ponto-embarque/atualizar-pontoEmbarque/{id}` | `DELETE /ponto-embarque/deletar-pontoEmbarque/{id}` |
+| Rota | `GET /rota/listar` | `POST /rota/salvar-rota` | `PUT /rota/{id}` | `DELETE /rota/deletar-rota/{id}` |
 
----
+### Grades e viagens
 
-## 8. Configurações
+| Recurso | Endpoints |
+|---|---|
+| Grade diária | `GET /grade-diaria/listar`, `POST /grade-diaria/salvar-grade`, `GET /grade-diaria/buscar-grade/{id}`, `PUT /grade-diaria/atualizar-grade/{id}`, `DELETE /grade-diaria/deletar-grade/{id}` |
+| Viagem | `GET /viagem/listar`, `POST /viagem/salvar-viagem`, `GET /viagem/buscar-viagem/{id}`, `PUT /viagem/atualizar-viagem/{id}`, `DELETE /viagem/deletar-viagem/{id}`, `GET /viagem/minhas` |
 
-### 8.1 Configuração de Preferências (Prettier)
-```json
-{
-  "printWidth": 100,
-  "singleQuote": true,
-  "overrides": [
-    {
-      "files": "*.html",
-      "options": { "parser": "angular" }
-    }
-  ]
-}
-```
+### Contas e pagamentos
 
-### 8.2 Backend URL
-A aplicação se conecta a um backend na URL base: `http://localhost:8080`
-
-**Serviços disponíveis no backend**:
-- `/aluno` - Gerenciamento de alunos
-- `/faculdade` - Gerenciamento de faculdades
-- `/onibus` - Gerenciamento de ônibus
-- `/motorista` - Gerenciamento de motoristas
-- `/conta-pagar` - Gerenciamento de contas
-- `/pagamento` - Processamento de pagamentos
+| Método | Endpoint | Observação |
+|---|---|---|
+| GET | `/contapagar/listar` | Lista contas |
+| PUT | `/contapagar/atualizar-contapagar/{id}` | Atualiza uma conta |
+| POST | `/pagamentos/realizar/{contaId}` | Query params `formaPagamento` e, opcionalmente, `valorPago` |
+| GET | `/pagamentos/recibo/conta/{contaId}` | Consulta recibo |
 
 ---
 
-## 9. Como Usar a Aplicação
+## 10. Instalação e execução
 
-### 9.1 Instalação
+### Pré-requisitos
+
+- Node.js compatível com Angular 21;
+- npm;
+- backend e PostgreSQL ativos;
+- backend acessível em `http://localhost:8080` e CORS liberado para o frontend.
+
+### Comandos
+
 ```bash
-# Clonar o repositório
-git clone <url-do-repositorio>
-
-# Instalar dependências
 npm install
-```
-
-### 9.2 Desenvolvimento
-```bash
-# Iniciar servidor de desenvolvimento
 npm start
-# ou
-ng serve
-
-# A aplicação estará disponível em: http://localhost:4200
 ```
 
-### 9.3 Build para Produção
+O servidor de desenvolvimento usa normalmente `http://localhost:4200`.
+
 ```bash
 npm run build
-# Os arquivos compilados serão gerados em: dist/integrador-frontend
+npm test -- --no-watch --no-progress --browsers=ChromeHeadless
 ```
 
-### 9.4 Testes
-```bash
-# Executar testes unitários
-npm test
-# ou
-ng test
+O build é gravado em `dist/integrador-frontend`. Não há framework E2E configurado.
 
-# Teste com cobertura
-ng test --code-coverage
-```
-
-### 9.5 Watch (desenvolvimento contínuo)
-```bash
-npm run watch
-# Compila e monitora mudanças em tempo real
-```
+Credenciais administrativas não devem ser registradas no código, documentação, fixtures ou histórico Git; devem ser digitadas diretamente no navegador durante a validação integrada.
 
 ---
 
-## 10. Scripts Disponíveis
+## 11. Testes automatizados
 
-| Script | Comando | Descrição |
-|--------|---------|-----------|
-| **start** | `npm start` | Inicia servidor de desenvolvimento |
-| **build** | `npm run build` | Compila para produção |
-| **watch** | `npm run watch` | Observa mudanças e recompila |
-| **test** | `npm test` | Executa testes unitários |
-| **ng** | `npm run ng` | Executa comando Angular CLI |
+Em 01/09/2026 foram validados:
 
----
+| Verificação | Resultado |
+|---|---|
+| TypeScript da aplicação | Aprovado |
+| TypeScript dos testes | Aprovado |
+| Karma + Chrome Headless | **52/52 aprovados** |
+| Build Angular de produção | Aprovado |
+| Bundle inicial | `1,08 MB` bruto; `193,97 kB` estimados para transferência |
 
-## 11. Dependências Principais
+Durante a instalação, o npm informou 17 alertas na árvore de dependências (2 baixos, 2 moderados e 13 altos). Nenhum `npm audit fix` foi aplicado automaticamente, pois a atualização deve ser analisada separadamente para evitar alterações incompatíveis.
 
-### Runtime
-- `@angular/common` - Utilidades comuns do Angular
-- `@angular/compiler` - Compilador Angular
-- `@angular/core` - Core do framework
-- `@angular/forms` - Módulo de formulários
-- `@angular/platform-browser` - Plataforma para navegador
-- `@angular/router` - Sistema de roteamento
-- `primeng` - Componentes UI de alta qualidade
-- `rxjs` - Biblioteca de programação reativa
-- `zone.js` - Zona de contexto para Angular
+A cobertura adicionada contempla:
 
-### Development
-- `@angular/cli` - Ferramenta de linha de comando
-- `@angular/build` - Ferramenta de build
-- `@tailwindcss/postcss` - Integração Tailwind CSS
-- `karma` - Test runner
-- `jasmine-core` - Framework de testes
+- login, armazenamento, restauração inválida, sessão expirada, temporizador, logout e papéis;
+- interceptor para API, login sem token, `401`, `403` e status `0`;
+- guards para visitante e cada papel;
+- login inválido, backend indisponível e redirecionamento pós-login;
+- endpoints do serviço de usuários;
+- `GET /viagem/minhas` sem identificação do motorista;
+- correção dos imports quebrados dos specs de faculdade e ponto;
+- atualização do teste obsoleto do componente raiz.
+
+Os specs legados de componentes continuam majoritariamente como testes básicos de criação. Ampliar a cobertura de cada CRUD, validação e payload continua recomendado.
 
 ---
 
-## 12. Features e Funcionalidades
+## 12. Validação integrada recomendada
 
-### Gerenciamento de Alunos ✅
-- [x] Listar todos os alunos com paginação
-- [x] Criar novo aluno
-- [x] Editar dados do aluno
-- [x] Deletar aluno
-- [x] Associar aluno a uma faculdade
-- [x] Validação de CPF
-- [x] Status de matrícula
-- [x] Histórico de cadastro
+Com o backend real ativo:
 
-### Gerenciamento de Faculdades ✅
-- [x] Listar faculdades
-- [x] Adicionar nova faculdade
-- [x] Editar faculdade
-- [x] Deletar faculdade
-- [x] Endereço e localização
+1. entrar como administrador e conferir todos os menus e CRUDs;
+2. criar um aluno e um motorista de teste;
+3. em `/usuarios`, criar as contas vinculadas;
+4. entrar com cada conta e validar os três menus;
+5. confirmar que aluno consulta apenas rotas, pontos e grades e não vê ações de escrita;
+6. confirmar que motorista acessa apenas perfil e próprias viagens;
+7. recarregar a página e validar a restauração da sessão;
+8. testar logout, token expirado, URL proibida e token inválido;
+9. testar conflitos de e-mail/pessoa (`409`);
+10. pausar o backend com segurança e validar o status `0`.
 
-### Gerenciamento de Ônibus ✅
-- [x] Listar ônibus disponíveis
-- [x] Cadastrar novo ônibus
-- [x] Editar dados do ônibus
-- [x] Deletar ônibus
-- [x] Upload de foto
-- [x] Controlar capacidade
-- [x] Status do veículo
-- [x] Número de identificação
-
-### Gerenciamento de Motoristas ✅
-- [x] Listar motoristas
-- [x] Cadastrar novo motorista
-- [x] Editar motorista
-- [x] Deletar motorista
-- [x] Associar ônibus ao motorista
-- [x] Validação de CNH
-- [x] Controle de salário
-- [x] Número de identificação
-
-### Contas a Pagar ✅
-- [x] Listar contas pendentes/pagas/atrasadas
-- [x] Criar nova conta
-- [x] Editar conta
-- [x] Deletar conta
-- [x] Processar pagamento
-- [x] Gerar recibo
-- [x] Filtrar por status
-- [x] Associar a motorista
-
-### Interface & UX ✅
-- [x] Sidebar responsiva
-- [x] Temas de cores (PrimeNG)
-- [x] Ícones (PrimeIcons)
-- [x] Diálogos de confirmação
-- [x] Notificações (Toast)
-- [x] Tabelas com sort e filtro
-- [x] Formulários validados
-- [x] Responsivo para mobile
+Os registros criados permanecem no banco porque não existe endpoint de exclusão de usuários.
 
 ---
 
-## 13. Arquitetura e Padrões
+## 13. Implantação e segurança
 
-### Padrão de Componentes
-A aplicação segue uma arquitetura baseada em componentes Angular:
+A URL de produção ainda não foi fornecida; por isso `environment.apiUrl` permanece em `http://localhost:8080`. Antes da implantação, deve ser criada a configuração de ambiente adequada.
 
-```
-Componente Raiz (App)
-    └── Sidebar (Navegação)
-    └── Router Outlet
-        └── Componentes de Página
-            ├── Componente Listar
-            └── Componente Cadastro
-```
+O servidor de produção precisa:
 
-### Padrão de Serviços
-Todos os serviços implementam o padrão de injeção de dependência:
+- usar HTTPS;
+- permitir apenas as origens CORS necessárias;
+- servir o bundle gerado;
+- redirecionar URLs da SPA para `index.html`;
+- manter validação e autorização no backend;
+- proteger e rotacionar a chave de assinatura JWT conforme a política do backend.
 
-```typescript
-@Injectable({ providedIn: 'root' })
-export class NomeService {
-    constructor(private httpClient: HttpClient) {}
-    
-    metodo(): Observable<any> {
-        return this.httpClient.get<any>(url);
-    }
-}
-```
+Exemplo de fallback SPA no Nginx:
 
-### Padrão Standalone Components
-A aplicação utiliza componentes standalone do Angular 14+:
-
-```typescript
-@Component({
-    standalone: true,
-    imports: [CommonModule, FormsModule, ...],
-    // ...
-})
-export class MeuComponente {}
-```
-
----
-
-## 14. Estrutura de Pastas por Módulo
-
-Cada módulo (aluno, faculdade, etc.) segue a estrutura:
-
-```
-modulo/
-├── modulo-service.ts              # Serviço HTTP
-├── modulo-service.spec.ts         # Testes do serviço
-├── modelo/
-│   └── modulo.ts                  # Interface/Classe do modelo
-├── modulo-listar/                 # Componente de listagem
-│   ├── modulo-listar.ts
-│   ├── modulo-listar.html
-│   ├── modulo-listar.css
-│   └── modulo-listar.spec.ts
-├── modulo-cadastro/               # Componente de cadastro/edição
-│   ├── modulo-cadastro.ts
-│   ├── modulo-cadastro.html
-│   ├── modulo-cadastro.css
-│   └── modulo-cadastro.spec.ts
-└── modulo.spec.ts                 # Testes gerais do módulo
-```
-
----
-
-## 15. Fluxo de Dados
-
-### Fluxo Típico de CRUD
-
-```
-Usuário Interage com Componente Listar
-                ↓
-Componente chama Serviço
-                ↓
-Serviço faz requisição HTTP
-                ↓
-Backend processa e retorna dados
-                ↓
-RxJS Observable emite dados
-                ↓
-Componente recebe e renderiza
-                ↓
-UI atualizada
-```
-
-### Exemplo: Criar Aluno
-
-```
-1. Usuário preenche formulário em aluno-cadastro
-2. Clica em "Salvar"
-3. aluno-cadastro.ts chama AlunoService.CadastroAlunos()
-4. Serviço envia POST para http://localhost:8080/aluno/salvar-aluno
-5. Backend cria aluno no banco
-6. Resposta retorna ao frontend
-7. Notificação de sucesso exibida
-8. Formulário limpo ou componente listar atualizado
-```
-
----
-
-## 16. Configuração do TypeScript
-
-### tsconfig.json (Base)
-```json
-{
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "ES2022",
-    "lib": ["ES2022", "dom"],
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
-  }
-}
-```
-
-### tsconfig.app.json
-Configuração específica para a aplicação (extends tsconfig.json)
-
-### tsconfig.spec.json
-Configuração específica para testes (extends tsconfig.json)
-
----
-
-## 17. Sistema de Build
-
-### Desenvolvimento
-```bash
-ng serve --open
-# Compila em tempo real
-# HMR (Hot Module Replacement) ativado
-# Servidor em http://localhost:4200
-```
-
-### Produção
-```bash
-ng build --configuration production
-# Minificação
-# Tree-shaking
-# Otimização de bundle
-# Saída em dist/
-```
-
----
-
-## 18. Testes
-
-### Execução de Testes
-```bash
-ng test
-# Abre Karma e Chrome
-# Reexecuta ao salvar arquivos
-# Exibe relatório de cobertura
-```
-
-### Estrutura dos Testes
-Cada componente/serviço tem um arquivo `.spec.ts` correspondente:
-
-```typescript
-describe('NomeService', () => {
-  let service: NomeService;
-  
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(NomeService);
-  });
-  
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-  
-  it('should return alunos list', (done) => {
-    service.listarAlunos().subscribe((alunos) => {
-      expect(alunos.length).toBeGreaterThan(0);
-      done();
-    });
-  });
-});
-```
-
----
-
-## 19. Integração com Backend
-
-### Requisitos do Backend
-O backend deve disponibilizar as seguintes APIs RESTful:
-
-#### Alunos
-- `GET /aluno/listar` - Lista todos os alunos
-- `POST /aluno/salvar-aluno` - Cria novo aluno
-- `PUT /aluno/atualizar-aluno/{id}` - Atualiza aluno
-- `DELETE /aluno/deletar-aluno/{id}` - Deleta aluno
-
-#### Faculdades
-- `GET /faculdade/listar`
-- `POST /faculdade/salvar-faculdade`
-- `PUT /faculdade/atualizar-faculdade/{id}`
-- `DELETE /faculdade/deletar-faculdade/{id}`
-
-#### Ônibus
-- `GET /onibus/listar`
-- `POST /onibus/salvar-onibus`
-- `PUT /onibus/atualizar-onibus/{id}`
-- `DELETE /onibus/deletar-onibus/{id}`
-
-#### Motoristas
-- `GET /motorista/listar`
-- `POST /motorista/salvar-motorista`
-- `PUT /motorista/atualizar-motorista/{id}`
-- `DELETE /motorista/deletar-motorista/{id}`
-
-#### Contas a Pagar
-- `GET /conta-pagar/listar`
-- `POST /conta-pagar/salvar-conta`
-- `PUT /conta-pagar/atualizar-conta/{id}`
-- `DELETE /conta-pagar/deletar-conta/{id}`
-
-#### Pagamentos
-- `POST /pagamento/processar` - Processa pagamento
-- `GET /pagamento/recibo/{id}` - Gera recibo
-
----
-
-## 20. Deployment
-
-### Requisitos
-- Node.js 18+ 
-- npm 9+
-- Angular CLI 21+
-
-### Passos para Deploy
-1. Build da aplicação:
-   ```bash
-   npm run build
-   ```
-
-2. Os arquivos compilados estarão em `dist/integrador-frontend`
-
-3. Servir os arquivos em um servidor web (Apache, Nginx, etc.)
-
-4. Garantir que:
-   - Backend está rodando em `http://localhost:8080`
-   - Arquivo `index.html` é servido para todas as rotas (SPA)
-
-### Exemplo de Configuração Nginx
 ```nginx
-server {
-    listen 80;
-    server_name seu-dominio.com;
-    
-    root /var/www/html/dist/integrador-frontend;
-    index index.html;
-    
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
+location / {
+    try_files $uri $uri/ /index.html;
 }
 ```
 
 ---
 
-## 21. Melhorias Futuras Sugeridas
+## 14. Situação atual
 
-- 🔄 Implementar cache com HttpInterceptors
-- 🔐 Adicionar autenticação e autorização
-- 📊 Adicionar gráficos e relatórios
-- 📱 Melhorar responsividade mobile
-- 🔔 Implementar WebSocket para notificações em tempo real
-- 📄 Adicionar export para PDF/Excel
-- 🌍 Implementar i18n (múltiplos idiomas)
-- 🎨 Criar tema escuro
-- ⚡ Implementar lazy loading de módulos
-- 🧪 Aumentar cobertura de testes
-
----
-
-## 22. Contato e Suporte
-
-Para dúvidas ou sugestões sobre a aplicação:
-- 📧 Email: suporte@exemplo.com
-- 🐛 Issues: GitHub Issues
-- 📚 Documentação: Ver README.md
+| Item | Situação |
+|---|---|
+| Angular standalone e lazy loading | Implementado |
+| API centralizada por environment | Implementado para desenvolvimento |
+| Autenticação JWT e expiração automática | Implementado |
+| Interceptor e guards | Implementado |
+| Menus por papel | Implementado |
+| Perfil, usuários e minhas viagens | Implementado |
+| CRUDs administrativos existentes | Mantidos para `ADMIN` |
+| Leitura de rotas, pontos e grades | Disponível para `ALUNO` |
+| Testes automatizados | 52 aprovados |
+| Build de produção | Aprovado |
+| Teste integrado dos três papéis | Pendente de execução com credenciais reais |
+| Importação e exclusão em massa persistente | Não implementadas |
+| Ambiente de produção | URL ainda não definida |
 
 ---
 
-## 23. Changelog
+**Última revisão:** 1º de setembro de 2026
 
-### Versão 0.0.0 (Inicial)
-- ✅ Setup do projeto Angular 21
-- ✅ Componentes CRUD básicos
-- ✅ Integração com PrimeNG
-- ✅ Sistema de roteamento
-- ✅ Serviços HTTP
-- ✅ Configuração Tailwind CSS
-- ✅ Testes unitários
+**Versão do pacote:** 0.0.0
 
----
-
-**Última atualização**: Maio 2026
-**Versão**: 0.0.0
-**Status**: Em desenvolvimento
-
----
-
-> Esta documentação cobre todos os aspectos da aplicação Integrador Frontend. Para atualizações ou correções, favor enviar um pull request ou abrir uma issue.
+**Status:** autenticação implementada e build validado; resta a homologação manual com o backend real.

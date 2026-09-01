@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, computed, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -23,6 +23,7 @@ import { GradeDiariaService } from '../grade-diaria-service';
 import { GradeDiariaCadastro } from '../grade-diaria-cadastro/grade-diaria-cadastro'; 
 import { TooltipModule } from 'primeng/tooltip';
 import { BadgeModule } from 'primeng/badge';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   standalone: true,
@@ -57,6 +58,8 @@ export class GradeDiariaListar implements OnInit {
   private gradeDiariaService = inject(GradeDiariaService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
+  private readonly auth = inject(AuthService);
+  readonly podeEditar = computed(() => this.auth.temPapel('ADMIN'));
   
   gradeDialog: boolean = false;
   

@@ -1,4 +1,4 @@
-import { Component, inject, ViewChild } from '@angular/core';
+import { Component, computed, inject, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToolbarModule } from 'primeng/toolbar';
@@ -20,6 +20,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { PontoEmbarqueService } from '../ponto-embarque-service'; // Ajuste o caminho do seu service
 import { PontoEmbarque } from '../model/ponto-embarque'; // Ajuste o caminho do seu model
 import { PontoEmbarqueCadastro } from '../ponto-embarque-cadastro/ponto-embarque-cadastro';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   standalone: true,
@@ -53,6 +54,8 @@ export class PontoEmbarqueListar {
   private pontoEmbarqueService = inject(PontoEmbarqueService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
+  private readonly auth = inject(AuthService);
+  readonly podeEditar = computed(() => this.auth.temPapel('ADMIN'));
   
   pontoEmbarqueDialog: boolean = false;
   pontosEmbarque: PontoEmbarque[] = []; 

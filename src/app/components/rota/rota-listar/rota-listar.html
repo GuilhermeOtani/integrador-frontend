@@ -3,28 +3,32 @@
   
   <p-toolbar class="mb-6">
     <ng-template #start>
-      <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
-      <p-button
-        severity="danger"
-        label="Excluir"
-        icon="pi pi-trash"
-        outlined
-        (onClick)="deleteSelectedRotas()"
-        [disabled]="!selectedRotas || !selectedRotas.length"
-      />
+      @if (podeEditar()) {
+        <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+        <p-button
+          severity="danger"
+          label="Excluir"
+          icon="pi pi-trash"
+          outlined
+          (onClick)="deleteSelectedRotas()"
+          [disabled]="!selectedRotas || !selectedRotas.length"
+        />
+      }
     </ng-template>
     <ng-template #end>
-      <p-fileUpload
-        mode="basic"
-        accept="image/*"
-        [maxFileSize]="1000000"
-        label="Importar"
-        chooseLabel="Importar"
-        auto
-        customUpload
-        class="mr-2 inline-block"
-        [chooseButtonProps]="{ severity: 'secondary' }"
-      />
+      @if (podeEditar()) {
+        <p-fileUpload
+          mode="basic"
+          accept="image/*"
+          [maxFileSize]="1000000"
+          label="Importar"
+          chooseLabel="Importar"
+          auto
+          customUpload
+          class="mr-2 inline-block"
+          [chooseButtonProps]="{ severity: 'secondary' }"
+        />
+      }
       <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
     </ng-template>
   </p-toolbar>
@@ -59,9 +63,9 @@
 
     <ng-template #header>
       <tr>
-        <th style="width: 3rem">
-          <p-tableHeaderCheckbox />
-        </th>
+        @if (podeEditar()) {
+          <th style="width: 3rem"><p-tableHeaderCheckbox /></th>
+        }
         <th pSortableColumn="id" style="min-width: 5rem" class="text-center">
           Id
           <p-sortIcon field="id" />
@@ -81,9 +85,9 @@
 
     <ng-template #body let-rota>
       <tr>
-        <td style="width: 3rem">
-          <p-tableCheckbox [value]="rota" />
-        </td>
+        @if (podeEditar()) {
+          <td style="width: 3rem"><p-tableCheckbox [value]="rota" /></td>
+        }
         <td class="text-center">{{ rota.id }}</td>
         <td class="text-center font-medium">{{ rota.nome }}</td>
         <td class="text-center">{{ rota.descricao || 'Sem Descrição' }}</td>
@@ -100,20 +104,22 @@
               severity="info"
               (onClick)="verDetalhes(rota)"
             />
-            <p-button
-              icon="pi pi-pencil"
-              [rounded]="true"
-              [outlined]="true"
-              severity="success"
-              (click)="editRota(rota)"
-            />
-            <p-button
-              icon="pi pi-trash"
-              severity="danger"
-              [rounded]="true"
-              [outlined]="true"
-              (click)="deleteRota(rota)"
-            />
+            @if (podeEditar()) {
+              <p-button
+                icon="pi pi-pencil"
+                [rounded]="true"
+                [outlined]="true"
+                severity="success"
+                (click)="editRota(rota)"
+              />
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                [rounded]="true"
+                [outlined]="true"
+                (click)="deleteRota(rota)"
+              />
+            }
           </div>
         </td>
       </tr>

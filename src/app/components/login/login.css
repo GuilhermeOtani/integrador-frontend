@@ -1,0 +1,12 @@
+.login-page {
+  background:
+    radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--p-primary-color) 22%, transparent), transparent 34%),
+    radial-gradient(circle at 85% 80%, color-mix(in srgb, var(--p-primary-color) 16%, transparent), transparent 36%),
+    var(--p-surface-ground);
+}
+
+.brand-mark {
+  width: 3rem;
+  height: 3rem;
+  background: var(--p-primary-color);
+}

@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { OnibusListar } from './onibus-listar';
 
@@ -8,7 +10,8 @@ describe('OnibusListar', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [OnibusListar]
+      imports: [OnibusListar],
+      providers: [provideHttpClient(), provideHttpClientTesting()]
     })
     .compileComponents();
 

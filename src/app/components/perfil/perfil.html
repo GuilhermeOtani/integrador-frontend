@@ -1,0 +1,67 @@
+<section class="mx-auto w-full" style="max-width: 64rem">
+  <div class="mb-5">
+    <span class="text-primary font-semibold uppercase text-sm tracking-wide">Minha conta</span>
+    <h1 class="mt-2 mb-1 text-3xl">Meu perfil</h1>
+    <p class="text-color-secondary mt-0">Dados vinculados à sua sessão atual.</p>
+  </div>
+
+  @if (carregando()) {
+    <div class="flex justify-content-center p-8"><p-progressSpinner ariaLabel="Carregando perfil" /></div>
+  } @else if (erro()) {
+    <p-message severity="error" [text]="erro()!" />
+  } @else if (perfil(); as dados) {
+    <div class="surface-card border-1 surface-border border-round-xl shadow-1 p-5 mb-4">
+      <div class="flex flex-column md:flex-row md:align-items-center justify-content-between gap-3">
+        <div class="flex align-items-center gap-3">
+          <div class="profile-avatar flex align-items-center justify-content-center border-circle text-white">
+            <i class="pi pi-user text-2xl"></i>
+          </div>
+          <div>
+            <h2 class="m-0 text-2xl">{{ dados.pessoa.nome }}</h2>
+            <span class="text-color-secondary">{{ dados.email }}</span>
+          </div>
+        </div>
+        <p-tag [value]="rotuloPapel(dados.tipoPessoa)" severity="info" [rounded]="true" />
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="col-12 md:col-6">
+        <div class="surface-card border-1 surface-border border-round-xl p-4 h-full">
+          <h3 class="mt-0 mb-4">Dados pessoais</h3>
+          <dl class="profile-list m-0">
+            <div><dt>CPF/CNPJ</dt><dd>{{ dados.pessoa.cpfCnpj || 'Não informado' }}</dd></div>
+            <div><dt>Telefone</dt><dd>{{ dados.pessoa.telefone || 'Não informado' }}</dd></div>
+            <div><dt>ID da pessoa</dt><dd>{{ dados.pessoa.id }}</dd></div>
+          </dl>
+        </div>
+      </div>
+
+      @if (dados.pessoa.aluno; as aluno) {
+        <div class="col-12 md:col-6">
+          <div class="surface-card border-1 surface-border border-round-xl p-4 h-full">
+            <h3 class="mt-0 mb-4">Dados acadêmicos</h3>
+            <dl class="profile-list m-0">
+              <div><dt>Matrícula</dt><dd>{{ aluno.matricula || 'Não informada' }}</dd></div>
+              <div><dt>Status</dt><dd>{{ rotuloStatus(aluno.statusMatricula) }}</dd></div>
+              <div><dt>Cadastro</dt><dd>{{ aluno.dataCadastro ? (aluno.dataCadastro | date: 'dd/MM/yyyy') : 'Não informado' }}</dd></div>
+              <div><dt>Mensalidade</dt><dd>{{ aluno.mensalidade !== null ? (aluno.mensalidade | currency: 'BRL') : 'Não informada' }}</dd></div>
+            </dl>
+          </div>
+        </div>
+      }
+
+      @if (dados.pessoa.motorista; as motorista) {
+        <div class="col-12 md:col-6">
+          <div class="surface-card border-1 surface-border border-round-xl p-4 h-full">
+            <h3 class="mt-0 mb-4">Dados profissionais</h3>
+            <dl class="profile-list m-0">
+              <div><dt>CNH</dt><dd>{{ motorista.cnh || 'Não informada' }}</dd></div>
+              <div><dt>Salário</dt><dd>{{ motorista.salario !== null ? (motorista.salario | currency: 'BRL') : 'Não informado' }}</dd></div>
+            </dl>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</section>

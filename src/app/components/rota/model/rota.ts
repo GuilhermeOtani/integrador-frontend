@@ -6,7 +6,7 @@ export default class rota {
   nome!: string;
   descricao!: string;
   faculdadeId!: number;
-  faculdade!: faculdade;
+  faculdade!: faculdade | null;
   pontosEmbarqueId!: number[];         
   pontosEmbarque!: PontoEmbarque[];
 }

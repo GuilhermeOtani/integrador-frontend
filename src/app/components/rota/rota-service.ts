@@ -1,13 +1,14 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import rota from './model/rota';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RotaService {
-  private urlUsuario: string = 'http://localhost:8080/rota';
+  private readonly urlUsuario = `${environment.apiUrl}/rota`;
 
   constructor(private httpCliente: HttpClient) {}
 

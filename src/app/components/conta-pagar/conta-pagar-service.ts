@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { ContaPagar } from './model/conta-pagar';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ContaPagarService {
-  private apiUrl = 'http://localhost:8080/contapagar';
+  private readonly apiUrl = `${environment.apiUrl}/contapagar`;
 
   constructor(private http: HttpClient) {}
 
