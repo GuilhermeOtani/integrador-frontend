@@ -39,6 +39,7 @@ describe('Login', () => {
           tipoPessoa: 'ADMIN',
           pessoaId: 1,
           nome: 'Admin',
+          ativo: true,
         },
       }),
     );

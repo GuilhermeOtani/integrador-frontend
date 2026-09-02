@@ -3,9 +3,12 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  AtualizarEmailUsuarioRequest,
+  AtualizarStatusUsuarioRequest,
   CriarAdminRequest,
   CriarUsuarioRequest,
   PessoaDisponivelResponse,
+  RedefinirSenhaUsuarioRequest,
   UsuarioResumo,
 } from './auth.models';
 
@@ -28,5 +31,24 @@ export class UsuarioService {
 
   criarAdmin(request: CriarAdminRequest): Observable<UsuarioResumo> {
     return this.http.post<UsuarioResumo>(`${this.apiUrl}/admin`, request);
+  }
+
+  atualizarEmail(id: number, email: string): Observable<UsuarioResumo> {
+    const request: AtualizarEmailUsuarioRequest = { email: email.trim() };
+    return this.http.patch<UsuarioResumo>(`${this.apiUrl}/${id}`, request);
+  }
+
+  redefinirSenha(id: number, senha: string): Observable<void> {
+    const request: RedefinirSenhaUsuarioRequest = { senha };
+    return this.http.put<void>(`${this.apiUrl}/${id}/senha`, request);
+  }
+
+  atualizarStatus(id: number, ativo: boolean): Observable<UsuarioResumo> {
+    const request: AtualizarStatusUsuarioRequest = { ativo };
+    return this.http.patch<UsuarioResumo>(`${this.apiUrl}/${id}/status`, request);
+  }
+
+  excluirAcesso(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

@@ -20,6 +20,7 @@ describe('AuthService', () => {
       tipoPessoa: 'ADMIN',
       pessoaId: 1,
       nome: 'Administrador',
+      ativo: true,
     },
   };
 
@@ -73,6 +74,40 @@ describe('AuthService', () => {
 
   it('rejects malformed stored sessions', () => {
     sessionStorage.setItem(AUTH_STORAGE_KEY, '{invalid');
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+
+    service = TestBed.inject(AuthService);
+    http = TestBed.inject(HttpTestingController);
+    router = TestBed.inject(Router);
+    expect(service.autenticado()).toBeFalse();
+    expect(sessionStorage.getItem(AUTH_STORAGE_KEY)).toBeNull();
+  });
+
+  it('rejects restored sessions that are inactive or do not contain the active flag', () => {
+    const sessaoAntiga = {
+      accessToken: 'old-token',
+      tokenType: 'Bearer',
+      expiresAt: Date.now() + 60_000,
+      usuario: { ...response.usuario, ativo: undefined },
+    };
+    sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(sessaoAntiga));
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+
+    service = TestBed.inject(AuthService);
+    http = TestBed.inject(HttpTestingController);
+    router = TestBed.inject(Router);
+    expect(service.autenticado()).toBeFalse();
+
+    sessionStorage.setItem(
+      AUTH_STORAGE_KEY,
+      JSON.stringify({ ...sessaoAntiga, usuario: { ...response.usuario, ativo: false } }),
+    );
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],

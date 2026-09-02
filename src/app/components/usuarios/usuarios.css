@@ -1,3 +1,8 @@
 :host {
   display: block;
 }
+
+:host ::ng-deep .usuario-danger-item .p-menu-item-link,
+:host ::ng-deep .usuario-danger-item .p-menu-item-icon {
+  color: var(--p-red-500);
+}

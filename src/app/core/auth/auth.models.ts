@@ -12,6 +12,7 @@ export interface UsuarioResumo {
   tipoPessoa: Papel;
   pessoaId: number;
   nome: string;
+  ativo: boolean;
 }
 
 export interface LoginResponse {
@@ -67,6 +68,18 @@ export interface CriarAdminRequest {
   nome: string;
   email: string;
   senha: string;
+}
+
+export interface AtualizarEmailUsuarioRequest {
+  email: string;
+}
+
+export interface RedefinirSenhaUsuarioRequest {
+  senha: string;
+}
+
+export interface AtualizarStatusUsuarioRequest {
+  ativo: boolean;
 }
 
 export interface PessoaDisponivelResponse {

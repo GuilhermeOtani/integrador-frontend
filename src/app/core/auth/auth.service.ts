@@ -90,6 +90,7 @@ export class AuthService {
         typeof sessao.expiresAt === 'number' &&
         sessao.expiresAt > Date.now() &&
         !!sessao.usuario &&
+        sessao.usuario.ativo === true &&
         ['ADMIN', 'ALUNO', 'MOTORISTA'].includes(sessao.usuario.tipoPessoa);
 
       if (!valida) {

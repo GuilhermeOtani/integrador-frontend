@@ -109,7 +109,7 @@ As páginas são carregadas com `loadComponent`, reduzindo o bundle inicial por 
 integrador.sessao
 ```
 
-A sessão contém o access token, o tipo `Bearer`, o instante absoluto de expiração e o resumo do usuário. Na inicialização, o JSON armazenado é validado; conteúdo inválido, papel desconhecido ou sessão expirada são descartados.
+A sessão contém o access token, o tipo `Bearer`, o instante absoluto de expiração e o resumo do usuário, incluindo `ativo`. Na inicialização, o JSON armazenado é validado; conteúdo inválido, papel desconhecido, conta inativa, sessão antiga sem o campo `ativo` ou sessão expirada são descartados.
 
 Após login ou restauração, um temporizador é agendado para encerrar a sessão exatamente em `expiresAt`. O logout cancela o temporizador, remove o armazenamento e redireciona para `/login`. Não há refresh token nem persistência em `localStorage`.
 
@@ -191,9 +191,15 @@ A tela `/usuarios` permite ao administrador:
 - listar contas existentes;
 - listar alunos e motoristas que ainda não possuem usuário;
 - criar conta vinculada a uma pessoa;
-- criar outro administrador.
+- criar outro administrador;
+- editar o e-mail de acesso;
+- redefinir a senha sem expor seu conteúdo;
+- desativar ou reativar contas;
+- excluir somente o acesso, preservando a pessoa vinculada.
 
-Os formulários usam e-mail, senha entre 8 e 72 caracteres e confirmação local. Em `409`, o diálogo permanece aberto e mostra o conflito de e-mail ou pessoa. Após uma criação bem-sucedida, as listas de contas e pessoas disponíveis são atualizadas.
+Os formulários usam e-mail, senha entre 8 e 72 caracteres e confirmação local. A tabela identifica contas ativas e inativas e concentra as operações em um menu por usuário. Desativar exige confirmação; excluir fica em uma seção perigosa e exige confirmação explícita informando que a pessoa será preservada. Desativação e exclusão ficam bloqueadas visualmente para a própria conta.
+
+Editar o próprio e-mail ou redefinir a própria senha encerra a sessão após o sucesso. Alterações sensíveis revogam os tokens anteriores no backend; o interceptor trata o `401` subsequente com logout. Em `400`, erros de campo são associados ao formulário; `404` fecha o diálogo e recarrega os dados; `409` mantém o formulário aberto e mostra conflitos como e-mail duplicado ou proteção do último administrador ativo.
 
 ### Minhas viagens
 
@@ -238,9 +244,15 @@ A interface lista contas, separa pagas das pendentes/atrasadas, realiza pagament
 | GET | `/usuarios/pessoas-sem-usuario` | Pessoas disponíveis para vinculação |
 | POST | `/usuarios` | `{ pessoaId, email, senha }` |
 | POST | `/usuarios/admin` | `{ nome, email, senha }` |
+| PATCH | `/usuarios/{id}` | `{ email }` → `UsuarioResumo` |
+| PUT | `/usuarios/{id}/senha` | `{ senha }` → `204 No Content` |
+| PATCH | `/usuarios/{id}/status` | `{ ativo }` → `UsuarioResumo` |
+| DELETE | `/usuarios/{id}` | Exclui somente o acesso → `204 No Content` |
 | GET | `/viagem/minhas` | `Viagem[]` do token autenticado |
 
 Papéis aceitos: `ADMIN`, `ALUNO` e `MOTORISTA`.
+
+`UsuarioResumo` inclui `ativo`, mas nunca inclui senha, hash ou versão do token. Papel, nome e pessoa vinculada não são editáveis pelos endpoints administrativos de acesso.
 
 O utilitário de erro aceita respostas no formato Problem Detail, inclusive o mapa `errors`, e fornece mensagens para `400`, `401`, `403`, `404`, `409`, status `0` e erros inesperados.
 
@@ -316,19 +328,21 @@ Em 01/09/2026 foram validados:
 |---|---|
 | TypeScript da aplicação | Aprovado |
 | TypeScript dos testes | Aprovado |
-| Karma + Chrome Headless | **52/52 aprovados** |
+| Karma + Chrome Headless | **67/67 aprovados** |
 | Build Angular de produção | Aprovado |
-| Bundle inicial | `1,08 MB` bruto; `193,97 kB` estimados para transferência |
+| Bundle inicial | `1,08 MB` bruto; `194,14 kB` estimados para transferência |
 
 Durante a instalação, o npm informou 17 alertas na árvore de dependências (2 baixos, 2 moderados e 13 altos). Nenhum `npm audit fix` foi aplicado automaticamente, pois a atualização deve ser analisada separadamente para evitar alterações incompatíveis.
 
 A cobertura adicionada contempla:
 
-- login, armazenamento, restauração inválida, sessão expirada, temporizador, logout e papéis;
+- login, armazenamento, restauração inválida/inativa, sessão expirada, temporizador, logout e papéis;
 - interceptor para API, login sem token, `401`, `403` e status `0`;
 - guards para visitante e cada papel;
 - login inválido, backend indisponível e redirecionamento pós-login;
-- endpoints do serviço de usuários;
+- criação, edição de e-mail, redefinição de senha, status e exclusão no serviço de usuários;
+- bloqueio visual da própria conta, confirmações, recarga das listas e logout após alteração própria;
+- tratamento de `400`, `404` e `409` na administração de usuários;
 - `GET /viagem/minhas` sem identificação do motorista;
 - correção dos imports quebrados dos specs de faculdade e ponto;
 - atualização do teste obsoleto do componente raiz.
@@ -349,10 +363,14 @@ Com o backend real ativo:
 6. confirmar que motorista acessa apenas perfil e próprias viagens;
 7. recarregar a página e validar a restauração da sessão;
 8. testar logout, token expirado, URL proibida e token inválido;
-9. testar conflitos de e-mail/pessoa (`409`);
-10. pausar o backend com segurança e validar o status `0`.
+9. editar o e-mail e redefinir a senha de uma conta e confirmar que o token anterior recebe `401`;
+10. desativar uma conta, confirmar login bloqueado, reativar e realizar novo login;
+11. confirmar o bloqueio visual da própria conta e o `409` do último administrador ativo;
+12. excluir um acesso e confirmar que a pessoa preservada volta a `pessoas-sem-usuario`;
+13. testar conflitos de e-mail/pessoa (`409`);
+14. pausar o backend com segurança e validar o status `0`.
 
-Os registros criados permanecem no banco porque não existe endpoint de exclusão de usuários.
+Excluir acesso remove apenas `Usuario`. O registro de `Pessoa` criado nos testes permanece no banco e pode receber uma nova conta posteriormente.
 
 ---
 
@@ -389,9 +407,10 @@ location / {
 | Interceptor e guards | Implementado |
 | Menus por papel | Implementado |
 | Perfil, usuários e minhas viagens | Implementado |
+| Administração segura de acessos | E-mail, senha, status e exclusão implementados |
 | CRUDs administrativos existentes | Mantidos para `ADMIN` |
 | Leitura de rotas, pontos e grades | Disponível para `ALUNO` |
-| Testes automatizados | 52 aprovados |
+| Testes automatizados | 67 aprovados |
 | Build de produção | Aprovado |
 | Teste integrado dos três papéis | Pendente de execução com credenciais reais |
 | Importação e exclusão em massa persistente | Não implementadas |

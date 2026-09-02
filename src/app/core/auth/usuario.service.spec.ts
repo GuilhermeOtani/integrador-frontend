@@ -38,4 +38,40 @@ describe('UsuarioService', () => {
     const request = http.expectOne('http://localhost:8080/usuarios/admin');
     expect(request.request.method).toBe('POST');
   });
+
+  it('updates only the normalized e-mail through PATCH', () => {
+    service.atualizarEmail(7, '  novo@teste.com  ').subscribe();
+
+    const request = http.expectOne('http://localhost:8080/usuarios/7');
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({ email: 'novo@teste.com' });
+    expect(request.request.body.tipoPessoa).toBeUndefined();
+    expect(request.request.body.pessoaId).toBeUndefined();
+    expect(request.request.body.tokenVersion).toBeUndefined();
+  });
+
+  it('redefines a password without exposing extra fields', () => {
+    service.redefinirSenha(7, 'NovaSenha123').subscribe();
+
+    const request = http.expectOne('http://localhost:8080/usuarios/7/senha');
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({ senha: 'NovaSenha123' });
+    expect(request.request.body.tokenVersion).toBeUndefined();
+  });
+
+  it('updates status through PATCH', () => {
+    service.atualizarStatus(7, false).subscribe();
+
+    const request = http.expectOne('http://localhost:8080/usuarios/7/status');
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({ ativo: false });
+  });
+
+  it('deletes only the selected access', () => {
+    service.excluirAcesso(7).subscribe();
+
+    const request = http.expectOne('http://localhost:8080/usuarios/7');
+    expect(request.request.method).toBe('DELETE');
+    expect(request.request.body).toBeNull();
+  });
 });
