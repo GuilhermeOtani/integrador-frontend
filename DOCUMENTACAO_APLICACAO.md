@@ -7,12 +7,12 @@ O **Integrador Frontend** é uma SPA administrativa para uma operação de trans
 O sistema possui autenticação JWT e três papéis:
 
 - `ADMIN`: administra usuários e acessa todos os módulos existentes;
-- `ALUNO`: consulta rotas, pontos de embarque e grades diárias;
+- `ALUNO`: consulta rotas, pontos de embarque e grades diárias e paga as próprias mensalidades;
 - `MOTORISTA`: consulta o próprio perfil e suas viagens.
 
-Além da autenticação, o frontend oferece cadastro e consulta de alunos, faculdades, ônibus, motoristas, pontos de embarque, rotas e grades diárias, bem como consulta de contas a pagar, pagamento e recibo.
+Além da autenticação, o frontend oferece cadastro e consulta de alunos, faculdades, ônibus, motoristas, pontos de embarque, rotas e grades diárias, bem como contas a pagar e o fluxo de contas a receber da matrícula.
 
-> **Estado da revisão:** o código-fonte foi revisado em 01/09/2026 após a implementação da autenticação. A compilação TypeScript, os 52 testes automatizados e o build de produção foram aprovados. A validação integrada dos três papéis ainda depende de credenciais e dados no backend local.
+> **Estado da revisão:** o código-fonte foi revisado em 13/09/2026 após a implementação do pagamento de matrícula e da consulta administrativa de contas a receber. A compilação TypeScript, os 88 testes automatizados e o build de produção foram aprovados. A validação integrada dos três papéis e da geração mensal ainda depende de credenciais e dados no backend local.
 
 ---
 
@@ -87,6 +87,7 @@ src/
 │   │   ├── grade-diaria/
 │   │   ├── viagem/
 │   │   ├── conta-pagar/
+│   │   ├── conta-receber/
 │   │   └── sidebar/
 │   ├── app.config.ts
 │   ├── app.routes.ts
@@ -157,16 +158,18 @@ Uma URL interna de retorno é preservada quando o usuário é enviado ao login. 
 | `/onibus` | `ADMIN` | CRUD de ônibus |
 | `/motoristas` | `ADMIN` | CRUD de motoristas |
 | `/contapagar` | `ADMIN` | Contas, pagamentos e recibos |
+| `/contas-receber` | `ADMIN` | Consulta de todas as mensalidades dos alunos |
 | `/rotas` | `ADMIN`, `ALUNO` | Rotas e itinerários |
 | `/pontosembarque` | `ADMIN`, `ALUNO` | Pontos de embarque |
 | `/grades` | `ADMIN`, `ALUNO` | Grades diárias e viagens |
+| `/minhas-matriculas` | `ALUNO` | Cobranças, pagamento e recibos do aluno autenticado |
 | `/minhas-viagens` | `MOTORISTA` | Viagens do motorista autenticado |
 
 `/onibuss` foi mantida como redirecionamento de compatibilidade para `/onibus`. A raiz e URLs desconhecidas redirecionam para `/perfil`.
 
 A sidebar calcula os itens pelo papel, exibe nome, papel e iniciais reais do usuário e executa o logout. Ela fica invisível no login e sempre que não existe sessão.
 
-Para `ALUNO`, rotas, grades e pontos ficam em modo de leitura: botões de criar, importar, excluir em massa, editar e excluir não são renderizados. Pesquisa, paginação, exportação e detalhes continuam disponíveis.
+Para `ALUNO`, rotas, grades e pontos ficam em modo de leitura: botões de criar, importar, excluir em massa, editar e excluir não são renderizados. Pesquisa, paginação, exportação e detalhes continuam disponíveis. A sidebar também oferece **Minhas matrículas**, dentro da seção Financeiro, somente para esse papel.
 
 ---
 
@@ -205,13 +208,25 @@ Editar o próprio e-mail ou redefinir a própria senha encerra a sessão após o
 
 A página chama somente `GET /viagem/minhas`; o frontend não envia `motoristaId`. Ela apresenta data, rota, ônibus e faculdades, além dos estados de carregamento, lista vazia e erro.
 
+### Minhas matrículas
+
+A página `/minhas-matriculas` chama `GET /contareceber/minhas` e mostra somente as cobranças do aluno identificado pelo JWT. A interface separa cobranças em aberto do histórico, oferece pesquisa, paginação e atualização manual e apresenta valor, vencimento e status `PENDENTE`, `ATRASADO` ou `PAGO`.
+
+O aluno pode pagar cobranças pendentes ou atrasadas escolhendo apenas a forma de pagamento. O diálogo mostra o valor integral sem permitir edição e chama `POST /recebimentos/realizar/{contaId}` com corpo `null` e somente o query param `formaPagamento`. O frontend nunca envia `alunoId`, `pessoaId` ou valor do pagamento.
+
+Após sucesso, a lista é recarregada e o recibo retornado é aberto. Cobranças pagas oferecem `GET /recebimentos/recibo/conta/{contaId}`. O botão é bloqueado durante a requisição; um `409` fecha o diálogo e atualiza os dados, enquanto `400` mantém a confirmação aberta com a mensagem de validação.
+
+A primeira cobrança, o vencimento em 30 dias e as próximas cobranças mensais são controlados pelo backend. O Angular apenas consulta novamente os dados; ele não possui agendador nem cria contas localmente.
+
+As telas de contas a receber seguem o mesmo padrão visual de Contas a pagar: barra de alternância, tabelas separadas para pendências e histórico, valores em vermelho/verde e os mesmos cards de confirmação e recibo. No recebimento, o valor aparece bloqueado porque deve vir integralmente da cobrança.
+
 ---
 
 ## 7. Módulos administrativos existentes
 
 ### Cadastros principais
 
-- **Alunos:** dados pessoais, matrícula, status, mensalidade e faculdade;
+- **Alunos:** dados pessoais, matrícula, status, mensalidade obrigatória maior que zero e faculdade;
 - **Faculdades:** nome, endereço e telefone;
 - **Ônibus:** identificação, placa, modelo, capacidade, status e foto em Data URL/base64;
 - **Motoristas:** dados pessoais, CNH e salário;
@@ -222,6 +237,12 @@ A página chama somente `GET /viagem/minhas`; o frontend não envia `motoristaId
 ### Contas a pagar
 
 A interface lista contas, separa pagas das pendentes/atrasadas, realiza pagamento e consulta recibo. O serviço possui atualização de conta, mas a tela não oferece CRUD completo de contas.
+
+### Contas a receber da matrícula
+
+O módulo mantém contratos tipados para conta, status financeiro, forma de pagamento e recibo. Para o ADMIN, `/contas-receber` consulta todas as mensalidades em modo somente leitura, separando contas abertas do histórico e permitindo pesquisa por aluno, descrição e status. Para o ALUNO, `/minhas-matriculas` mostra somente as próprias cobranças e oferece pagamento e recibo.
+
+`ContaReceberService` mantém separadas as consultas `/listar` e `/minhas`. `RecebimentoService` registra o pagamento ou busca o recibo apenas no fluxo do aluno. A identidade e o valor são sempre validados pelo backend; a consulta administrativa não oferece ações financeiras.
 
 ### Limitações legadas ainda existentes
 
@@ -288,6 +309,10 @@ A base é obtida de `environment.apiUrl`, atualmente `http://localhost:8080`.
 | PUT | `/contapagar/atualizar-contapagar/{id}` | Atualiza uma conta |
 | POST | `/pagamentos/realizar/{contaId}` | Query params `formaPagamento` e, opcionalmente, `valorPago` |
 | GET | `/pagamentos/recibo/conta/{contaId}` | Consulta recibo |
+| GET | `/contareceber/listar` | Lista todas as contas para consulta do ADMIN |
+| GET | `/contareceber/minhas` | Lista somente as cobranças do aluno autenticado |
+| POST | `/recebimentos/realizar/{contaId}` | Corpo `null`; query param `formaPagamento`; não recebe valor ou aluno |
+| GET | `/recebimentos/recibo/conta/{contaId}` | Consulta recibo protegido da matrícula |
 
 ---
 
@@ -322,15 +347,15 @@ Credenciais administrativas não devem ser registradas no código, documentaçã
 
 ## 11. Testes automatizados
 
-Em 01/09/2026 foram validados:
+Em 13/09/2026 foram validados:
 
 | Verificação | Resultado |
 |---|---|
 | TypeScript da aplicação | Aprovado |
 | TypeScript dos testes | Aprovado |
-| Karma + Chrome Headless | **67/67 aprovados** |
+| Karma + Chrome Headless | **88/88 aprovados** |
 | Build Angular de produção | Aprovado |
-| Bundle inicial | `1,08 MB` bruto; `194,14 kB` estimados para transferência |
+| Bundle inicial | `1,08 MB` bruto; `194,19 kB` estimados para transferência |
 
 Durante a instalação, o npm informou 17 alertas na árvore de dependências (2 baixos, 2 moderados e 13 altos). Nenhum `npm audit fix` foi aplicado automaticamente, pois a atualização deve ser analisada separadamente para evitar alterações incompatíveis.
 
@@ -344,6 +369,13 @@ A cobertura adicionada contempla:
 - bloqueio visual da própria conta, confirmações, recarga das listas e logout após alteração própria;
 - tratamento de `400`, `404` e `409` na administração de usuários;
 - `GET /viagem/minhas` sem identificação do motorista;
+- cadastro e edição de aluno com validação e envio da mensalidade;
+- `GET /contareceber/minhas` sem identificação do aluno;
+- `GET /contareceber/listar` para a consulta administrativa;
+- pagamento com corpo `null` e somente a forma de pagamento;
+- consulta de recibo, estados da nova tela e bloqueio de clique duplicado;
+- comportamentos `400` e `409` no pagamento e menu exclusivo do aluno;
+- separação das contas administrativas, estados de carregamento/erro/vazio e menu exclusivo do ADMIN;
 - correção dos imports quebrados dos specs de faculdade e ponto;
 - atualização do teste obsoleto do componente raiz.
 
@@ -360,15 +392,21 @@ Com o backend real ativo:
 3. em `/usuarios`, criar as contas vinculadas;
 4. entrar com cada conta e validar os três menus;
 5. confirmar que aluno consulta apenas rotas, pontos e grades e não vê ações de escrita;
-6. confirmar que motorista acessa apenas perfil e próprias viagens;
-7. recarregar a página e validar a restauração da sessão;
-8. testar logout, token expirado, URL proibida e token inválido;
-9. editar o e-mail e redefinir a senha de uma conta e confirmar que o token anterior recebe `401`;
-10. desativar uma conta, confirmar login bloqueado, reativar e realizar novo login;
-11. confirmar o bloqueio visual da própria conta e o `409` do último administrador ativo;
-12. excluir um acesso e confirmar que a pessoa preservada volta a `pessoas-sem-usuario`;
-13. testar conflitos de e-mail/pessoa (`409`);
-14. pausar o backend com segurança e validar o status `0`.
+6. cadastrar ou editar o aluno com uma mensalidade válida e confirmar a primeira cobrança com vencimento em 30 dias;
+7. como ADMIN, abrir `/contas-receber` e conferir todas as mensalidades sem ações de pagamento;
+8. como aluno, abrir `/minhas-matriculas`, pagar uma cobrança e consultar o recibo;
+9. confirmar que o navegador não envia aluno, pessoa ou valor e que um segundo pagamento recebe `409`;
+10. confirmar em `/auth/me` que o pagamento altera `statusMatricula` para `ATIV0`;
+11. validar, em teste controlado, que o backend cria somente uma nova cobrança mensal no vencimento;
+12. confirmar que motorista acessa apenas perfil e próprias viagens;
+13. recarregar a página e validar a restauração da sessão;
+14. testar logout, token expirado, URL proibida e token inválido;
+15. editar o e-mail e redefinir a senha de uma conta e confirmar que o token anterior recebe `401`;
+16. desativar uma conta, confirmar login bloqueado, reativar e realizar novo login;
+17. confirmar o bloqueio visual da própria conta e o `409` do último administrador ativo;
+18. excluir um acesso e confirmar que a pessoa preservada volta a `pessoas-sem-usuario`;
+19. testar conflitos de e-mail/pessoa (`409`);
+20. pausar o backend com segurança e validar o status `0`.
 
 Excluir acesso remove apenas `Usuario`. O registro de `Pessoa` criado nos testes permanece no banco e pode receber uma nova conta posteriormente.
 
@@ -410,7 +448,10 @@ location / {
 | Administração segura de acessos | E-mail, senha, status e exclusão implementados |
 | CRUDs administrativos existentes | Mantidos para `ADMIN` |
 | Leitura de rotas, pontos e grades | Disponível para `ALUNO` |
-| Testes automatizados | 67 aprovados |
+| Pagamento de matrícula | Implementado para `ALUNO` com conta, recebimento e recibo |
+| Consulta de contas a receber | Implementada para `ADMIN` em modo somente leitura |
+| Geração mensal da cobrança | Responsabilidade do backend; validação integrada pendente |
+| Testes automatizados | 88 aprovados |
 | Build de produção | Aprovado |
 | Teste integrado dos três papéis | Pendente de execução com credenciais reais |
 | Importação e exclusão em massa persistente | Não implementadas |
@@ -418,8 +459,8 @@ location / {
 
 ---
 
-**Última revisão:** 1º de setembro de 2026
+**Última revisão:** 13 de setembro de 2026
 
 **Versão do pacote:** 0.0.0
 
-**Status:** autenticação implementada e build validado; resta a homologação manual com o backend real.
+**Status:** autenticação e pagamento de matrícula implementados, testados e compilados; resta a homologação manual com o backend real.

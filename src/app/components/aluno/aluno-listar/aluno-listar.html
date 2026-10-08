@@ -33,7 +33,7 @@
     [rows]="10"
     [columns]="cols"
     [paginator]="true"
-    [globalFilterFields]="['id', 'nome', 'cpfCnpj', 'telefone', 'matricula']"
+    [globalFilterFields]="['id', 'nome', 'cpfCnpj', 'telefone', 'matricula', 'mensalidade']"
     [tableStyle]="{ 'min-width': '75rem' }"
     [(selection)]="selectedAlunos"
     [rowHover]="true"
@@ -80,6 +80,10 @@
         <th style="min-width: 12rem" class="text-center">
           Matrícula
         </th>
+
+        <th style="min-width: 12rem" class="text-center">
+          Mensalidade
+        </th>
         
         <th style="min-width: 12rem" class="text-center">
           Faculdade
@@ -99,6 +103,13 @@
         <td style="min-width: 12rem" class="text-center">{{ aluno.cpfCnpj }}</td>
         <td style="min-width: 12rem" class="text-center">{{ aluno.telefone }}</td>
         <td style="min-width: 12rem" class="text-center">{{ aluno.matricula }}</td>
+        <td style="min-width: 12rem" class="text-center">
+          {{
+            aluno.mensalidade != null
+              ? (aluno.mensalidade | currency: 'BRL' : 'symbol')
+              : 'Não informada'
+          }}
+        </td>
 
         <td style="min-width: 12rem" class="text-center">
           {{ aluno.faculdade?.nome || 'Não Vinculada' }}

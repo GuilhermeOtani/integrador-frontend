@@ -69,7 +69,10 @@ export class Sidebar {
         },
         {
           titulo: 'Financeiro',
-          itens: [{ label: 'Contas a pagar', icon: 'pi pi-money-bill', rota: '/contapagar' }],
+          itens: [
+            { label: 'Contas a pagar', icon: 'pi pi-money-bill', rota: '/contapagar' },
+            { label: 'Contas a receber', icon: 'pi pi-wallet', rota: '/contas-receber' },
+          ],
         },
       ];
     }
@@ -77,6 +80,12 @@ export class Sidebar {
     if (this.auth.temPapel('ALUNO')) {
       return [
         { titulo: 'Conta', itens: [PERFIL] },
+        {
+          titulo: 'Financeiro',
+          itens: [
+            { label: 'Minhas matrículas', icon: 'pi pi-wallet', rota: '/minhas-matriculas' },
+          ],
+        },
         {
           titulo: 'Transporte',
           itens: [

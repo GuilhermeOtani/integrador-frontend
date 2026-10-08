@@ -53,6 +53,24 @@
     </div>
   </div>
 
+  <div>
+    <label for="mensalidade" class="block font-bold mb-3">Mensalidade</label>
+    <p-inputNumber
+      inputId="mensalidade"
+      [(ngModel)]="aluno.mensalidade"
+      mode="currency"
+      currency="BRL"
+      locale="pt-BR"
+      [min]="0.01"
+      [minFractionDigits]="2"
+      [maxFractionDigits]="2"
+      [fluid]="true"
+    />
+    <small class="text-red-500" *ngIf="submitted && !(aluno.mensalidade >= 0.01)">
+      A mensalidade é obrigatória e deve ser maior que zero.
+    </small>
+  </div>
+
   <hr class="border-t border-gray-200 dark:border-gray-700 mt-2" />
 
   <div class="flex justify-end gap-2">

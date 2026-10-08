@@ -4,6 +4,7 @@ export default class aluno {
     email!: string;
     telefone!: string
     matricula!: string;
+    mensalidade!: number | null;
     status_matricula!: string;
     data_cadastro!: Date;
     cpfCnpj!: string;

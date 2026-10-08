@@ -1,0 +1,183 @@
+<div class="card">
+  <p-toolbar class="mb-6">
+    <ng-template #start>
+      <p-button
+        label="A Receber (Pendentes)"
+        icon="pi pi-clock"
+        class="mr-2"
+        [severity]="!mostrarPagas() ? 'primary' : 'secondary'"
+        [outlined]="mostrarPagas()"
+        (onClick)="selecionarHistorico(false)"
+      />
+
+      <p-button
+        label="Histórico (Pagas)"
+        icon="pi pi-check-circle"
+        [severity]="mostrarPagas() ? 'success' : 'secondary'"
+        [outlined]="!mostrarPagas()"
+        (onClick)="selecionarHistorico(true)"
+      />
+    </ng-template>
+
+    <ng-template #end>
+      <p-button
+        label="Atualizar"
+        icon="pi pi-refresh"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="carregando()"
+        (onClick)="carregar()"
+      />
+    </ng-template>
+  </p-toolbar>
+
+  @if (carregando()) {
+    <div class="flex justify-center p-8">
+      <p-progressSpinner ariaLabel="Carregando contas a receber" />
+    </div>
+  } @else if (erro()) {
+    <div class="flex flex-col gap-3 items-start p-4">
+      <p-message severity="error" [text]="erro()!" />
+      <p-button label="Tentar novamente" icon="pi pi-refresh" (onClick)="carregar()" />
+    </div>
+  } @else {
+    <p-table
+      *ngIf="!mostrarPagas()"
+      #dtPendentes
+      [value]="contasEmAberto()"
+      [rows]="10"
+      [paginator]="true"
+      [globalFilterFields]="['descricao', 'nomeAluno', 'status']"
+      [tableStyle]="{ 'min-width': '75rem' }"
+      [rowHover]="true"
+      dataKey="id"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} contas"
+      [showCurrentPageReport]="true"
+    >
+      <ng-template #caption>
+        <div class="flex items-center justify-between">
+          <h5 class="m-0 text-xl font-bold text-color">Contas a Receber</h5>
+          <p-iconfield>
+            <p-inputicon class="pi pi-search" />
+            <input
+              pInputText
+              type="text"
+              (input)="dtPendentes.filterGlobal($any($event.target).value, 'contains')"
+              placeholder="Pesquisar..."
+            />
+          </p-iconfield>
+        </div>
+      </ng-template>
+
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="descricao" style="min-width: 16rem" class="text-center">
+            Descrição <p-sortIcon field="descricao" />
+          </th>
+          <th pSortableColumn="nomeAluno" style="min-width: 16rem" class="text-center">
+            Aluno <p-sortIcon field="nomeAluno" />
+          </th>
+          <th pSortableColumn="valor" style="min-width: 12rem" class="text-center">
+            Valor <p-sortIcon field="valor" />
+          </th>
+          <th pSortableColumn="dataVencimento" style="min-width: 12rem" class="text-center">
+            Vencimento <p-sortIcon field="dataVencimento" />
+          </th>
+          <th style="min-width: 10rem" class="text-center">Status</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-conta>
+        <tr>
+          <td class="font-medium text-color text-center">{{ conta.descricao }}</td>
+          <td class="text-center">{{ conta.nomeAluno || 'Não vinculado' }}</td>
+          <td class="text-center font-bold text-red-500">
+            {{ conta.valor | currency: 'BRL' : 'symbol' }}
+          </td>
+          <td class="text-center">{{ conta.dataVencimento | date: 'dd/MM/yyyy' : 'UTC' }}</td>
+          <td class="text-center">
+            <p-tag [value]="rotuloStatus(conta.status)" [severity]="getSeverity(conta.status)" />
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5" class="text-center p-8 text-gray-500">
+            <i class="pi pi-check-circle text-4xl block mb-2 text-green-500/70"></i>
+            Nenhuma conta pendente. Tudo em dia!
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <p-table
+      *ngIf="mostrarPagas()"
+      #dtPagas
+      [value]="contasPagas()"
+      [rows]="10"
+      [paginator]="true"
+      [globalFilterFields]="['descricao', 'nomeAluno', 'status']"
+      [tableStyle]="{ 'min-width': '75rem' }"
+      [rowHover]="true"
+      dataKey="id"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} contas"
+      [showCurrentPageReport]="true"
+    >
+      <ng-template #caption>
+        <div class="flex items-center justify-between">
+          <h5 class="m-0 text-xl font-bold text-color">Histórico de Recebimentos</h5>
+          <p-iconfield>
+            <p-inputicon class="pi pi-search" />
+            <input
+              pInputText
+              type="text"
+              (input)="dtPagas.filterGlobal($any($event.target).value, 'contains')"
+              placeholder="Pesquisar..."
+            />
+          </p-iconfield>
+        </div>
+      </ng-template>
+
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="descricao" style="min-width: 16rem" class="text-center">
+            Descrição <p-sortIcon field="descricao" />
+          </th>
+          <th pSortableColumn="nomeAluno" style="min-width: 16rem" class="text-center">
+            Aluno <p-sortIcon field="nomeAluno" />
+          </th>
+          <th pSortableColumn="valor" style="min-width: 12rem" class="text-center">
+            Valor Recebido <p-sortIcon field="valor" />
+          </th>
+          <th pSortableColumn="dataVencimento" style="min-width: 12rem" class="text-center">
+            Vencimento <p-sortIcon field="dataVencimento" />
+          </th>
+          <th style="min-width: 10rem" class="text-center">Status</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-conta>
+        <tr>
+          <td class="font-medium text-color text-center">{{ conta.descricao }}</td>
+          <td class="text-center">{{ conta.nomeAluno || 'Não vinculado' }}</td>
+          <td class="text-center font-bold text-green-500">
+            {{ conta.valor | currency: 'BRL' : 'symbol' }}
+          </td>
+          <td class="text-center">{{ conta.dataVencimento | date: 'dd/MM/yyyy' : 'UTC' }}</td>
+          <td class="text-center">
+            <p-tag [value]="rotuloStatus(conta.status)" [severity]="getSeverity(conta.status)" />
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5" class="text-center p-8 text-gray-500">
+            Nenhum histórico de conta paga encontrado.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</div>

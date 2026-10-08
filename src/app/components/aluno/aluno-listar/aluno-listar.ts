@@ -86,6 +86,7 @@ export class AlunoListar {
       { field: 'cpfCnpj', header: 'CPF/CNPJ' },
       { field: 'telefone', header: 'Telefone' },
       { field: 'matricula', header: 'Matrícula' },
+      { field: 'mensalidade', header: 'Mensalidade' },
     ];
     this.exportColumns = this.cols.map((col) => ({ title: col.header, dataKey: col.field }));
   }

@@ -63,6 +63,14 @@ export const routes: Routes = [
       ),
     canActivate: [roleGuard(['ADMIN'])],
   },
+  {
+    path: 'contas-receber',
+    loadComponent: () =>
+      import('./components/conta-receber/contas-receber/contas-receber').then(
+        (module) => module.ContasReceber,
+      ),
+    canActivate: [roleGuard(['ADMIN'])],
+  },
 
   {
     path: 'pontosembarque',
@@ -85,6 +93,14 @@ export const routes: Routes = [
         (module) => module.GradeDiariaListar,
       ),
     canActivate: [roleGuard(['ADMIN', 'ALUNO'])],
+  },
+  {
+    path: 'minhas-matriculas',
+    loadComponent: () =>
+      import('./components/conta-receber/minhas-matriculas/minhas-matriculas').then(
+        (module) => module.MinhasMatriculas,
+      ),
+    canActivate: [roleGuard(['ALUNO'])],
   },
   {
     path: 'minhas-viagens',
