@@ -88,41 +88,48 @@ Entretanto, não será feita uma cópia literal da implementação atual. O flux
 
 O frontend não terá temporizador para criar mensalidades e não calculará vencimentos. Quando uma nova cobrança for criada pelo backend, ela aparecerá na próxima atualização da lista.
 
-## 5. Estrutura de arquivos proposta
+## 5. Estrutura de arquivos organizada
 
-Para seguir a organização existente de `conta-pagar`, o novo fluxo ficará agrupado por funcionalidade:
+Os caminhos foram atualizados em 10/10/2026 para o padrão por entidade. Pagamento permanece em `conta-pagar/service/`, recebimento em `conta-receber/service/`, e testes ficam ao lado dos arquivos testados. A reorganização não alterou o fluxo de matrícula.
 
 ```text
 src/app/components/conta-receber/
-  model/
+  models/
     conta-receber.ts
-  conta-receber-service.ts
-  conta-receber-service.spec.ts
-  recebimento-service.ts
-  recebimento-service.spec.ts
-  minhas-matriculas/
-    minhas-matriculas.ts
-    minhas-matriculas.html
-    minhas-matriculas.css
-    minhas-matriculas.spec.ts
+  service/
+    conta-receber-service.ts
+    conta-receber-service.spec.ts
+    recebimento-service.ts
+    recebimento-service.spec.ts
+  components/
+    minhas-matriculas/
+      minhas-matriculas.ts
+      minhas-matriculas.html
+      minhas-matriculas.css
+      minhas-matriculas.spec.ts
+    contas-receber/
+      contas-receber.ts
+      contas-receber.html
+      contas-receber.css
+      contas-receber.spec.ts
 ```
 
 Também serão alterados:
 
 ```text
-src/app/components/aluno/model/aluno.ts
-src/app/components/aluno/aluno-cadastro/aluno-cadastro.ts
-src/app/components/aluno/aluno-cadastro/aluno-cadastro.html
-src/app/components/aluno/aluno-cadastro/aluno-cadastro.spec.ts
+src/app/components/aluno/models/aluno.ts
+src/app/components/aluno/components/aluno-cadastro/aluno-cadastro.ts
+src/app/components/aluno/components/aluno-cadastro/aluno-cadastro.html
+src/app/components/aluno/components/aluno-cadastro/aluno-cadastro.spec.ts
 src/app/app.routes.ts
-src/app/components/sidebar/sidebar.ts
-src/app/components/sidebar/sidebar.spec.ts
+src/app/components/sidebar/components/sidebar/sidebar.ts
+src/app/components/sidebar/components/sidebar/sidebar.spec.ts
 DOCUMENTACAO_APLICACAO.md
 ```
 
 ## 6. Contratos TypeScript
 
-Em `conta-receber/model/conta-receber.ts`:
+Em `conta-receber/models/conta-receber.ts`:
 
 ```ts
 export type StatusFinanceiro = 'PENDENTE' | 'PAGO' | 'ATRASADO';
@@ -378,7 +385,7 @@ Como complemento administrativo, a rota `/contas-receber` consulta `GET /contare
 
 ## 11. Tratamento de erros
 
-Será reutilizado `src/app/core/auth/api-error.ts`.
+Será reutilizado `src/app/core/auth/utils/api-error.ts`.
 
 | Status | Comportamento da tela |
 |---|---|

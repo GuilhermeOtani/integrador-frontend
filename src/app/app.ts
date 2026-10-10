@@ -1,9 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { PrimeNG } from 'primeng/config';
-import { Sidebar } from './components/sidebar/sidebar';
+import { Sidebar } from './components/sidebar/components/sidebar/sidebar';
 import { ToastModule } from 'primeng/toast';
-import { AuthService } from './core/auth/auth.service';
+import { AuthService } from './core/auth/service/auth.service';
 
 @Component({
   selector: 'app-root',

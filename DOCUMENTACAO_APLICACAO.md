@@ -7,12 +7,12 @@ O **Integrador Frontend** é uma SPA administrativa para uma operação de trans
 O sistema possui autenticação JWT e três papéis:
 
 - `ADMIN`: administra usuários e acessa todos os módulos existentes;
-- `ALUNO`: consulta rotas, pontos de embarque e grades diárias e paga as próprias mensalidades;
-- `MOTORISTA`: consulta o próprio perfil e suas viagens.
+- `ALUNO`: consulta rotas, pontos e grades, paga as próprias mensalidades e abre/acompanha seus chamados;
+- `MOTORISTA`: consulta o próprio perfil e suas viagens e abre/acompanha seus chamados.
 
-Além da autenticação, o frontend oferece cadastro e consulta de alunos, faculdades, ônibus, motoristas, pontos de embarque, rotas e grades diárias, bem como contas a pagar e o fluxo de contas a receber da matrícula.
+Além da autenticação, o frontend oferece os cadastros de transporte, contas a pagar/receber e chamados de manutenção com atendimento administrativo e alteração explícita do estado do ônibus.
 
-> **Estado da revisão:** o código-fonte foi revisado em 13/09/2026 após a implementação do pagamento de matrícula e da consulta administrativa de contas a receber. A compilação TypeScript, os 88 testes automatizados e o build de produção foram aprovados. A validação integrada dos três papéis e da geração mensal ainda depende de credenciais e dados no backend local.
+> **Estado da revisão:** estrutura de pastas reorganizada em 10/10/2026, preservando autenticação, matrícula e manutenção. TypeScript, os mesmos 144 testes e build de produção foram aprovados; resultados na seção 11. A homologação com backend real da entrega de manutenção continua pendente. Backend, guias recebidos e diagrama de classes permaneceram intactos.
 
 ---
 
@@ -67,18 +67,32 @@ O componente raiz contém o toast global, oculta completamente a sidebar quando 
 src/
 ├── app/
 │   ├── core/auth/
-│   │   ├── api-error.ts
-│   │   ├── auth.guards.ts
-│   │   ├── auth.interceptor.ts
-│   │   ├── auth.models.ts
-│   │   ├── auth.service.ts
-│   │   └── usuario.service.ts
+│   │   ├── service/auth.service.ts
+│   │   ├── models/auth.models.ts
+│   │   ├── guards/auth.guards.ts
+│   │   ├── interceptors/auth.interceptor.ts
+│   │   └── utils/api-error.ts
 │   ├── components/
-│   │   ├── login/
-│   │   ├── perfil/
-│   │   ├── sem-permissao/
-│   │   ├── usuarios/
 │   │   ├── aluno/
+│   │   │   ├── service/aluno-service.ts
+│   │   │   ├── models/aluno.ts
+│   │   │   └── components/
+│   │   │       ├── aluno-cadastro/
+│   │   │       └── aluno-listar/
+│   │   ├── usuarios/
+│   │   │   ├── service/usuario.service.ts
+│   │   │   ├── models/usuario.models.ts
+│   │   │   └── components/usuarios/
+│   │   ├── manutencao/
+│   │   │   ├── service/manutencao.service.ts
+│   │   │   ├── models/manutencao.models.ts
+│   │   │   ├── utils/manutencao.utils.ts
+│   │   │   ├── styles/manutencao.css
+│   │   │   ├── testing/manutencao.fixtures.ts
+│   │   │   └── components/
+│   │   │       ├── meus-chamados/
+│   │   │       ├── manutencao-admin/
+│   │   │       └── chamado-detalhe/
 │   │   ├── faculdade/
 │   │   ├── onibus/
 │   │   ├── motorista/
@@ -88,7 +102,11 @@ src/
 │   │   ├── viagem/
 │   │   ├── conta-pagar/
 │   │   ├── conta-receber/
-│   │   └── sidebar/
+│   │   ├── login/components/login/
+│   │   ├── perfil/components/perfil/
+│   │   ├── sem-permissao/components/sem-permissao/
+│   │   ├── dashboard/components/dashboard/
+│   │   └── sidebar/components/sidebar/
 │   ├── app.config.ts
 │   ├── app.routes.ts
 │   └── app.ts
@@ -96,7 +114,13 @@ src/
     └── environment.ts
 ```
 
-As páginas são carregadas com `loadComponent`, reduzindo o bundle inicial por lazy loading. Os módulos CRUD antigos mantêm o padrão modelo + serviço + listagem + cadastro.
+As páginas são carregadas com `loadComponent`, reduzindo o bundle inicial por lazy loading. Cada entidade tem suas próprias pastas `service/`, `models/` e `components/`, seguindo o exemplo de aluno acima. Os módulos faculdade, ônibus, motorista, ponto, rota, grade, viagem e contas seguem esse mesmo padrão. Pastas adicionais existem apenas quando há arquivos para elas.
+
+Os `.spec.ts` ficam ao lado dos arquivos testados. Cada componente mantém TS, HTML, CSS próprio e spec juntos. O CSS compartilhado de manutenção fica em `styles/` e as fixtures em `testing/`. Não existe uma pasta global que reúna os serviços das entidades.
+
+Manutenção foi reunida integralmente em seu módulo. `UsuarioService` e os contratos exclusivos da administração estão em usuários; `Papel`, `UsuarioResumo`, login, perfil, sessão e `ApiProblem` continuam como contratos compartilhados da autenticação. Não foram adicionadas cópias de contratos, aliases, reexportações ou dependências.
+
+A reorganização de 10/10/2026 moveu 151 arquivos e preservou os 43 specs, incluindo os arquivos de manutenção ainda não commitados. Nomes de arquivos, classes, exports, endpoints, providers, rotas públicas e regras de negócio foram mantidos; apenas referências internas e localização foram alteradas, além da separação dos contratos administrativos.
 
 ---
 
@@ -164,12 +188,16 @@ Uma URL interna de retorno é preservada quando o usuário é enviado ao login. 
 | `/grades` | `ADMIN`, `ALUNO` | Grades diárias e viagens |
 | `/minhas-matriculas` | `ALUNO` | Cobranças, pagamento e recibos do aluno autenticado |
 | `/minhas-viagens` | `MOTORISTA` | Viagens do motorista autenticado |
+| `/meus-chamados` | `ALUNO`, `MOTORISTA` | Abrir e acompanhar os próprios relatos |
+| `/manutencao` | `ADMIN` | Consultar e atender chamados de manutenção |
 
 `/onibuss` foi mantida como redirecionamento de compatibilidade para `/onibus`. A raiz e URLs desconhecidas redirecionam para `/perfil`.
 
 A sidebar calcula os itens pelo papel, exibe nome, papel e iniciais reais do usuário e executa o logout. Ela fica invisível no login e sempre que não existe sessão.
 
 Para `ALUNO`, rotas, grades e pontos ficam em modo de leitura: botões de criar, importar, excluir em massa, editar e excluir não são renderizados. Pesquisa, paginação, exportação e detalhes continuam disponíveis. A sidebar também oferece **Minhas matrículas**, dentro da seção Financeiro, somente para esse papel.
+
+**Meus chamados** aparece em Transporte para ALUNO e em Operação para MOTORISTA. O ADMIN recebe **Manutenção** em Logística. **Ver chamados**, na tabela de ônibus, abre `/manutencao?onibusId=<id>` com filtro aplicado antes da consulta; limpar os filtros remove também o parâmetro.
 
 ---
 
@@ -244,6 +272,24 @@ O módulo mantém contratos tipados para conta, status financeiro, forma de paga
 
 `ContaReceberService` mantém separadas as consultas `/listar` e `/minhas`. `RecebimentoService` registra o pagamento ou busca o recibo apenas no fluxo do aluno. A identidade e o valor são sempre validados pelo backend; a consulta administrativa não oferece ações financeiras.
 
+### Chamados de manutenção e disponibilidade
+
+As páginas novas são standalone com formulários reativos, signals, toolbar, pesquisa, paginação local, tags e diálogos. O serviço usa a API e o interceptor existentes. O backend identifica o solicitante pelo JWT e sua `Pessoa`; o Angular nunca envia autoria na abertura.
+
+**Meus chamados** permite selecionar qualquer ônibus, inclusive indisponível, descrever o problema (obrigatório, não apenas espaços, até 2.000 caracteres) e consultar detalhes atualizados. O chamado nasce `ABERTO`/`MEDIA` no servidor. Não há edição, cancelamento ou exclusão pelo solicitante.
+
+**Manutenção** lista os relatos com nome/papel do solicitante e filtros por status, urgência e ônibus. O ADMIN busca o detalhe antes de atender e pode alterar prioridade, andamento e resposta de até 2.000 caracteres. Resolver exige justificativa; reabrir significa selecionar `ABERTO` ou `EM_ANDAMENTO`. A resposta recebida é preservada; apagar o texto envia `null`. A resposta é atual, substituída ao salvar, e não um histórico/chat.
+
+O checkbox **Alterar também o estado do ônibus** inicia desmarcado. Só quando marcado habilita o seletor e envia `statusOnibus`. A alteração usa exclusivamente o endpoint de atendimento e não regrava foto, placa, capacidade ou outros campos. Resolver não libera o ônibus automaticamente; nenhuma viagem é cancelada.
+
+No cadastro e manutenção, estados compartilham o mesmo tipo/opções: `OPERANDO`, `MANUTENCAO`, `QUEBRADO`, `INATIVO`. Dados antigos nulos são apresentados como **Não informado**.
+
+Nas grades, a lista completa permite consultar o estado de vínculos existentes, mas novas viagens só selecionam `OPERANDO`. Veículos indisponíveis/sem estado recebem aviso no formulário. Editar copia profundamente a grade, viagens e faculdades; cancelar não altera a listagem. O envio preserva os IDs existentes e o formato `faculdades` do backend. Em `409`, conserva os dados e recarrega disponibilidade para revisão manual. Não foi criado editor individual de viagens.
+
+Exclusões individuais de ônibus, aluno e motorista exibem o conflito do backend e não removem a linha em falha. Para ônibus, recomenda-se `INATIVO` em vez de exclusão. Excluir apenas a conta de acesso preserva a pessoa e autoria.
+
+Detalhamento dos arquivos, contratos e homologação: `PLANO_IMPLEMENTACAO_MANUTENCAO_ONIBUS_FRONTEND.md`.
+
 ### Limitações legadas ainda existentes
 
 - os botões de importação de alguns cadastros são apenas visuais;
@@ -314,6 +360,23 @@ A base é obtida de `environment.apiUrl`, atualmente `http://localhost:8080`.
 | POST | `/recebimentos/realizar/{contaId}` | Corpo `null`; query param `formaPagamento`; não recebe valor ou aluno |
 | GET | `/recebimentos/recibo/conta/{contaId}` | Consulta recibo protegido da matrícula |
 
+### Chamados de manutenção
+
+| Método | Endpoint | Acesso/contrato |
+|---|---|---|
+| GET | `/chamados-manutencao/onibus` | Três papéis; dados mínimos dos ônibus |
+| POST | `/chamados-manutencao` | ALUNO/MOTORISTA; `{ onibusId, descricao }` |
+| GET | `/chamados-manutencao/minhas` | ALUNO/MOTORISTA; próprios chamados |
+| GET | `/chamados-manutencao/{id}` | ADMIN ou autor; detalhe atual |
+| GET | `/chamados-manutencao` | ADMIN; filtros opcionais `status`, `urgencia`, `onibusId` |
+| PUT | `/chamados-manutencao/{id}/atendimento` | ADMIN; `{ urgencia, status, observacaoAdmin, statusOnibus? }` |
+
+O retorno contém `id`, `descricao`, `dataAbertura` (`yyyy-MM-dd`), `urgencia`, `status`, `observacaoAdmin`, `onibus` (`id`, `numeroIdentificacao`, `placa`, `modelo`, `statusOnibus`) e `solicitante` (`pessoaId`, `nome`, `tipoPessoa`). Número, placa, modelo e estado podem ser nulos.
+
+Prioridades: `BAIXA`, `MEDIA`, `ALTA`. Andamentos: `ABERTO`, `EM_ANDAMENTO`, `RESOLVIDO`. Listas são arrays, sem parâmetros `page`/`size`. Datas usam UTC na apresentação. Relato e resposta são texto interpolado, preservando quebras de linha, sem `innerHTML`.
+
+As telas reutilizam `mensagemApi`/`problemaApi`: `400` associa erros aos controles, `409` conserva formulários, `404` impede mostrar detalhes e atualiza opções quando necessário. `401`/`403`/status `0` mantêm o tratamento global. Não há repetição automática de POST após erro de rede; o usuário deve atualizar a lista antes de reenviar, pois a abertura pode ter sido registrada.
+
 ---
 
 ## 10. Instalação e execução
@@ -347,15 +410,18 @@ Credenciais administrativas não devem ser registradas no código, documentaçã
 
 ## 11. Testes automatizados
 
-Em 13/09/2026 foram validados:
+Em 10/10/2026 foram validados após a reorganização:
 
 | Verificação | Resultado |
 |---|---|
 | TypeScript da aplicação | Aprovado |
 | TypeScript dos testes | Aprovado |
-| Karma + Chrome Headless | **88/88 aprovados** |
+| Karma + Chrome Headless | **144/144 aprovados** |
 | Build Angular de produção | Aprovado |
-| Bundle inicial | `1,08 MB` bruto; `194,19 kB` estimados para transferência |
+| Bundle inicial | `1,09 MB` bruto; `194,53 kB` estimados para transferência |
+| Comparação antes/depois | 144 testes aprovados antes e depois; 43 arquivos de spec preservados |
+
+Foram executados `tsc --noEmit` para aplicação e testes, Karma/Chrome Headless e build Angular de produção. Os imports, o lazy loading, templates e estilos foram ajustados para os novos caminhos. A conferência das referências não encontrou caminhos antigos pendentes.
 
 Durante a instalação, o npm informou 17 alertas na árvore de dependências (2 baixos, 2 moderados e 13 altos). Nenhum `npm audit fix` foi aplicado automaticamente, pois a atualização deve ser analisada separadamente para evitar alterações incompatíveis.
 
@@ -379,6 +445,10 @@ A cobertura adicionada contempla:
 - correção dos imports quebrados dos specs de faculdade e ponto;
 - atualização do teste obsoleto do componente raiz.
 
+Para manutenção, foram adicionados testes dos seis endpoints, filtros e payloads sem autoria/campos extras; textos e limites; envio duplicado; resolução/reabertura; observação preservada/limpa; alteração explícita de ônibus; erros e permanência de formulários; menus/guards por papel; atalho; seleção `OPERANDO`; preservação de IDs/faculdades e cancelamento de grade. Também há testes de texto seguro, UTC e exclusões individuais protegidas.
+
+O compilador Angular teve bloqueio de leitura de diretórios pela sandbox Windows. Build e Karma foram executados com autorização fora da sandbox. Nenhum framework/dependência adicional foi instalado. Na entrega de manutenção de 08/10/2026, uma consulta sem credenciais confirmou conexão recusada em `localhost:8080`; a reorganização não realizou testes integrados novos. Os testes automatizados não equivalem à homologação com dados reais.
+
 Os specs legados de componentes continuam majoritariamente como testes básicos de criação. Ampliar a cobertura de cada CRUD, validação e payload continua recomendado.
 
 ---
@@ -391,14 +461,14 @@ Com o backend real ativo:
 2. criar um aluno e um motorista de teste;
 3. em `/usuarios`, criar as contas vinculadas;
 4. entrar com cada conta e validar os três menus;
-5. confirmar que aluno consulta apenas rotas, pontos e grades e não vê ações de escrita;
+5. confirmar leitura de rotas, pontos e grades pelo aluno, sem ações de escrita nesses módulos;
 6. cadastrar ou editar o aluno com uma mensalidade válida e confirmar a primeira cobrança com vencimento em 30 dias;
 7. como ADMIN, abrir `/contas-receber` e conferir todas as mensalidades sem ações de pagamento;
 8. como aluno, abrir `/minhas-matriculas`, pagar uma cobrança e consultar o recibo;
 9. confirmar que o navegador não envia aluno, pessoa ou valor e que um segundo pagamento recebe `409`;
 10. confirmar em `/auth/me` que o pagamento altera `statusMatricula` para `ATIV0`;
 11. validar, em teste controlado, que o backend cria somente uma nova cobrança mensal no vencimento;
-12. confirmar que motorista acessa apenas perfil e próprias viagens;
+12. confirmar que motorista acessa perfil, próprias viagens e próprios chamados;
 13. recarregar a página e validar a restauração da sessão;
 14. testar logout, token expirado, URL proibida e token inválido;
 15. editar o e-mail e redefinir a senha de uma conta e confirmar que o token anterior recebe `401`;
@@ -407,6 +477,8 @@ Com o backend real ativo:
 18. excluir um acesso e confirmar que a pessoa preservada volta a `pessoas-sem-usuario`;
 19. testar conflitos de e-mail/pessoa (`409`);
 20. pausar o backend com segurança e validar o status `0`.
+
+Para a manutenção, entrar com ALUNO/MOTORISTA, abrir chamados sem informar nome e confirmar isolamento por autoria. Como ADMIN, conferir filtros, autoria e resposta; resolver/reabrir sem marcar o ônibus deve preservar seu estado. Ao marcar, verificar a mudança no cadastro. Testar novas viagens apenas com `OPERANDO`, preservação de vínculos existentes e `409` em mudança de disponibilidade/exclusões protegidas. A homologação desses passos ainda está pendente.
 
 Excluir acesso remove apenas `Usuario`. O registro de `Pessoa` criado nos testes permanece no banco e pode receber uma nova conta posteriormente.
 
@@ -440,6 +512,7 @@ location / {
 | Item | Situação |
 |---|---|
 | Angular standalone e lazy loading | Implementado |
+| Pastas por entidade | Services, models, componentes e testes reorganizados e validados |
 | API centralizada por environment | Implementado para desenvolvimento |
 | Autenticação JWT e expiração automática | Implementado |
 | Interceptor e guards | Implementado |
@@ -450,8 +523,11 @@ location / {
 | Leitura de rotas, pontos e grades | Disponível para `ALUNO` |
 | Pagamento de matrícula | Implementado para `ALUNO` com conta, recebimento e recibo |
 | Consulta de contas a receber | Implementada para `ADMIN` em modo somente leitura |
+| Chamados de manutenção | Abertura/acompanhamento para ALUNO/MOTORISTA e atendimento para ADMIN |
+| Estado operacional do ônibus | Alteração explícita no atendimento; sem liberação/cancelamento automático |
+| Compatibilidade de grades | Novas viagens somente OPERANDO; vínculos/IDs existentes preservados |
 | Geração mensal da cobrança | Responsabilidade do backend; validação integrada pendente |
-| Testes automatizados | 88 aprovados |
+| Testes automatizados | 144 aprovados |
 | Build de produção | Aprovado |
 | Teste integrado dos três papéis | Pendente de execução com credenciais reais |
 | Importação e exclusão em massa persistente | Não implementadas |
@@ -459,8 +535,8 @@ location / {
 
 ---
 
-**Última revisão:** 13 de setembro de 2026
+**Última revisão:** 10 de outubro de 2026
 
 **Versão do pacote:** 0.0.0
 
-**Status:** autenticação e pagamento de matrícula implementados, testados e compilados; resta a homologação manual com o backend real.
+**Status:** autenticação, matrícula e manutenção implementadas; resta homologação manual com backend real, credenciais e dados apropriados.

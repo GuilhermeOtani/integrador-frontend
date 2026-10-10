@@ -1,0 +1,6 @@
+.formulario { display: flex; flex-direction: column; gap: .75rem; }
+.formulario label { font-weight: 600; }
+.formulario textarea { width: 100%; resize: vertical; }
+.erro { color: var(--p-red-500, #dc2626); overflow-wrap: anywhere; }
+.filtros { display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; margin-bottom: 1rem; }
+.filtro { display: flex; flex-direction: column; gap: .5rem; flex: 1; min-width: 12rem; }

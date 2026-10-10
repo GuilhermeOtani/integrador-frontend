@@ -4,6 +4,18 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 ## Development server
 
+### Organização do código
+
+Os módulos em `src/app/components` são organizados por entidade. Cada entidade mantém seus próprios serviços em `service/`, contratos/modelos em `models/` e telas em `components/<nome-do-componente>/`. Os testes ficam ao lado dos arquivos testados; não existe uma pasta global de serviços das entidades.
+
+Por exemplo, aluno contém `service/aluno-service.ts`, `models/aluno.ts` e `components/aluno-cadastro/` / `components/aluno-listar/`. Manutenção reúne também `utils/`, `styles/` e `testing/` para os arquivos compartilhados do módulo.
+
+Sessão, guards e interceptor permanecem em `src/app/core/auth`, separados por responsabilidade. O serviço e os contratos específicos de administração de usuários ficam na entidade usuários.
+
+Detalhes e resultados da reorganização de 10/10/2026: [DOCUMENTACAO_APLICACAO.md](DOCUMENTACAO_APLICACAO.md). TypeScript, 144 testes e build de produção aprovados; 43 arquivos de spec preservados.
+
+### Iniciar o servidor
+
 To start a local development server, run:
 
 ```bash

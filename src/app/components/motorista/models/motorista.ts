@@ -1,0 +1,14 @@
+import onibus from '../../onibus/models/onibus';
+
+export default class motorista {
+  id!: number;
+  nome!: string;
+  email!: string;
+  telefone!: string;
+  cpfCnpj!: string;
+  cnh!: string;
+  salario!: number;
+  numeroIdentificacao!: string;
+}
+
+export type MotoristaId = motorista['id'];
