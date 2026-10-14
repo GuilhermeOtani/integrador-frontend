@@ -3,6 +3,11 @@ import { authGuard, guestGuard, roleGuard } from './core/auth/guards/auth.guards
 
 export const routes: Routes = [
   {
+    path: 'programacao-email',
+    loadComponent: () => import('./components/email-programacao/components/email-programacao/email-programacao').then(m => m.EmailProgramacao),
+    canActivate: [authGuard, roleGuard(['ADMIN'])],
+  },
+  {
     path: 'inicio',
     loadComponent: () => import('./components/dashboard/components/inicio/inicio').then(m => m.Inicio),
     canActivate: [authGuard, roleGuard(['ADMIN', 'ALUNO', 'MOTORISTA'])],

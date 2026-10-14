@@ -64,6 +64,7 @@ export class Sidebar {
         {
           titulo: 'Logística',
           itens: [
+            { label: 'Programação por e-mail', icon: 'pi pi-envelope', rota: '/programacao-email' },
             { label: 'Manutenção', icon: 'pi pi-wrench', rota: '/manutencao' },
             { label: 'Pontos de embarque', icon: 'pi pi-map-marker', rota: '/pontosembarque' },
             { label: 'Rotas', icon: 'pi pi-map', rota: '/rotas' },

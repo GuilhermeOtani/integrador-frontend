@@ -3,15 +3,21 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { GradeDiariaListar } from './grade-diaria-listar';
+import { provideRouter } from '@angular/router';
+import { AuthService } from '../../../../core/auth/service/auth.service';
+import { signal } from '@angular/core';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 describe('GradeDiariaListar', () => {
   let component: GradeDiariaListar;
   let fixture: ComponentFixture<GradeDiariaListar>;
+  const papel = signal('ADMIN');
 
   beforeEach(async () => {
+    papel.set('ADMIN');
     await TestBed.configureTestingModule({
       imports: [GradeDiariaListar],
-      providers: [provideHttpClient(), provideHttpClientTesting()]
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]), provideNoopAnimations(), { provide: AuthService, useValue: { temPapel: (...papeis: string[]) => papeis.includes(papel()) } }]
     })
     .compileComponents();
 
@@ -22,6 +28,15 @@ describe('GradeDiariaListar', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('atalho administrativo apenas navega para programação por e-mail', () => {
+    const link = fixture.nativeElement.querySelector('a[href="/programacao-email"]');
+    expect(link).not.toBeNull(); expect(link.textContent).toContain('Enviar programação de hoje');
+  });
+  it('aluno não recebe atalho de envio', () => {
+    papel.set('ALUNO'); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('a[href="/programacao-email"]')).toBeNull();
   });
 
   it('cancelar edição não altera viagens, faculdades ou IDs da listagem', () => {

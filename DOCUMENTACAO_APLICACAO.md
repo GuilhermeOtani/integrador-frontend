@@ -12,6 +12,10 @@ O sistema possui autenticação JWT e três papéis:
 
 Além da autenticação, o frontend oferece os cadastros de transporte, contas a pagar/receber e chamados de manutenção com atendimento administrativo e alteração explícita do estado do ônibus.
 
+Em 14/10/2026 foi implementada a **programação geral por e-mail**, exclusiva de ADMIN, na branch `codex/integracao-email`, baseada na principal `master`. A tela consulta a escala por faculdade, solicita envio/correção, controla o automático e acompanha lotes. Não inclui PDF ou seleção individual de destinatários. A integração WhatsApp ficou isolada em sua própria branch e não foi mesclada. A tela foi conferida com ADMIN e dados reais, em desktop/celular no modo escuro; SMTP real e modo claro permanecem pendentes.
+
+Também em 14/10/2026, o frontend de **arquivamento de alunos e exclusão protegida** foi implementado em `/alunos`, com filtros, arquivamento individual/em lote, restauração sem reativação automática e consulta de vínculos antes da exclusão definitiva. A leitura do backend local ainda não encontrou os novos endpoints/campo; a interface bloqueia as novas ações diante de contrato antigo/incompatível, sem simular sucesso. Nenhum aluno real foi alterado. Homologação integrada e visual permanece pendente de implementação do guia no backend.
+
 > **Estado da revisão:** dashboards por perfil implementados e reorganizados em cards objetivos em 10/10/2026, com transporte, mensalidade e pagamento compartilhado para aluno, escala para motorista e indicadores financeiros/operacionais para ADMIN. Os três perfis foram conferidos com backend real, em desktop e 360px no modo escuro; pagamento integrado e modo claro permanecem pendentes. Resultados na seção 11. Backend, guias recebidos e diagrama de classes permaneceram intactos.
 
 ---
@@ -73,6 +77,14 @@ src/
 │   │   ├── interceptors/auth.interceptor.ts
 │   │   └── utils/api-error.ts
 │   ├── components/
+│   │   ├── email-programacao/
+│   │   │   ├── models/email-programacao.models.ts
+│   │   │   ├── service/email-programacao-service.ts
+│   │   │   ├── utils/consulta-email.ts
+│   │   │   ├── utils/email-programacao.utils.ts
+│   │   │   ├── utils/solicitacao-pendente.ts
+│   │   │   ├── testing/email-programacao.fixtures.ts
+│   │   │   └── components/email-programacao/
 │   │   ├── aluno/
 │   │   │   ├── service/aluno-service.ts
 │   │   │   ├── models/aluno.ts
@@ -190,7 +202,8 @@ Uma URL interna de retorno é preservada quando o usuário é enviado ao login. 
 | `/perfil` | Autenticado | Dados de `/auth/me` |
 | `/sem-permissao` | Autenticado | Aviso de acesso negado |
 | `/usuarios` | `ADMIN` | Administração de contas |
-| `/alunos` | `ADMIN` | CRUD de alunos |
+| `/programacao-email` | `ADMIN` | Prévia geral, envio/correção, automático e histórico de e-mails |
+| `/alunos` | `ADMIN` | Cadastro/edição, arquivamento/restauração e exclusão protegida de alunos |
 | `/faculdades` | `ADMIN` | CRUD de faculdades |
 | `/onibus` | `ADMIN` | CRUD de ônibus |
 | `/motoristas` | `ADMIN` | CRUD de motoristas |
@@ -211,6 +224,8 @@ A sidebar calcula os itens pelo papel, exibe nome, papel e iniciais reais do usu
 Para `ALUNO`, rotas, grades e pontos ficam em modo de leitura: botões de criar, importar, excluir em massa, editar e excluir não são renderizados. Pesquisa, paginação, exportação e detalhes continuam disponíveis. A sidebar também oferece **Minhas matrículas**, dentro da seção Financeiro, somente para esse papel.
 
 **Meus chamados** aparece em Transporte para ALUNO e em Operação para MOTORISTA. O ADMIN recebe **Manutenção** em Logística. **Ver chamados**, na tabela de ônibus, abre `/manutencao?onibusId=<id>` com filtro aplicado antes da consulta; limpar os filtros remove também o parâmetro.
+
+**Programação por e-mail** aparece somente em Logística do ADMIN. Em Grades, o atalho **Enviar programação de hoje** apenas navega para `/programacao-email`, sem iniciar envio. ALUNO/MOTORISTA continuam usando seus dashboards e recebem a mensagem no e-mail da conta; não há tela pessoal de assinatura de e-mail no contrato atual.
 
 ---
 
@@ -293,6 +308,18 @@ As telas de contas a receber seguem o mesmo padrão visual de Contas a pagar: ba
 - **Rotas:** nome, descrição, faculdade e sequência de pontos;
 - **Grades diárias:** data, descrição e viagens aninhadas com rota, ônibus, motorista e faculdades.
 
+### Arquivamento de alunos e exclusão protegida
+
+O módulo de alunos envia o filtro `situacao=NAO_ARQUIVADOS|ARQUIVADOS|TODOS` ao servidor; o padrão é não arquivados, incluindo matrículas pendentes. O campo `arquivado` é separado do status de matrícula. A interface apresenta estados de carregamento, erro e ausência, preserva dados antigos em falha de atualização e bloqueia ações sobre listas não confirmadas. Respostas anteriores sem `arquivado` mantêm apenas a leitura do cadastro principal com aviso de backend pendente, sem inventar estado ou filtros.
+
+Arquivar exige confirmação explícita, chama `PATCH /aluno/{id}/arquivamento` com apenas `{ arquivado: true }` e atualiza a linha somente após resposta compatível de sucesso. O lote utiliza os mesmos PATCHs sequencialmente, deduplica IDs, mostra resultados por aluno e conserva os itens falhos selecionados. Isso substitui a antiga exclusão em lote que apenas removia linhas da memória. Em conexão/status 408/5xx ou falha de autorização, interrompe os itens restantes, não repete requisições e pede atualização da lista antes de novas operações. Resultados concluídos não são desfeitos por falhas posteriores.
+
+Restaurar usa `{ arquivado: false }` e informa que o administrador precisa reativar o acesso separadamente em Usuários. Arquivamento, bloqueio de login, supressão de e-mails, interrupção da recorrência e preservação do histórico são responsabilidades do backend, não efeitos simulados no Angular. Cadastro/edição enviam apenas os campos do DTO, sem `arquivado`, usuário, e-mail ou objetos relacionados.
+
+Somente os arquivados oferecem consulta de exclusão definitiva: `GET /aluno/{id}/situacao-exclusao`. O diálogo apresenta as quatro contagens, impedimentos completos e existência de acesso. Campos ausentes, contagens inválidas, aluno diferente ou uma autorização contraditória não habilitam DELETE. A confirmação irreversível chama o DELETE existente; a API deve revalidar vínculos. Em `409`, preserva a linha, mostra mensagem/contagens novas e descarta a autorização anterior. Fechar/destruir cancela consultas e interrompe o lote; não existe exclusão definitiva em lote ou armazenamento local de arquivamento.
+
+Detalhamento: `PLANO_IMPLEMENTACAO_ARQUIVAMENTO_ALUNOS_FRONTEND.md`. Contrato para implementação backend: `GUIA_ARQUIVAMENTO_ALUNOS_BACKEND.md`. Guias recebidos, backend e diagrama permanecem intactos.
+
 ### Contas a pagar
 
 A interface lista contas, separa pagas das pendentes/atrasadas, realiza pagamento e consulta recibo. O serviço possui atualização de conta, mas a tela não oferece CRUD completo de contas.
@@ -320,6 +347,24 @@ Nas grades, a lista completa permite consultar o estado de vínculos existentes,
 Exclusões individuais de ônibus, aluno e motorista exibem o conflito do backend e não removem a linha em falha. Para ônibus, recomenda-se `INATIVO` em vez de exclusão. Excluir apenas a conta de acesso preserva a pessoa e autoria.
 
 Detalhamento dos arquivos, contratos e homologação: `PLANO_IMPLEMENTACAO_MANUTENCAO_ONIBUS_FRONTEND.md`.
+
+### Programação geral por e-mail
+
+Implementação na entidade `src/app/components/email-programacao/`, com componentes standalone/PrimeNG, signals e formulários reativos, sem dependências novas. Referência detalhada: `PLANO_IMPLEMENTACAO_EMAIL_FRONTEND.md`.
+
+- **Público:** ALUNO/MOTORISTA com `Usuario.ativo=true`, endereço de `Usuario.email`; ADMIN e pessoas sem conta ficam fora. Não filtra por faculdade ou situação da matrícula. Em teste, o backend restringe à lista permitida e deduplica os e-mails.
+- **Conteúdo:** todos recebem a mesma programação geral de hoje, agrupada por faculdade e destacando identificação do ônibus/motorista, com rota, itinerário e avisos. Cada mensagem tem um destinatário visível; sem lista coletiva e sem PDF. O backend considera todas as grades do dia; não usa data antiga de viagem nem inventa horário ou vínculo individual aluno–ônibus.
+- **Consulta:** cards por faculdade, pesquisa local, itinerário/destinos em diálogo, prévia textual exata e configurações/impedimentos. Pesquisar não filtra o conteúdo enviado. Uma viagem de vários destinos aparece nas seções pertinentes sem inflar a quantidade total de viagens.
+- **Envio:** confirmação explícita, UUID por intenção, corpo mínimo e bloqueio de envio duplicado/sem viagens/sem elegíveis/sem disponibilidade/dados desatualizados. Correção exige motivo com 1–500 caracteres úteis, com limite de 500 no campo e validação de espaços, e avisa que a mensagem anterior não será apagada.
+- **Resultado incerto:** `sessionStorage` em `integrador.email.request.<adminId>`, com envelope validado e corpo exato. Sem token adicional, lista de destinatários ou credenciais. Não repete POST automaticamente nem cria outro UUID para contornar falha. Recarga apenas restaura; consultar o ID localiza o lote. Intenção de outro dia exige consulta e resolução explícita antes de uma nova ação. Falha de storage conserva a intenção em memória e mostra aviso.
+- **Automático:** PUT confirmado às 15h de São Paulo, com recuperação antes das 18h no backend. Chave não otimista; permite desligar mesmo com SMTP indisponível. Desligar não cancela mensagens enfileiradas. Navegador não agenda; backend precisa ficar ligado.
+- **Histórico:** paginação do servidor 20/50/100, total de `totalElementos`, ordem da API. Detalhe consulta entregas e conteúdo congelado do lote, não a prévia atual. `ignorados` inclui seleção inicial e duplicidade diária, não apenas duplicidades.
+- **Atualização:** GETs independentes/canceláveis, dados antigos marcados como desatualizados em erro. Detalhe atualiza a cada cinco segundos apenas em PENDENTE/PROCESSANDO, até dez minutos, sem sobrepor GETs; fechamento, destruição, erro, conclusão e limite encerram inclusive requisições lentas.
+- **Estados:** PENDENTE, PROCESSANDO, ACEITA_SMTP, FALHA, INCERTA, SUPRIMIDA, EXPIRADA. HTTP 202 significa registro para processamento; ACEITA_SMTP significa aceite pelo servidor, nunca prova de caixa de entrada/leitura. Sem webhook de entrega/rastreamento nesta versão.
+- **Erros:** reutiliza `mensagemApi`/`problemaApi`; 400 associa errors ao motivo e mantém diálogo; 409 preserva intenção e informa conflito; 404 informa lote não localizado; status 0/408/5xx preservam UUID. Interceptor permanece responsável por 401/403/status 0, sem novo interceptor ou toast duplicado da feature.
+- **Segurança:** texto por interpolação, sem HTML confiado artificialmente, editor livre ou credenciais SMTP no Angular. Datas civis preservam o dia; instantes usam São Paulo. Opções de banco/Flyway, configuração SMTP, template HTML e seleção de destinatários permanecem no backend.
+
+Para homologação, configurar SMTP externamente, com `EMAIL_PRODUCTION=false`, `EMAIL_TEST_RECIPIENTS` de contas ativas controladas, `EMAIL_ENABLED=true` e `EMAIL_SCHEDULERS_ENABLED=true` (também necessário à fila manual). Automático deve permanecer desligado até recebimento real conferido. Consultar configuração/prévia/histórico não requer SMTP funcional; `disponivel=true` não testa credenciais. Não precisa Meta, número de celular ou callback público para este fluxo SMTP. Nenhum envio real nem ativação automática foi feito durante a implementação frontend.
 
 ### Limitações legadas ainda existentes
 
@@ -409,6 +454,21 @@ As telas reutilizam `mensagemApi`/`problemaApi`: `400` associa erros aos control
 
 ---
 
+### Endpoints de programação por e-mail
+
+Todos exigem ADMIN e usam o interceptor JWT existente:
+
+| Método | Caminho | Contrato |
+|---|---|---|
+| GET | `/integracoes/email/configuracao` | `ConfiguracaoEmail`: habilitado, automatico, modoTeste, disponivel, horario, fuso e impedimentos |
+| PUT | `/integracoes/email/configuracao` | `{ automatico }` → `ConfiguracaoEmail` |
+| GET | `/integracoes/email/previa` | `PreviaEmail`: dataReferencia, geradoEm, contagens, viagens, avisos e mensagem |
+| POST | `/integracoes/email/envios` | `{ requestId, reenviar, motivo? }` → `LoteEmail`, HTTP 202 |
+| GET | `/integracoes/email/envios?pagina=0&tamanho=20` | `HistoricoEmail`: pagina, tamanho, totalElementos, totalPaginas e itens |
+| GET | `/integracoes/email/envios/{id}` | `LoteEmail` com entregas e mensagem congelada |
+
+Os contratos completos estão em `components/email-programacao/models/email-programacao.models.ts`; transporte reutiliza `ViagemResumo`. Request usa `reenviar`, resposta usa `reenvio`. O histórico omite conteúdo/entregas (`mensagem=null`, `entregas=[]`), por isso a tela busca detalhes por ID. Não existem endpoints de PDF, inscrição pessoal, confirmação de telefone ou escolha de destinatário nesta integração.
+
 ## 10. Instalação e execução
 
 ### Pré-requisitos
@@ -439,6 +499,40 @@ Credenciais administrativas não devem ser registradas no código, documentaçã
 ---
 
 ## 11. Testes automatizados
+
+Atualização de 14/10/2026, arquivamento de alunos (estado mais recente):
+
+| Verificação | Resultado |
+|---|---|
+| Baseline anterior, com e-mail | 292/292 aprovados, 54 specs |
+| TypeScript da aplicação/testes | Aprovados |
+| Karma + Chrome Headless | **351/351 aprovados**, 55 specs |
+| Acréscimo | 59 testes líquidos, incluindo serviço, tela, contratos defensivos e permissões de `/alunos` |
+| Build de produção | Aprovado; resultado final registrado no plano do arquivamento |
+| Alterações em alunos reais | Nenhuma |
+| Backend / validação visual integrada | Pendentes; backend local ainda sem as novas APIs/campo na inspeção desta entrega |
+
+A suíte cobre filtros no servidor, cancelamento de consultas, backend antigo/incompatível, confirmação/cancelamento, duplo clique, restauração sem reativação, lote sequencial/parcial/interrompido, preservação de seleção/linhas, respostas incertas, vínculos completos, `409` na exclusão e interpolação segura. Mantém as regressões de pagamento, e-mail, auth e dashboards. Estes testes utilizam HTTP simulado e não comprovam regras de banco, transações ou revogação de JWT no backend.
+
+Histórico da entrega de 14/10/2026, programação por e-mail:
+
+| Verificação | Resultado |
+|---|---|
+| Baseline da `master` | **209/209 aprovados**, 50 specs |
+| TypeScript da aplicação/testes | Aprovados |
+| Karma + Chrome Headless | **292/292 aprovados**, 54 specs |
+| Acréscimo | 83 testes, incluindo serviço, utilitários, storage, tela, rota/menu e atalho |
+| Build Angular de produção final | Aprovado; 1,09 MB bruto / 194,53 kB estimados, sem avisos |
+| SMTP real / envio / automático | Não executados; configuração externa/homologação pendentes |
+| Conferência visual autenticada | ADMIN com dados reais, 1440px/360px, modo escuro; prévia e itinerário conferidos |
+
+Foi corrigido um encerramento de polling que inicialmente deixava uma consulta lenta terminar depois do limite; o limite de dez minutos agora cancela também a requisição interna. A suíte final passou após essa correção. Testes verificam estados reais, conteúdo congelado, preservação do UUID/corpo após status 0/408/5xx, recarga, isolamento por administrador, 400/404/409, storage bloqueado, virada do dia, dupla confirmação, disponibilidade, mudança de página/lote, datas e texto seguro. Testes HTTP não enviam e-mails reais.
+
+O shim global de `npm` apontou para `npm-cli.js` ausente neste computador. A validação foi feita chamando os binários locais com `node node_modules/typescript/bin/tsc` e `node node_modules/@angular/cli/bin/ng.js`, sem modificar dependências. Karma/build precisaram da permissão de leitura fora da sandbox Windows. No navegador, `/programacao-email` sem sessão mostrou `/login?retorno=%2Fprogramacao-email`, sem sidebar; não foram digitadas credenciais ou contornados guards para conferir a interface.
+
+Após login ADMIN feito pelo usuário, a tela de e-mail foi conferida com backend real em 1440px e 360px, no modo escuro. Mostrou a programação geral, faculdade, ônibus/motorista, texto exato do e-mail e itinerário/pontos. O backend retornou integração desativada, SMTP/remetente/lista de teste ausentes, zero destinatários elegíveis e histórico vazio; envio/correção/ativação permaneceram bloqueados. Avisos de configuração foram compactados em um painel separado, e os botões de fechar dos diálogos receberam nomes acessíveis; fechamento do itinerário por Escape foi conferido. Documento sem overflow: clientWidth/scrollWidth 1440/1440 no desktop e 360/360 no celular; main 1369/1369 e 289/289. Diálogo da prévia em 360px teve 340/340, com texto quebrado sem rolagem horizontal. Console de erros vazio na conferência. Não houve envio, correção, ativação automática ou alteração de credenciais. Modo claro, estados de SMTP e entrega real ainda requerem homologação; demais fluxos da tela estão cobertos por testes HTTP automatizados.
+
+Os resultados abaixo são o registro histórico dos dashboards, não a contagem atual da branch de e-mail.
 
 Em 10/10/2026 foram validados após a implementação dos dashboards:
 
@@ -558,6 +652,7 @@ location / {
 | Perfil, usuários e minhas viagens | Implementado |
 | Administração segura de acessos | E-mail, senha, status e exclusão implementados |
 | CRUDs administrativos existentes | Mantidos para `ADMIN` |
+| Arquivamento de alunos | Frontend implementado; filtros, lote real, restauração e exclusão protegida dependem das novas APIs do backend |
 | Leitura de rotas, pontos e grades | Disponível para `ALUNO` |
 | Pagamento de matrícula | Implementado para `ALUNO` com conta, recebimento e recibo |
 | Consulta de contas a receber | Implementada para `ADMIN` em modo somente leitura |
@@ -568,8 +663,10 @@ location / {
 | Transporte no dashboard | Cards por ocorrência, seletor, programação compacta e detalhes completos |
 | Financeiro no dashboard | Cobrança do ALUNO e movimentações/posição atual do ADMIN |
 | Pagamento compartilhado | Mesmo componente de confirmação/recibo no início e em Minhas matrículas |
+| Programação geral por e-mail | Tela ADMIN em `/programacao-email`, cards por faculdade, envio/correção, automático e histórico |
+| Envio SMTP real | Pendente de configuração externa e homologação; nenhuma entrega real afirmada |
 | Geração mensal da cobrança | Responsabilidade do backend; validação integrada pendente |
-| Testes automatizados | 209 aprovados |
+| Testes automatizados | 351 aprovados, em 55 specs |
 | Build de produção | Aprovado |
 | Teste integrado dos três papéis | Dashboards conferidos com login real; demais fluxos completos ainda pendentes |
 | Dashboards com backend real | Três perfis conferidos em desktop/360px no modo escuro; ADMIN inclui mês, posição atual e atalhos |
@@ -578,8 +675,8 @@ location / {
 
 ---
 
-**Última revisão:** 10 de outubro de 2026
+**Última revisão:** 14 de outubro de 2026
 
 **Versão do pacote:** 0.0.0
 
-**Status:** autenticação, matrícula, manutenção e dashboards implementados; redesign em cards objetivos concluído. Três dashboards conferidos com dados reais em modo escuro; pagamento integrado, modo claro e demais fluxos de homologação ainda pendentes.
+**Status:** autenticação, matrícula, manutenção, dashboards e administração da programação geral por e-mail implementados. Três dashboards e tela ADMIN de e-mail conferidos com dados reais em modo escuro. SMTP real, pagamento integrado, modo claro e demais fluxos de homologação ainda pendentes. Backend/guia/diagrama preservados; WhatsApp permanece em branch separada.

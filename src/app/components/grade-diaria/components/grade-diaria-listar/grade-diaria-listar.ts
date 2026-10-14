@@ -1,5 +1,6 @@
 import { Component, computed, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -30,6 +31,7 @@ import { AuthService } from '../../../../core/auth/service/auth.service';
   selector: 'app-grade-diaria-listar',
   imports: [
     CommonModule,
+    RouterLink,
     ButtonModule,
     ConfirmDialogModule,
     DialogModule,

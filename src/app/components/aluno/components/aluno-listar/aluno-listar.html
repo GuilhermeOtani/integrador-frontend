@@ -1,159 +1,212 @@
-<div class="card">
+<div class="card alunos-pagina">
   <p-toast />
-  <p-toolbar class="mb-6">
+  <header class="alunos-cabecalho">
+    <div><h1>Alunos</h1><p>Gerencie os cadastros. Arquive quem saiu sem apagar seu histórico.</p></div>
+    <p-button label="Atualizar lista" icon="pi pi-refresh" [text]="true" [loading]="carregando()"
+      [disabled]="processando() || consultandoExclusao()" (onClick)="carregarAlunos()" />
+  </header>
+
+  @if (erroLista()) {
+    <p-message severity="error" [closable]="false">{{ erroLista() }} Os dados visíveis podem estar desatualizados.</p-message>
+  }
+  @if (revisaoNecessaria()) {
+    <p-message severity="warn" [closable]="false">
+      Uma operação não foi confirmada. Atualize a lista antes de continuar; nenhuma repetição será feita automaticamente.
+    </p-message>
+  }
+
+  <p-toolbar>
     <ng-template #start>
-      <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
-      <p-button
-        severity="danger"
-        label="Delete"
-        icon="pi pi-trash"
-        outlined
-        (onClick)="deleteSelectedAlunos()"
-        [disabled]="!selectedAlunos || !selectedAlunos.length"
-      />
-    </ng-template>
-    <ng-template #end>
-      <p-fileUpload
-        mode="basic"
-        accept="image/*"
-        [maxFileSize]="1000000"
-        label="Import"
-        chooseLabel="Importar"
-        auto
-        customUpload
-        class="mr-2 inline-block"
-        [chooseButtonProps]="{ severity: 'secondary' }"
-      />
-      <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
-    </ng-template>
-  </p-toolbar>
-  <p-table
-    #dt
-    [value]="alunos"
-    [rows]="10"
-    [columns]="cols"
-    [paginator]="true"
-    [globalFilterFields]="['id', 'nome', 'cpfCnpj', 'telefone', 'matricula', 'mensalidade']"
-    [tableStyle]="{ 'min-width': '75rem' }"
-    [(selection)]="selectedAlunos"
-    [rowHover]="true"
-    dataKey="id"
-    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
-    [showCurrentPageReport]="true"
-  >
-    <ng-template #caption>
-      <div class="flex items-center justify-between">
-        <h5 class="m-0">Gerenciar Alunos</h5>
-        <p-iconfield>
-          <p-inputicon class="pi pi-search" />
-          <input
-            pInputText
-            type="text"
-            (input)="dt.filterGlobal($event.target.value, 'contains')"
-            placeholder="Pesquisar..."
-          />
-        </p-iconfield>
+      <div class="alunos-acoes">
+        <p-button label="Novo aluno" icon="pi pi-plus" [disabled]="bloqueado()" (onClick)="openNew()" />
+        <p-button label="Arquivar selecionados" icon="pi pi-inbox" severity="secondary" [outlined]="true"
+          [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria() || !selecionadosArquivaveis.length"
+          (onClick)="arquivarSelecionados()" />
       </div>
     </ng-template>
-   <ng-template #header>
-      <tr>
-        <th style="width: 3rem" class="text-center">
-          <p-tableHeaderCheckbox />
-        </th>
-        
-        <th pSortableColumn="id" style="width: 5rem" class="text-center">
-          Id <p-sortIcon field="id" />
-        </th>
-        
-        <th style="min-width: 16rem" class="text-center">
-          Nome
-        </th>
-        
-        <th style="min-width: 12rem" class="text-center">
-          CPF/CNPJ
-        </th>
-        
-        <th style="min-width: 12rem" class="text-center">
-          Telefone
-        </th>
-        
-        <th style="min-width: 12rem" class="text-center">
-          Matrícula
-        </th>
+    <ng-template #end>
+      <p-button label="Exportar" icon="pi pi-upload" severity="secondary" [text]="true"
+        [disabled]="carregando() || !alunos.length" (onClick)="exportCSV()" />
+    </ng-template>
+  </p-toolbar>
 
-        <th style="min-width: 12rem" class="text-center">
-          Mensalidade
-        </th>
-        
-        <th style="min-width: 12rem" class="text-center">
-          Faculdade
-        </th>
-        
-        <th style="min-width: 10rem" class="text-center">Ações</th>
+  <div class="alunos-filtros">
+    <div class="filtro-situacao">
+      <label for="situacao-alunos">Situação do cadastro</label>
+      <p-select inputId="situacao-alunos" [options]="opcoesSituacao" optionLabel="label" optionValue="value"
+        [ngModel]="situacao" (ngModelChange)="mudarSituacao($event)" [fluid]="true"
+        [disabled]="processando() || dialogAcao || dialogExclusao || alunoDialog" />
+    </div>
+    <div class="filtro-pesquisa">
+      <label for="pesquisa-alunos">Pesquisar nesta lista</label>
+      <p-iconfield>
+        <p-inputicon class="pi pi-search" />
+        <input id="pesquisa-alunos" pInputText type="search" placeholder="Nome, matrícula ou CPF"
+          (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+      </p-iconfield>
+    </div>
+  </div>
+  <p class="alunos-nota">Arquivar bloqueia acesso, novas mensalidades e novos envios. Cobranças e recibos existentes permanecem.</p>
+
+  @if (resultados().length && !dialogAcao) {
+    <section class="resultado-lote" aria-label="Resultado da última operação" aria-live="polite">
+      <h2>Resultado da operação</h2>
+      <ul>
+        @for (resultado of resultados(); track resultado.id) {
+          <li><p-tag [value]="resultado.estado === 'SUCESSO' ? 'Concluído' : resultado.estado === 'FALHA' ? 'Não concluído' : 'Não solicitado'"
+            [severity]="resultado.estado === 'SUCESSO' ? 'success' : 'warn'" />
+            <div><strong>{{ resultado.nome }}</strong><p>{{ resultado.mensagem }}</p></div></li>
+        }
+      </ul>
+    </section>
+  }
+
+  <p-table #dt [value]="alunos" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]" [columns]="cols"
+    [paginator]="true" [loading]="carregando()" [scrollable]="true" [tableStyle]="{ 'min-width': '68rem' }"
+    [globalFilterFields]="['id', 'nome', 'cpfCnpj', 'telefone', 'matricula', 'mensalidade', 'faculdade.nome']"
+    [(selection)]="selectedAlunos" [rowHover]="true" dataKey="id"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} alunos" [showCurrentPageReport]="true">
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem"><p-tableHeaderCheckbox [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria()" /></th>
+        <th pSortableColumn="id">ID <p-sortIcon field="id" /></th>
+        <th pSortableColumn="nome">Nome <p-sortIcon field="nome" /></th>
+        <th>CPF/CNPJ</th><th>Telefone</th><th>Matrícula</th><th>Mensalidade</th><th>Faculdade</th><th>Cadastro</th><th>Ações</th>
       </tr>
     </ng-template>
-
     <ng-template #body let-aluno>
       <tr>
-        <td style="width: 3rem" class="text-center">
-          <p-tableCheckbox [value]="aluno" />
-        </td>
-        <td style="min-width: 5rem" class="text-center">{{ aluno.id }}</td>
-        <td style="min-width: 16rem" class="text-center">{{ aluno.nome }}</td>
-        <td style="min-width: 12rem" class="text-center">{{ aluno.cpfCnpj }}</td>
-        <td style="min-width: 12rem" class="text-center">{{ aluno.telefone }}</td>
-        <td style="min-width: 12rem" class="text-center">{{ aluno.matricula }}</td>
-        <td style="min-width: 12rem" class="text-center">
-          {{
-            aluno.mensalidade != null
-              ? (aluno.mensalidade | currency: 'BRL' : 'symbol')
-              : 'Não informada'
-          }}
-        </td>
-
-        <td style="min-width: 12rem" class="text-center">
-          {{ aluno.faculdade?.nome || 'Não Vinculada' }}
-        </td>
-        
-            <td class="text-center">
-          <div class="flex justify-center">
-          <p-button
-            icon="pi pi-pencil"
-            class="mr-2"
-            [rounded]="true"
-            [outlined]="true"
-            (click)="editAluno(aluno)"
-          />
-          <p-button
-            icon="pi pi-trash"
-            severity="danger"
-            [rounded]="true"
-            [outlined]="true"
-            (click)="deleteAluno(aluno)"
-          />
+        <td><p-tableCheckbox [value]="aluno" [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria() || aluno.arquivado !== false" /></td>
+        <td>{{ aluno.id }}</td><td class="nome-aluno">{{ aluno.nome }}</td><td>{{ aluno.cpfCnpj || '—' }}</td>
+        <td>{{ aluno.telefone || '—' }}</td><td>{{ aluno.matricula || '—' }}</td>
+        <td>{{ aluno.mensalidade != null ? (aluno.mensalidade | currency: 'BRL' : 'symbol') : 'Não informada' }}</td>
+        <td>{{ aluno.faculdade?.nome || 'Não vinculada' }}</td>
+        <td><p-tag [value]="aluno.arquivado === true ? 'Arquivado' : aluno.arquivado === false ? 'Não arquivado' : 'Não informada'"
+          [severity]="aluno.arquivado === true ? 'secondary' : aluno.arquivado === false ? 'info' : 'warn'" /></td>
+        <td>
+          <div class="alunos-acoes acoes-linha">
+            <p-button icon="pi pi-pencil" [ariaLabel]="'Editar aluno ' + aluno.nome" [rounded]="true" [outlined]="true"
+              [disabled]="bloqueado()" (onClick)="editAluno(aluno)" />
+            @if (aluno.arquivado === true) {
+              <p-button label="Restaurar" icon="pi pi-history" severity="secondary" [text]="true"
+                [ariaLabel]="'Restaurar aluno ' + aluno.nome" [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria()"
+                (onClick)="restaurarAluno(aluno)" />
+              <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true"
+                [ariaLabel]="'Consultar exclusão definitiva de ' + aluno.nome"
+                [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria()" (onClick)="deleteAluno(aluno)" />
+            } @else if (aluno.arquivado === false) {
+              <p-button label="Arquivar" icon="pi pi-inbox" severity="secondary" [text]="true"
+                [ariaLabel]="'Arquivar aluno ' + aluno.nome" [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria()"
+                (onClick)="arquivarAluno(aluno)" />
+            }
           </div>
         </td>
       </tr>
     </ng-template>
+    <ng-template #emptymessage>
+      <tr><td colspan="10"><div class="alunos-vazio">
+        <i class="pi pi-users" aria-hidden="true"></i>
+        <p>{{ erroLista() ? 'Não foi possível confirmar esta lista. Confira o aviso e tente atualizar.' : 'Nenhum aluno encontrado nesta lista.' }}</p>
+      </div></td></tr>
+    </ng-template>
   </p-table>
 
-  <p-dialog
-    [(visible)]="alunoDialog"
-    [style]="{ width: '450px' }"
-    header="Detalhes do Aluno"
-    [modal]="true"
-  >
-    <ng-template #content>
-      <app-aluno-cadastro
-        *ngIf="alunoDialog"
-        [aluno]="aluno"
-        [faculdades]="faculdades"
-        (aoSalvar)="aoSalvarAluno()"
-        (aoCancelar)="hideDialog()"
-      >
-      </app-aluno-cadastro>
+  <p-dialog [(visible)]="alunoDialog" [style]="{ width: '32rem', maxWidth: 'calc(100vw - 2rem)' }"
+    header="Dados do aluno" closeAriaLabel="Fechar dados do aluno" [modal]="true">
+    @if (alunoDialog) {
+      @if (aluno.arquivado) {
+        <p-message severity="info" [closable]="false">Editar não restaura o cadastro nem reativa seu acesso.</p-message>
+      }
+      <app-aluno-cadastro [aluno]="aluno" [faculdades]="faculdades"
+        (aoSalvar)="aoSalvarAluno()" (aoCancelar)="hideDialog()" />
+    }
+  </p-dialog>
+
+  <p-dialog [visible]="dialogAcao" (visibleChange)="!$event && fecharAcao()"
+    [header]="acao() === 'ARQUIVAR' ? 'Arquivar alunos' : 'Restaurar cadastro'"
+    closeAriaLabel="Fechar confirmação de cadastro" [modal]="true" [closable]="!processando()"
+    [closeOnEscape]="!processando()" [style]="{ width: '38rem', maxWidth: 'calc(100vw - 2rem)' }">
+    <div class="alunos-dialog">
+      <div class="acao-destaque"><i [class]="acao() === 'ARQUIVAR' ? 'pi pi-inbox' : 'pi pi-history'" aria-hidden="true"></i>
+        <div><strong>{{ alvosAcao().length }} cadastro(s)</strong>
+          <p>{{ acao() === 'ARQUIVAR' ? 'Retirar da operação e preservar o histórico.' : 'Voltar para a lista de alunos, sem reativar o acesso.' }}</p></div>
+      </div>
+      @if (acao() === 'ARQUIVAR') {
+        <p>O acesso será bloqueado. Novas mensalidades e envios de e-mail serão interrompidos.</p>
+        <p class="alunos-nota">Cobranças, dívidas, recibos e chamados permanecem. E-mails já enviados não podem ser recolhidos.</p>
+      } @else {
+        <p>O acesso continuará desativado. Para permitir login e recebimento de e-mails, reative a conta separadamente em Usuários.</p>
+        <p class="alunos-nota">Restaurar não gera cobrança imediatamente nem redefine os vencimentos existentes.</p>
+      }
+      <ul class="alvos-lista">@for (alvo of alvosAcao(); track alvo.id) { <li>{{ alvo.nome }} <span>· ID {{ alvo.id }}</span></li> }</ul>
+      @if (erroAcao()) { <p-message severity="warn" [closable]="false">{{ erroAcao() }}</p-message> }
+      @if (resultados().length) {
+        <ul class="resultados-dialog" aria-live="polite">
+          @for (resultado of resultados(); track resultado.id) {
+            <li><strong>{{ resultado.nome }}</strong><p>{{ resultado.mensagem }}</p></li>
+          }
+        </ul>
+      }
+    </div>
+    <ng-template #footer>
+      <div class="alunos-rodape">
+        <p-button [label]="resultados().length ? 'Fechar' : 'Cancelar'" severity="secondary" [text]="true"
+          [disabled]="processando()" (onClick)="fecharAcao()" />
+        @if (!resultados().length || processando()) {
+          <p-button [label]="acao() === 'ARQUIVAR' ? 'Confirmar arquivamento' : 'Restaurar cadastro'"
+            [icon]="acao() === 'ARQUIVAR' ? 'pi pi-inbox' : 'pi pi-history'" [loading]="processando()"
+            [disabled]="bloqueado() || revisaoNecessaria() || !contratoDisponivel()" (onClick)="confirmarAcao()" />
+        }
+      </div>
     </ng-template>
   </p-dialog>
 
-  <p-confirmdialog [style]="{ width: '450px' }" />
+  <p-dialog [visible]="dialogExclusao" (visibleChange)="!$event && fecharExclusao()" header="Exclusão definitiva"
+    closeAriaLabel="Fechar condições de exclusão" [modal]="true" [closable]="!processando()"
+    [closeOnEscape]="!processando()" [style]="{ width: '40rem', maxWidth: 'calc(100vw - 2rem)' }">
+    <div class="alunos-dialog">
+      <div class="acao-destaque"><i class="pi pi-shield" aria-hidden="true"></i>
+        <div><strong>{{ alunoExclusao()?.nome }}</strong><p>O servidor verifica os vínculos antes de permitir a exclusão.</p></div>
+      </div>
+      @if (consultandoExclusao()) { <p role="status">Consultando os vínculos do aluno…</p> }
+      @if (erroExclusao()) { <p-message severity="error" [closable]="false">{{ erroExclusao() }}</p-message> }
+      @if (situacaoExclusao(); as dados) {
+        <dl class="vinculos-grid">
+          @for (tipo of tiposVinculos; track tipo.chave) {
+            <div><dt>{{ tipo.label }}</dt><dd>{{ dados.vinculos[tipo.chave] }}</dd></div>
+          }
+        </dl>
+        @if (dados.podeExcluir) {
+          <p-message severity="warn" [closable]="false">Esta ação é irreversível: o cadastro e seu acesso serão excluídos definitivamente.</p-message>
+          <p class="alunos-nota">Nenhum vínculo impeditivo foi encontrado. A API verificará novamente no momento da exclusão.</p>
+          <p>{{ dados.possuiAcesso ? 'A conta de acesso vinculada também será removida.' : 'Este aluno não possui conta de acesso vinculada.' }}</p>
+        } @else {
+          <p-message severity="info" [closable]="false">Exclusão bloqueada. Mantenha o aluno arquivado para preservar seu histórico.</p-message>
+          <ul class="impedimentos-lista">
+            @for (impedimento of dados.impedimentos; track $index) { <li>{{ impedimento.mensagem }}</li> }
+          </ul>
+        }
+      }
+      @if (conflitoVinculos(); as vinculos) {
+        <p class="alunos-nota">Vínculos informados pela API ao bloquear a exclusão:</p>
+        <dl class="vinculos-grid">
+          @for (tipo of tiposVinculos; track tipo.chave) {
+            <div><dt>{{ tipo.label }}</dt><dd>{{ vinculos[tipo.chave] }}</dd></div>
+          }
+        </dl>
+      }
+      @if (revisaoNecessaria()) {
+        <p-message severity="warn" [closable]="false">Feche este diálogo e atualize a lista antes de realizar outra operação.</p-message>
+      }
+    </div>
+    <ng-template #footer>
+      <div class="alunos-rodape">
+        <p-button label="Fechar" severity="secondary" [text]="true" [disabled]="processando()" (onClick)="fecharExclusao()" />
+        <p-button label="Atualizar vínculos" icon="pi pi-refresh" severity="secondary" [outlined]="true"
+          [disabled]="bloqueado() || revisaoNecessaria()" (onClick)="atualizarSituacaoExclusao()" />
+        <p-button label="Excluir definitivamente" icon="pi pi-trash" severity="danger" [loading]="processando()"
+          [disabled]="!podeExcluir()" (onClick)="confirmarExclusao()" />
+      </div>
+    </ng-template>
+  </p-dialog>
 </div>

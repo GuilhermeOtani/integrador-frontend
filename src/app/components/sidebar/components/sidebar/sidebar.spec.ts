@@ -49,6 +49,15 @@ describe('Sidebar', () => {
     expect(component).toBeTruthy();
   });
 
+  it('programação por e-mail aparece somente para ADMIN, sem WhatsApp', () => {
+    for (const atual of ['ADMIN', 'ALUNO', 'MOTORISTA'] as Papel[]) {
+      papel.set(atual);
+      const rotas = component.secoes().flatMap(s => s.itens.map(i => i.rota));
+      expect(rotas.includes('/programacao-email')).toBe(atual === 'ADMIN');
+      expect(rotas.includes('/whatsapp')).toBeFalse();
+    }
+  });
+
   it('Início é o primeiro item de todos os papéis e preserva Meu perfil', () => {
     for (const atual of ['ADMIN', 'ALUNO', 'MOTORISTA'] as Papel[]) {
       papel.set(atual);

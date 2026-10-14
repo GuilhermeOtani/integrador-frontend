@@ -1,0 +1,39 @@
+:host { display: block; min-width: 0; color: var(--p-text-color); }
+.email-painel, .dialogo { display: grid; gap: 1rem; min-width: 0; }
+.cabecalho, .acoes { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+.acoes { justify-content: flex-start; }
+h1 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; margin: .3rem 0; }
+h2, h3 { font-weight: 650; margin: 0 0 .75rem; } h2 { font-size: 1.05rem; }
+h2 i, h3 i { color: var(--p-primary-color); margin-right: .4rem; }
+p { margin: .65rem 0; overflow-wrap: anywhere; }
+.muted, .sobretitulo, small, dt { color: var(--p-text-muted-color); }
+.sobretitulo { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; }
+.painel { background: var(--p-content-background); border: 1px solid var(--p-content-border-color); border-radius: 1rem; padding: 1.2rem; min-width: 0; }
+.resumos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+.impedimentos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; } .impedimentos p { margin: 0; }
+.valor { display: block; font-size: 1.9rem; color: var(--p-primary-color); margin: .7rem 0; } .valor small { font-size: .9rem; font-weight: 400; }
+.faculdades { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+.faculdade { border: 1px solid var(--p-content-border-color); border-radius: .85rem; overflow: hidden; }
+.faculdade h3 { padding: 1rem; margin: 0; background: color-mix(in srgb, var(--p-primary-color) 8%, transparent); }
+.viagem { padding: 1rem; } .viagem + .viagem { border-top: 1px solid var(--p-content-border-color); }
+.destaques { display: grid; grid-template-columns: minmax(0, .7fr) minmax(0, 1fr); gap: 1rem; }
+.destaques span, .destaques strong { display: block; overflow-wrap: anywhere; }
+.destaques strong { font-size: 1.25rem; margin-top: .3rem; } .destaques > div:first-child strong { color: var(--p-primary-color); }
+.alerta { padding: .65rem; border-radius: .5rem; background: color-mix(in srgb, var(--p-yellow-500) 12%, transparent); border-left: 3px solid var(--p-yellow-500); }
+.pendencia { border-left: 4px solid var(--p-yellow-500); }
+.pesquisa { display: grid; gap: .5rem; margin-top: 1rem; } .pesquisa input { width: min(100%, 36rem); }
+.envio-acoes { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--p-content-border-color); }
+.vazio { text-align: center; padding: 1.5rem; } .vazio > i { font-size: 2rem; color: var(--p-primary-color); margin-bottom: 1rem; }
+.tabela { overflow-x: auto; min-width: 0; } small { display: block; margin-top: .35rem; }
+.totais-linha { display: flex; flex-direction: column; gap: .3rem; }
+.hero { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: .85rem; background: color-mix(in srgb, var(--p-primary-color) 10%, transparent); }
+.hero > i { font-size: 1.8rem; color: var(--p-primary-color); } .hero strong { font-size: 1.2rem; } .hero p { margin-bottom: 0; color: var(--p-text-muted-color); }
+textarea { width: 100%; resize: vertical; }
+.mensagem, .texto { white-space: pre-wrap; overflow-wrap: anywhere; }
+.mensagem { font: inherit; padding: 1rem; margin: 0; border-radius: .75rem; border: 1px solid var(--p-content-border-color); }
+.total { display: grid; gap: .5rem; padding: .85rem; border: 1px solid var(--p-content-border-color); border-radius: .7rem; } .total span { font-size: .8rem; } .total strong { font-size: 1.4rem; }
+dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 0; } dd { margin: .3rem 0 0; overflow-wrap: anywhere; }
+ol { padding-left: 1.5rem; margin: 0; } li { padding: .35rem; } summary { cursor: pointer; font-weight: 650; padding: .5rem 0; }
+:is(button, input, textarea, summary):focus-visible { outline: 2px solid var(--p-primary-color); outline-offset: 3px; }
+@media (max-width: 1200px) { .resumos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .resumos, .faculdades, .impedimentos, dl { grid-template-columns: 1fr; } .painel { padding: 1rem; } .hero { align-items: flex-start; } }
