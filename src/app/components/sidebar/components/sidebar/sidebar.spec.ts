@@ -48,6 +48,12 @@ describe('Sidebar', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+  it('WhatsApp aparece somente no menu administrativo', () => {
+    for (const atual of ['ADMIN', 'ALUNO', 'MOTORISTA'] as Papel[]) {
+      papel.set(atual);
+      expect(component.secoes().flatMap(s => s.itens.map(i => i.rota)).includes('/whatsapp')).toBe(atual === 'ADMIN');
+    }
+  });
 
   it('Início é o primeiro item de todos os papéis e preserva Meu perfil', () => {
     for (const atual of ['ADMIN', 'ALUNO', 'MOTORISTA'] as Papel[]) {

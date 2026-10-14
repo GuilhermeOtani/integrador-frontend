@@ -1,20 +1,25 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
+import { signal } from '@angular/core';
+import { AuthService } from '../../../../core/auth/service/auth.service';
 
 import { GradeDiariaListar } from './grade-diaria-listar';
 
 describe('GradeDiariaListar', () => {
   let component: GradeDiariaListar;
   let fixture: ComponentFixture<GradeDiariaListar>;
+  const admin = signal(true);
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [GradeDiariaListar],
-      providers: [provideHttpClient(), provideHttpClientTesting()]
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]), { provide: AuthService, useValue: { temPapel: () => admin() } }]
     })
     .compileComponents();
 
+    admin.set(true);
     fixture = TestBed.createComponent(GradeDiariaListar);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -22,6 +27,11 @@ describe('GradeDiariaListar', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+  it('atalho navega para WhatsApp somente para ADMIN sem enviar mensagens', () => {
+    expect(fixture.nativeElement.querySelector('a[href="/whatsapp"]')).not.toBeNull();
+    admin.set(false); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('a[href="/whatsapp"]')).toBeNull();
   });
 
   it('cancelar edição não altera viagens, faculdades ou IDs da listagem', () => {

@@ -68,6 +68,7 @@ export class Sidebar {
             { label: 'Pontos de embarque', icon: 'pi pi-map-marker', rota: '/pontosembarque' },
             { label: 'Rotas', icon: 'pi pi-map', rota: '/rotas' },
             { label: 'Grades', icon: 'pi pi-calendar', rota: '/grades' },
+            { label: 'WhatsApp', icon: 'pi pi-whatsapp', rota: '/whatsapp' },
           ],
         },
         {

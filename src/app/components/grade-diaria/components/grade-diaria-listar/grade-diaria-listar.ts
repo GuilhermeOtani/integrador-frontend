@@ -24,11 +24,13 @@ import { GradeDiariaCadastro } from '../grade-diaria-cadastro/grade-diaria-cadas
 import { TooltipModule } from 'primeng/tooltip';
 import { BadgeModule } from 'primeng/badge';
 import { AuthService } from '../../../../core/auth/service/auth.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   standalone: true,
   selector: 'app-grade-diaria-listar',
   imports: [
+    RouterLink,
     CommonModule,
     ButtonModule,
     ConfirmDialogModule,

@@ -1,0 +1,14 @@
+.whatsapp-page { display: flex; flex-direction: column; gap: 1.25rem; max-width: 88rem; margin: auto; color: var(--p-text-color); overflow-wrap: anywhere; }
+.cabecalho h1 { margin: .5rem 0; } .eyebrow { color: var(--p-primary-color); font-weight: 600; } .muted { color: var(--p-text-muted-color); }
+.grid-cards, .indicadores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.painel { padding: 1.25rem; border: 1px solid var(--p-content-border-color); border-radius: 1rem; background: var(--p-content-background); min-width: 0; }
+h2 { font-size: 1.15rem; margin: 0 0 1rem; } h2 i { color: var(--p-primary-color); margin-right: .5rem; }
+.titulo, .acoes { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; } .titulo { justify-content: space-between; margin-bottom: .75rem; } .titulo h2 { margin: 0; }
+.indicadores { margin: 1rem 0; } .indicadores div { padding: .75rem; border-radius: .5rem; background: color-mix(in srgb, var(--p-text-color) 4%, transparent); } dt { color: var(--p-text-muted-color); font-size: .85rem; } dd { margin: .4rem 0 0; font-weight: 600; }
+.destaque { font-size: 2rem; color: var(--p-primary-color); } .chave { display: flex; gap: .5rem; align-items: center; border: 1px solid var(--p-primary-color); border-radius: .5rem; padding: .75rem; background: transparent; color: var(--p-primary-color); cursor: pointer; } .chave:disabled { opacity: .6; cursor: default; }
+.painel > label { display: block; margin-bottom: .5rem; } .previa-cabecalho { margin-top: 1rem; } h3 { margin-bottom: .25rem; }
+.viagens { display: grid; gap: .75rem; margin: 1rem 0; } .viagem { border: 1px solid var(--p-content-border-color); border-radius: .75rem; padding: 1rem; } summary { cursor: pointer; font-weight: 600; } .pontos { list-style: none; padding-left: 0; } .pontos li { margin-bottom: .5rem; } .pontos strong { color: var(--p-primary-color); padding-right: .5rem; }
+.formulario { display: flex; flex-direction: column; gap: .75rem; } .texto { white-space: pre-wrap; overflow-wrap: anywhere; } .alerta { color: var(--p-orange-500); } .numero { display: block; margin-top: .25rem; }
+.totais { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; } .totais span { padding: .75rem; background: color-mix(in srgb, var(--p-text-color) 4%, transparent); border-radius: .5rem; font-size: .85rem; } .totais strong { display: block; font-size: 1.25rem; margin-bottom: .25rem; }
+@media (max-width: 768px) { .grid-cards { grid-template-columns: 1fr; } .totais { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .indicadores { grid-template-columns: 1fr; } .painel { padding: 1rem; } }

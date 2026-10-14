@@ -30,6 +30,11 @@ export const routes: Routes = [
     canActivate: [roleGuard(['ADMIN'])],
   },
   {
+    path: 'whatsapp',
+    loadComponent: () => import('./components/whatsapp/components/whatsapp-admin/whatsapp-admin').then(m => m.WhatsappAdmin),
+    canActivate: [roleGuard(['ADMIN'])],
+  },
+  {
     path: 'alunos',
     loadComponent: () =>
       import('./components/aluno/components/aluno-listar/aluno-listar').then((module) => module.AlunoListar),

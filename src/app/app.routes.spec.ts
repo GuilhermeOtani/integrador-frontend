@@ -14,6 +14,7 @@ import { Papel } from './core/auth/models/auth.models';
 describe('app routes', () => {
   for (const [path, papeis] of [
     ['inicio', ['ADMIN', 'ALUNO', 'MOTORISTA']],
+    ['whatsapp', ['ADMIN']],
     ['manutencao', ['ADMIN']], ['meus-chamados', ['ALUNO', 'MOTORISTA']],
   ] as [string, Papel[]][]) {
     for (const papel of [null, 'ADMIN', 'ALUNO', 'MOTORISTA'] as (Papel | null)[]) {

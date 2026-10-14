@@ -1,0 +1,40 @@
+<section class="assinatura-card" aria-labelledby="titulo-whatsapp">
+  <div class="cabecalho"><div><span class="eyebrow"><i class="pi pi-whatsapp" aria-hidden="true"></i> Sua programação</span><h2 id="titulo-whatsapp">Receber pelo WhatsApp</h2></div>
+    <p-button label="Atualizar situação" icon="pi pi-refresh" [text]="true" [disabled]="carregando() || salvando()" (onClick)="atualizar()" />
+  </div>
+  <p class="muted">Receba um PDF nos dias com viagens. O envio automático acontece às 15h, no horário de São Paulo, quando ativado pelo administrador.</p>
+  @if (carregando()) { <p role="status">Consultando assinatura…</p> }
+  @if (erro()) { <p-message severity="error" [text]="erro()!" /> }
+  @if (!carregando() && assinatura(); as dados) {
+    <div class="situacao"><p-tag [value]="dados.status === 'ATIVA' ? 'Recebimento ativo' : dados.status === 'PENDENTE' ? 'Confirmação pendente' : dados.status === 'CANCELADA' ? 'Recebimento cancelado' : 'Não cadastrado'" [severity]="dados.status === 'ATIVA' ? 'success' : dados.status === 'PENDENTE' ? 'warn' : 'secondary'" /><strong>{{ dados.numero || 'Nenhum número cadastrado' }}</strong></div>
+    @if (dados.status === 'ATIVA') { <p>Você receberá a programação dos dias com viagens. <small class="muted">Confirmado em {{ instante(dados.confirmadoEm) }}.</small></p><p-button label="Trocar número" [text]="true" [disabled]="salvando()" (onClick)="trocarNumero()" /> }
+    @if (dados.status === 'PENDENTE') {
+      <p-message severity="info">Abra o WhatsApp e <strong>envie a mensagem de ativação</strong>. Só abrir a conversa não confirma o número.</p-message>
+      <p class="muted">O código vale por 30 minutos. Prazo: {{ instante(dados.codigoExpiraEm) }} (São Paulo).</p>
+      @if (linkAtivacao(); as link) { <a class="ativacao" [href]="link" target="_blank" rel="noopener noreferrer"><i class="pi pi-whatsapp" aria-hidden="true"></i> Abrir WhatsApp para confirmar</a> }
+      @else { <p class="muted">O link não é recuperado após recarregar a página. Solicite uma nova ativação se necessário.</p> }
+    }
+    @if (dados.status !== 'ATIVA' || editando()) {
+      <form [formGroup]="form" (ngSubmit)="solicitar()" class="formulario">
+        <label for="numero-whatsapp">Número com código do país</label><input pInputText id="numero-whatsapp" type="tel" autocomplete="tel" placeholder="+5511999999999" maxlength="40" formControlName="numero" [attr.aria-invalid]="form.controls.numero.touched && form.controls.numero.invalid" aria-describedby="numero-ajuda" />
+        <small id="numero-ajuda" class="muted">Inclua +, país, DDD e número.</small>
+        @if (form.controls.numero.touched && form.controls.numero.invalid) { <small class="erro">Informe um número internacional válido.</small> }
+        @if (form.controls.numero.errors?.['api']; as mensagem) { <small class="erro">{{ mensagem }}</small> }
+        <div class="aceite"><p-checkbox inputId="aceite-whatsapp" [binary]="true" formControlName="aceite" /><label for="aceite-whatsapp">Autorizo receber minha programação de transporte por WhatsApp e sei que posso cancelar o recebimento.</label></div>
+        @if (form.controls.aceite.touched && form.controls.aceite.invalid) { <small class="erro">O aceite é necessário para solicitar a ativação.</small> }
+        @if (form.controls.aceite.errors?.['api']; as mensagem) { <small class="erro">{{ mensagem }}</small> }
+        @if (dados.status === 'PENDENTE' || editando()) { <p-message severity="warn">Uma nova solicitação invalida códigos anteriores. Trocar o número suspende o recebimento anterior até a confirmação.</p-message> }
+        <small class="muted">Limite de cinco solicitações por hora. Após dez minutos, use Atualizar situação para continuar acompanhando.</small>
+        <p-button type="submit" [label]="dados.status === 'PENDENTE' ? 'Solicitar nova ativação' : 'Confirmar meu WhatsApp'" icon="pi pi-whatsapp" [loading]="salvando()" [disabled]="form.invalid || salvando() || carregando()" />
+      </form>
+    }
+    @if (dados.status === 'ATIVA' || dados.status === 'PENDENTE') { <p-button label="Cancelar recebimento" severity="danger" [text]="true" [disabled]="salvando()" (onClick)="cancelamentoVisivel.set(true)" /> }
+  }
+  <div class="rodape"><p-button label="Baixar minha programação" icon="pi pi-file-pdf" severity="secondary" [outlined]="true" [loading]="baixando()" [disabled]="baixando()" (onClick)="baixarPdf()" /><small class="muted">O PDF não exige assinatura ativa. Você também pode cancelar respondendo SAIR, PARAR ou CANCELAR no WhatsApp.</small></div>
+  @if (erroPdf()) { <p-message severity="error" [text]="erroPdf()!" /> }
+</section>
+<p-dialog header="Cancelar recebimento" [visible]="cancelamentoVisivel()" (visibleChange)="!salvando() && cancelamentoVisivel.set($event)" [modal]="true" [draggable]="false" [resizable]="false" [closable]="!salvando()" [closeOnEscape]="!salvando()" [style]="{width:'30rem', maxWidth:'calc(100vw - 2rem)'}">
+  <p>Deseja interromper novos envios para {{ assinatura()?.numero }}? Mensagens e PDFs já enviados não serão recolhidos.</p>
+  @if (erro()) { <p-message severity="error" [text]="erro()!" /> }
+  <ng-template #footer><p-button label="Voltar" severity="secondary" [text]="true" [disabled]="salvando()" (onClick)="cancelamentoVisivel.set(false)" /><p-button label="Confirmar cancelamento" severity="danger" [loading]="salvando()" [disabled]="salvando()" (onClick)="cancelar()" /></ng-template>
+</p-dialog>

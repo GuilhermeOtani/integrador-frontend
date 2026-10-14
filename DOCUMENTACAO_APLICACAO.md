@@ -12,6 +12,8 @@ O sistema possui autenticação JWT e três papéis:
 
 Além da autenticação, o frontend oferece os cadastros de transporte, contas a pagar/receber e chamados de manutenção com atendimento administrativo e alteração explícita do estado do ônibus.
 
+> **WhatsApp — 14/10/2026:** integração individual implementada no frontend: assinatura no perfil, prévia, PDF, envio/reenvio, configuração do automático e histórico do ADMIN. A configuração real consultada está desativada e sem credenciais/webhook/template; nenhum envio foi disparado. Testes automatizados: 259 aprovados. Homologação Meta ainda pendente.
+
 > **Estado da revisão:** dashboards por perfil implementados e reorganizados em cards objetivos em 10/10/2026, com transporte, mensalidade e pagamento compartilhado para aluno, escala para motorista e indicadores financeiros/operacionais para ADMIN. Os três perfis foram conferidos com backend real, em desktop e 360px no modo escuro; pagamento integrado e modo claro permanecem pendentes. Resultados na seção 11. Backend, guias recebidos e diagrama de classes permaneceram intactos.
 
 ---
@@ -98,6 +100,15 @@ src/
 │   │   ├── motorista/
 │   │   ├── ponto-embarque/
 │   │   ├── rota/
+│   │   ├── whatsapp/
+│   │   │   ├── models/whatsapp.models.ts
+│   │   │   ├── service/whatsapp-service.ts
+│   │   │   ├── utils/whatsapp.utils.ts
+│   │   │   ├── utils/atualizacao-limitada.ts
+│   │   │   ├── testing/whatsapp.fixtures.ts
+│   │   │   └── components/
+│   │   │       ├── assinatura-whatsapp/
+│   │   │       └── whatsapp-admin/
 │   │   ├── grade-diaria/
 │   │   ├── viagem/
 │   │   ├── conta-pagar/
@@ -189,6 +200,7 @@ Uma URL interna de retorno é preservada quando o usuário é enviado ao login. 
 | `/inicio` | `ADMIN`, `ALUNO`, `MOTORISTA` | Dashboard específico do papel |
 | `/perfil` | Autenticado | Dados de `/auth/me` |
 | `/sem-permissao` | Autenticado | Aviso de acesso negado |
+| `/whatsapp` | `ADMIN` | Prévia, envios individuais, automático e histórico |
 | `/usuarios` | `ADMIN` | Administração de contas |
 | `/alunos` | `ADMIN` | CRUD de alunos |
 | `/faculdades` | `ADMIN` | CRUD de faculdades |
@@ -280,6 +292,28 @@ A primeira cobrança, o vencimento em 30 dias e as próximas cobranças mensais 
 As telas de contas a receber seguem o mesmo padrão visual de Contas a pagar: barra de alternância, tabelas separadas para pendências e histórico, valores em vermelho/verde e os mesmos cards de confirmação e recibo. No recebimento, o valor aparece bloqueado porque deve vir integralmente da cobrança.
 
 ---
+
+### WhatsApp individual
+
+Implementado conforme `GUIA_WHATSAPP_FRONTEND.md`, sem alterar backend ou guia. `/whatsapp` é exclusivo de ADMIN; o menu está em Logística. Grades tem um atalho administrativo que apenas navega para a página, sem enviar a grade selecionada.
+
+No perfil, ALUNO/MOTORISTA podem informar número internacional, aceitar o recebimento, solicitar ativação, abrir o link retornado e consultar a confirmação. O número é normalizado como no backend; consentimento começa desmarcado. Apenas o webhook confirma ATIVA. Abrir a conversa não confirma. Assinaturas têm estados NAO_CADASTRADA, PENDENTE, ATIVA e CANCELADA; trocar número exige nova confirmação e suspende o anterior. O link é aceito somente em HTTPS no domínio wa.me e nunca é reconstruído, persistido ou registrado em logs. Após recarga, o usuário consulta a assinatura e pode solicitar explicitamente um novo código, invalidando o anterior. Cancelamento exige confirmação e não recolhe mensagens antigas.
+
+O PDF pessoal não exige assinatura ativa. Downloads usam Blob autenticado e URL temporária revogada; erros ProblemDetail em Blob são interpretados sem gerar documentos vazios. LocalDate usa UTC, timestamps são apresentados em São Paulo.
+
+ADMIN consulta configuração sem segredos, prévia de aluno/motorista via `GET /usuarios`, programação completa, elegibilidade/impedimentos e PDF. A prévia é independente da integração estar pronta; trocar destinatário cancela a consulta anterior. A programação vem exclusivamente do backend, sem usar datas antigas ou reunir CRUDs. Sem viagens, nenhuma mensagem/PDF vazio é enviado.
+
+Envio normal usa público TODOS/ALUNOS/MOTORISTAS e confirmação. Atualização é separada, exige motivo de até 500 caracteres e informa que a mensagem anterior não será apagada. O POST envia somente `requestId`, `publico`, `reenviar` e `motivo`; a resposta usa `reenvio`. Duplo envio é bloqueado. HTTP 202 indica lote registrado, não entrega.
+
+Após erro de resultado incerto (status 0/5xx), UUID e corpo permanecem em memória, os campos ficam bloqueados e o histórico/lote são consultados. A tentativa é manual, com o mesmo UUID; nunca há repetição automática de POST. Não recarregar antes de conferir o resultado, pois a intenção não é persistida. Um lote localizado encerra a intenção sem novo envio.
+
+Histórico é paginado no servidor: página zero, 20 registros inicialmente e opções 20/50/100. A tabela não faz ordenação local entre páginas. Detalhes exibem os dez estados reais, totais inclusive zero, duplicidades, número mascarado, revisão, tentativas e diagnóstico seguro. ACEITA não é ENTREGUE. Falhas de GET não viram lista vazia.
+
+A chave automática só muda após sucesso do PUT; desativar permanece permitido quando a configuração não está pronta. O backend agenda 15h em America/Sao_Paulo e recupera após 15h até antes das 18h, sem depender do Angular aberto. Cancelar o automático não desfaz lotes.
+
+`AtualizacaoLimitada` executa somente GET a cada cinco segundos, por até dez minutos, sem sobreposição. A assinatura para ao confirmar/cancelar/expirar; lotes param em estados finais. Erro, fechamento e destruição encerram/cancelam a consulta. Atualização manual permanece disponível. Os módulos reutilizam interceptor e mensagens globais; 400 pode associar errors aos controles, 409 preserva dados, 404 informa ausência e 503 apresenta indisponibilidade.
+
+Não há grupos, WhatsApp Web, credenciais no navegador, edição de data de envio, chatbot geral ou alteração dos demais módulos. Organização e rollout detalhados em `PLANO_IMPLEMENTACAO_WHATSAPP_FRONTEND.md`.
 
 ## 7. Módulos administrativos existentes
 
@@ -409,6 +443,24 @@ As telas reutilizam `mensagemApi`/`problemaApi`: `400` associa erros aos control
 
 ---
 
+### Endpoints WhatsApp
+
+| Método e URL | Acesso / utilização |
+|---|---|
+| GET /whatsapp/minha-assinatura | ALUNO/MOTORISTA, assinatura da sessão |
+| POST /whatsapp/minha-assinatura/ativacao | ALUNO/MOTORISTA; corpo numero e aceite |
+| DELETE /whatsapp/minha-assinatura | ALUNO/MOTORISTA; cancelar |
+| GET /whatsapp/minha-programacao/pdf | ALUNO/MOTORISTA; Blob autenticado |
+| GET /integracoes/whatsapp/configuracao | ADMIN; situação sem segredos |
+| PUT /integracoes/whatsapp/configuracao | ADMIN; corpo automatico |
+| GET /integracoes/whatsapp/previa | ADMIN; query usuarioId |
+| GET /integracoes/whatsapp/previa/pdf | ADMIN; query usuarioId, Blob |
+| POST /integracoes/whatsapp/envios | ADMIN; intenção idempotente; retorna 202 |
+| GET /integracoes/whatsapp/envios | ADMIN; queries pagina e tamanho |
+| GET /integracoes/whatsapp/envios/{id} | ADMIN; detalhes e estados |
+
+Endpoints pessoais não recebem usuarioId/pessoaId; identidade vem do JWT. Apenas prévias administrativas recebem usuarioId.
+
 ## 10. Instalação e execução
 
 ### Pré-requisitos
@@ -439,6 +491,16 @@ Credenciais administrativas não devem ser registradas no código, documentaçã
 ---
 
 ## 11. Testes automatizados
+
+### WhatsApp — validação em 14/10/2026
+
+Baseline: 209/209 testes antes das alterações. Resultado final: **259/259 aprovados**, em 56 specs (50 testes adicionais). TypeScript da aplicação/testes aprovados; build de produção aprovado sem avisos, bundle inicial 1,09 MB / 192,76 kB estimados para transferência. Nenhuma dependência adicionada.
+
+Cobertura adicional: endpoints/corpos sem identidade pessoal, Blob, consentimento, número, confirmação, cancelamento, expiração, polling limitado/destruição/cancelamento de GET, link seguro, erros 400/404/409/503, UUID preservado em resposta incerta, consulta de lote, reenvio com motivo, paginação, menu/guards/perfil por papel, atalho de Grades, chave automática após sucesso/falha e erro de PDF antigo sem contaminar o novo destinatário.
+
+No navegador, /whatsapp sem sessão redirecionou para /login?retorno=%2Fwhatsapp. Após login ADMIN feito pelo usuário, consultados configuração real desativada/em teste, prévias de aluno e motorista com programação de 14/10, aviso de WhatsApp não confirmado e histórico vazio. Conferência em 1440px e 360px no modo escuro: documento e main sem overflow horizontal; tabela tem rolagem interna. Nenhum envio/ativação/cancelamento/PUT do automático foi executado. Card pessoal, confirmação real pelo telefone, PDF real, webhook/entrega, modo claro e demais cenários Meta permanecem pendentes.
+
+### Histórico de validação dos dashboards
 
 Em 10/10/2026 foram validados após a implementação dos dashboards:
 
@@ -569,7 +631,8 @@ location / {
 | Financeiro no dashboard | Cobrança do ALUNO e movimentações/posição atual do ADMIN |
 | Pagamento compartilhado | Mesmo componente de confirmação/recibo no início e em Minhas matrículas |
 | Geração mensal da cobrança | Responsabilidade do backend; validação integrada pendente |
-| Testes automatizados | 209 aprovados |
+| WhatsApp individual | Assinatura, prévia, PDF, lotes, automático e histórico implementados; Meta real pendente |
+| Testes automatizados | 259 aprovados |
 | Build de produção | Aprovado |
 | Teste integrado dos três papéis | Dashboards conferidos com login real; demais fluxos completos ainda pendentes |
 | Dashboards com backend real | Três perfis conferidos em desktop/360px no modo escuro; ADMIN inclui mês, posição atual e atalhos |
@@ -578,8 +641,8 @@ location / {
 
 ---
 
-**Última revisão:** 10 de outubro de 2026
+**Última revisão:** 14 de outubro de 2026
 
 **Versão do pacote:** 0.0.0
 
-**Status:** autenticação, matrícula, manutenção e dashboards implementados; redesign em cards objetivos concluído. Três dashboards conferidos com dados reais em modo escuro; pagamento integrado, modo claro e demais fluxos de homologação ainda pendentes.
+**Status:** integração WhatsApp individual implementada e painel ADMIN consultado com dados reais, sem envio; configuração Meta e confirmação/entrega real pendentes. Autenticação, matrícula, manutenção e dashboards implementados; redesign em cards objetivos concluído. Três dashboards conferidos com dados reais em modo escuro; pagamento integrado, modo claro e demais fluxos de homologação ainda pendentes.

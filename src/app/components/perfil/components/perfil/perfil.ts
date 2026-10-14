@@ -8,11 +8,12 @@ import { TagModule } from 'primeng/tag';
 import { mensagemApi } from '../../../../core/auth/utils/api-error';
 import { MeResponse, StatusMatricula } from '../../../../core/auth/models/auth.models';
 import { AuthService } from '../../../../core/auth/service/auth.service';
+import { AssinaturaWhatsappComponent } from '../../../whatsapp/components/assinatura-whatsapp/assinatura-whatsapp';
 
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, MessageModule, ProgressSpinnerModule, TagModule],
+  imports: [CommonModule, MessageModule, ProgressSpinnerModule, TagModule, AssinaturaWhatsappComponent],
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })

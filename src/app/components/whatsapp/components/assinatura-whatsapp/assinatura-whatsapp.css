@@ -1,0 +1,8 @@
+.assinatura-card { margin-top: 1.5rem; padding: 1.5rem; border: 1px solid var(--p-content-border-color); border-radius: 1rem; background: var(--p-content-background); color: var(--p-text-color); overflow-wrap: anywhere; }
+.cabecalho, .situacao, .rodape { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.cabecalho { justify-content: space-between; } h2 { margin: .5rem 0; }
+.eyebrow { color: var(--p-primary-color); font-weight: 600; } .muted { color: var(--p-text-muted-color); }
+.situacao { margin: 1rem 0; } .formulario { display: flex; flex-direction: column; gap: .75rem; margin: 1rem 0; max-width: 38rem; }
+.aceite { display: flex; align-items: flex-start; gap: .75rem; } .erro { color: var(--p-red-500); }
+.ativacao { display: inline-block; padding: .75rem 1rem; margin-bottom: .75rem; border-radius: .5rem; background: var(--p-primary-color); color: var(--p-primary-contrast-color); text-decoration: none; }
+.rodape { border-top: 1px solid var(--p-content-border-color); padding-top: 1rem; margin-top: 1rem; } .rodape small { flex: 1; min-width: 12rem; }
