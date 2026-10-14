@@ -20,6 +20,7 @@ interface SecaoMenu {
 }
 
 const PERFIL: ItemMenu = { label: 'Meu perfil', icon: 'pi pi-user', rota: '/perfil' };
+const INICIO: ItemMenu = { label: 'Início', icon: 'pi pi-home', rota: '/inicio' };
 
 @Component({
   standalone: true,
@@ -46,6 +47,7 @@ export class Sidebar {
         {
           titulo: 'Conta',
           itens: [
+            INICIO,
             PERFIL,
             { label: 'Usuários', icon: 'pi pi-shield', rota: '/usuarios' },
           ],
@@ -80,7 +82,7 @@ export class Sidebar {
 
     if (this.auth.temPapel('ALUNO')) {
       return [
-        { titulo: 'Conta', itens: [PERFIL] },
+        { titulo: 'Conta', itens: [INICIO, PERFIL] },
         {
           titulo: 'Financeiro',
           itens: [
@@ -100,7 +102,7 @@ export class Sidebar {
     }
 
     return [
-      { titulo: 'Conta', itens: [PERFIL] },
+      { titulo: 'Conta', itens: [INICIO, PERFIL] },
       {
         titulo: 'Operação',
         itens: [

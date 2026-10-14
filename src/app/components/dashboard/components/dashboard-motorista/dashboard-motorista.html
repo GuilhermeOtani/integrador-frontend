@@ -1,0 +1,12 @@
+<div class="dashboard">
+  <header class="cabecalho"><div><span class="sobretitulo">Sua operação</span><h1>Olá, {{ consulta.dados()?.motorista?.nome ?? 'motorista' }}</h1>
+    @if (consulta.dados(); as painel) { <p>{{ painel.transporte.viagensHoje.length }} viagem(ns) hoje · <a routerLink="/perfil">Meu perfil</a></p> }
+  </div><p-button label="Atualizar" icon="pi pi-refresh" [loading]="consulta.carregando()" [disabled]="consulta.carregando()" (onClick)="carregar()" /></header>
+  @if (consulta.carregando()) { <div class="duas-colunas"><p-skeleton height="13rem" /><p-skeleton height="13rem" /><p-skeleton height="13rem" /><p-skeleton height="13rem" /></div> }
+  @else if (consulta.erro(); as erro) { <p-message severity="error">{{ erro }}</p-message><p-button label="Tentar novamente" (onClick)="carregar()" /> }
+  @else if (consulta.dados(); as painel) {
+    <app-agenda-transporte [transporte]="painel.transporte" [dataReferencia]="painel.dataReferencia" [avisos]="painel.avisos" [chaveSelecionada]="viagemSelecionada()" (selecaoAlterada)="viagemSelecionada.set($event)" />
+    <small class="muted">Atualizado em {{ geradoEm(painel.geradoEm) }} · Referência {{ painel.dataReferencia | date:'dd/MM/yyyy':'UTC' }}</small>
+  }
+  <nav class="atalhos" aria-label="Atalhos do motorista"><a routerLink="/minhas-viagens"><i class="pi pi-calendar" aria-hidden="true"></i> Minhas viagens</a><a routerLink="/meus-chamados"><i class="pi pi-wrench" aria-hidden="true"></i> Meus chamados</a><a routerLink="/perfil"><i class="pi pi-user" aria-hidden="true"></i> Meu perfil</a></nav>
+</div>

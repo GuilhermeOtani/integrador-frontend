@@ -71,12 +71,12 @@ describe('MinhasMatriculas', () => {
     recebimentoService.pagar.and.returnValue(of(recibo));
 
     component.abrirPagamento(conta);
-    component.confirmarPagamento();
+    component.pagamento().confirmarPagamento();
 
     expect(recebimentoService.pagar).toHaveBeenCalledOnceWith(15, 'PIX');
-    expect(component.contaSelecionada()).toBeNull();
-    expect(component.contaRecibo()).toEqual(conta);
-    expect(component.recibo()).toEqual(recibo);
+    expect(component.pagamento().contaSelecionada()).toBeNull();
+    expect(component.pagamento().contaRecibo()).toEqual(conta);
+    expect(component.pagamento().recibo()).toEqual(recibo);
     expect(contaService.listarMinhas).toHaveBeenCalledTimes(2);
     expect(messages.add).toHaveBeenCalledWith(
       jasmine.objectContaining({ severity: 'success', summary: 'Pagamento realizado' }),
@@ -95,10 +95,10 @@ describe('MinhasMatriculas', () => {
     );
 
     component.abrirPagamento(conta);
-    component.confirmarPagamento();
+    component.pagamento().confirmarPagamento();
 
-    expect(component.contaSelecionada()).toEqual(conta);
-    expect(component.erroPagamento()).toBe('Forma de pagamento inválida.');
+    expect(component.pagamento().contaSelecionada()).toEqual(conta);
+    expect(component.pagamento().erroPagamento()).toBe('Forma de pagamento inválida.');
   });
 
   it('impede dois pagamentos enquanto a primeira requisição está em andamento', () => {
@@ -106,13 +106,13 @@ describe('MinhasMatriculas', () => {
     recebimentoService.pagar.and.returnValue(resposta.asObservable());
 
     component.abrirPagamento(conta);
-    component.confirmarPagamento();
-    component.confirmarPagamento();
+    component.pagamento().confirmarPagamento();
+    component.pagamento().confirmarPagamento();
 
     expect(recebimentoService.pagar).toHaveBeenCalledTimes(1);
-    expect(component.pagando()).toBeTrue();
+    expect(component.pagamento().pagando()).toBeTrue();
     resposta.complete();
-    expect(component.pagando()).toBeFalse();
+    expect(component.pagamento().pagando()).toBeFalse();
   });
 
   it('fecha o diálogo e recarrega a lista quando a cobrança já foi paga', () => {
@@ -127,9 +127,9 @@ describe('MinhasMatriculas', () => {
     );
 
     component.abrirPagamento(conta);
-    component.confirmarPagamento();
+    component.pagamento().confirmarPagamento();
 
-    expect(component.contaSelecionada()).toBeNull();
+    expect(component.pagamento().contaSelecionada()).toBeNull();
     expect(contaService.listarMinhas).toHaveBeenCalledTimes(2);
     expect(messages.add).toHaveBeenCalledWith(
       jasmine.objectContaining({ severity: 'warn', summary: 'Cobrança já paga' }),
@@ -148,9 +148,9 @@ describe('MinhasMatriculas', () => {
     );
 
     component.abrirPagamento(conta);
-    component.confirmarPagamento();
+    component.pagamento().confirmarPagamento();
 
-    expect(component.contaSelecionada()).toBeNull();
+    expect(component.pagamento().contaSelecionada()).toBeNull();
     expect(contaService.listarMinhas).toHaveBeenCalledTimes(2);
     expect(messages.add).toHaveBeenCalledWith(
       jasmine.objectContaining({ severity: 'error', summary: 'Cobrança não encontrada' }),
@@ -173,7 +173,7 @@ describe('MinhasMatriculas', () => {
     component.visualizarRecibo(paga);
 
     expect(recebimentoService.buscarRecibo).toHaveBeenCalledOnceWith(15);
-    expect(component.contaRecibo()).toEqual(paga);
-    expect(component.recibo()).toEqual(recibo);
+    expect(component.pagamento().contaRecibo()).toEqual(paga);
+    expect(component.pagamento().recibo()).toEqual(recibo);
   });
 });

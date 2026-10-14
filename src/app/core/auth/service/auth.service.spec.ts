@@ -133,10 +133,20 @@ describe('AuthService', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/login');
   }));
 
-  it('maps the initial destination by role', () => {
-    expect(service.destinoInicial()).toBe('/rotas');
+  it('usa Início como destino padrão', () => {
+    expect(service.destinoInicial()).toBe('/inicio');
     service.login({ email: 'admin@teste.com', senha: 'Senha123' }).subscribe();
     http.expectOne('http://localhost:8080/auth/login').flush(response);
-    expect(service.destinoInicial()).toBe('/alunos');
+    expect(service.destinoInicial()).toBe('/inicio');
+  });
+
+  it('preserva retorno interno e rejeita retorno externo', () => {
+    spyOn(router, 'navigateByUrl').and.resolveTo(true);
+    service.redirecionarAposLogin('/minhas-matriculas');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/minhas-matriculas');
+    service.redirecionarAposLogin('//outro.site');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/inicio');
+    service.redirecionarAposLogin('/login');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/inicio');
   });
 });

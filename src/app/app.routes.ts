@@ -3,6 +3,11 @@ import { authGuard, guestGuard, roleGuard } from './core/auth/guards/auth.guards
 
 export const routes: Routes = [
   {
+    path: 'inicio',
+    loadComponent: () => import('./components/dashboard/components/inicio/inicio').then(m => m.Inicio),
+    canActivate: [authGuard, roleGuard(['ADMIN', 'ALUNO', 'MOTORISTA'])],
+  },
+  {
     path: 'login',
     loadComponent: () => import('./components/login/components/login/login').then((module) => module.Login),
     canActivate: [guestGuard],
@@ -122,6 +127,6 @@ export const routes: Routes = [
     canActivate: [roleGuard(['ADMIN'])],
   },
 
-  { path: '', redirectTo: 'perfil', pathMatch: 'full' },
-  { path: '**', redirectTo: 'perfil' },
+  { path: '', redirectTo: 'inicio', pathMatch: 'full' },
+  { path: '**', redirectTo: 'inicio' },
 ];

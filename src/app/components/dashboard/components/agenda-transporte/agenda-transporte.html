@@ -1,0 +1,119 @@
+<div class="dashboard transporte">
+  <div class="acoes seletor-viagem">
+    <div><span class="sobretitulo">{{ perfil() === 'aluno' ? 'Transporte da sua faculdade' : 'Sua escala' }}</span>
+      @if (selecionada(); as viagem) {
+        <h2>{{ viagem.dataOcorrencia === dataReferencia() ? 'Sua viagem de hoje' : viagem === viagens()[0] ? 'Próxima ocorrência' : 'Viagem programada' }}: {{ viagem.dataOcorrencia | date:'dd/MM/yyyy':'UTC' }}</h2>
+      } @else { <h2>Nenhuma viagem programada para hoje.</h2> }
+    </div>
+    @if (viagens().length > 1) {
+      <div class="campo-selecao"><label for="viagem-dashboard">Selecionar viagem</label>
+        <select id="viagem-dashboard" [value]="chave(selecionada())" (change)="selecionar($any($event.target).value)">
+          @for (viagem of viagens(); track chave(viagem)) {
+            <option [value]="chave(viagem)" [selected]="chave(viagem) === chave(selecionada())">{{ viagem.dataOcorrencia | date:'dd/MM':'UTC' }} · {{ viagem.rota?.nome ?? 'Rota não informada' }} · Ônibus {{ viagem.onibus?.numeroIdentificacao ?? 'Não informado' }} · #{{ viagem.id }}</option>
+          }
+        </select>
+      </div>
+    }
+  </div>
+  @if (alertas().length) { <div class="alertas">@for (aviso of alertas(); track aviso) { <p-message severity="warn">{{ aviso }}</p-message> }</div> }
+  <div class="cards-transporte">
+    <section class="painel card-resumo" data-card="onibus">
+      <div class="titulo-card"><span class="icone-card"><i class="pi pi-truck" aria-hidden="true"></i></span><h2>Ônibus</h2></div>
+      @if (selecionada(); as viagem) {
+        <strong class="valor destaque">{{ viagem.onibus?.numeroIdentificacao ?? 'Não informado' }}</strong>
+        <div class="acoes"><span class="placa">{{ viagem.onibus?.placa ?? 'Placa não informada' }}</span><p-tag [value]="estado(viagem.onibus?.statusOnibus)" [severity]="viagem.onibusDisponivel ? 'success' : 'warn'" /></div>
+        <p class="linha-resumo"><span class="muted">Motorista</span><strong>{{ viagem.motorista?.nome ?? 'Não informado' }}</strong></p>
+        <p-button label="Detalhes do ônibus" icon="pi pi-arrow-right" [text]="true" (onClick)="detalhes(viagem)" />
+      } @else { <p class="muted">Nenhum ônibus programado.</p> }
+    </section>
+    <section class="painel card-resumo" data-card="pontos">
+      <div class="titulo-card"><span class="icone-card"><i class="pi pi-map-marker" aria-hidden="true"></i></span><h2>Pontos de embarque</h2></div>
+      <small class="muted">Pontos da rota · ordem do itinerário</small>
+      <ol class="pontos">@for (ponto of (selecionada()?.rota?.pontosEmbarque ?? []).slice(0, 3); track ponto.id) {
+        <li><span class="numero-ponto">{{ ponto.ordemParada ?? '—' }}</span><span>{{ ponto.descricao ?? 'Não informado' }}</span></li>
+      } @empty { <li class="muted">Nenhum ponto informado.</li> }</ol>
+      @if (selecionada(); as viagem) { <p-button [label]="'Ver itinerário completo (' + (viagem.rota?.pontosEmbarque?.length ?? 0) + ')'" icon="pi pi-arrow-right" [text]="true" (onClick)="detalhes(viagem)" /> }
+    </section>
+    <section class="painel card-resumo" data-card="rota">
+      <div class="titulo-card"><span class="icone-card"><i class="pi pi-directions" aria-hidden="true"></i></span><h2>Rota e viagem</h2></div>
+      @if (selecionada(); as viagem) {
+        <strong class="nome-destaque">{{ viagem.rota?.nome ?? 'Rota não informada' }}</strong>
+        <p class="muted">{{ viagem.dataOcorrencia | date:'dd/MM/yyyy':'UTC' }} · {{ dia(viagem.grade?.diaSemana) }}</p>
+        @if (perfil() === 'aluno') { <p class="linha-resumo"><span class="muted">Sua faculdade</span><strong>{{ faculdade()?.nome ?? 'Não informado' }}</strong></p> }
+        <p-button label="Detalhes da viagem" icon="pi pi-arrow-right" [text]="true" (onClick)="detalhes(viagem)" />
+      } @else { <p class="muted">Nenhuma ocorrência disponível nos próximos dias.</p> }
+    </section>
+    @if (perfil() === 'motorista') {
+      <section class="painel card-resumo" data-card="destinos">
+        <div class="titulo-card"><span class="icone-card"><i class="pi pi-building-columns" aria-hidden="true"></i></span><h2>Destinos</h2></div>
+        <ul class="lista-destinos">@for (faculdade of (selecionada()?.faculdades ?? []).slice(0, 3); track faculdade.id) { <li>{{ faculdade.nome ?? 'Não informado' }}</li> } @empty { <li class="muted">Nenhuma faculdade informada.</li> }</ul>
+        @if (selecionada(); as viagem) { <p-button [label]="'Ver todos os destinos (' + viagem.faculdades.length + ')'" icon="pi pi-arrow-right" [text]="true" (onClick)="detalhes(viagem)" /> }
+      </section>
+    }
+    <ng-content />
+  </div>
+  @if (outrasViagens().length) {
+    <section class="painel"><div class="acoes"><h2>Demais viagens programadas</h2><span class="muted">{{ outrasViagens().length }} ocorrência(s)</span></div>
+      <ul class="lista-compacta">@for (viagem of outrasViagens(); track chave(viagem)) {
+        <li><div class="data-viagem"><strong>{{ viagem.dataOcorrencia | date:'dd/MM':'UTC' }}</strong><small>{{ viagem.dataOcorrencia === dataReferencia() ? 'Hoje' : dia(viagem.grade?.diaSemana) }}</small></div>
+          <div class="resumo-viagem"><strong>{{ viagem.rota?.nome ?? 'Rota não informada' }}</strong><span class="muted">Ônibus {{ viagem.onibus?.numeroIdentificacao ?? 'Não informado' }} · {{ viagem.onibus?.placa ?? 'Placa não informada' }}</span>@if (!viagem.onibusDisponivel) { <p-tag value="Ônibus indisponível" severity="warn" /> }</div>
+          <div class="botoes-linha"><p-button label="Selecionar" [text]="true" (onClick)="selecionar(chave(viagem))" /><p-button label="Detalhes" [text]="true" (onClick)="detalhes(viagem)" /></div>
+        </li>
+      }</ul>
+    </section>
+  }
+  @if (transporte().programacaoSemGrade.length) {
+    <section class="painel"><h2>Programação não definida</h2><p class="muted">Viagens cadastradas sem data de ocorrência.</p>
+      <ul class="lista-compacta">@for (viagem of transporte().programacaoSemGrade; track viagem.id) {
+        <li><div class="resumo-viagem"><strong>{{ viagem.rota?.nome ?? 'Rota não informada' }}</strong><span class="muted">Ônibus {{ viagem.onibus?.numeroIdentificacao ?? 'Não informado' }} · {{ viagem.onibus?.placa ?? 'Não informado' }}</span>@if (!viagem.onibusDisponivel) { <p-tag value="Ônibus indisponível" severity="warn" /> }</div><p-button label="Detalhes" [text]="true" (onClick)="detalhes(viagem)" /></li>
+      }</ul>
+    </section>
+  }
+  @if (perfil() === 'aluno' && rotasAdicionais().length) {
+    <section class="painel"><h2>Outras rotas da sua faculdade</h2><ul class="lista-compacta">@for (rota of rotasAdicionais(); track rota.id) {
+      <li><div class="resumo-viagem"><strong>{{ rota.nome ?? 'Não informado' }}</strong><span class="muted">{{ rota.pontosEmbarque.length }} ponto(s) de embarque</span></div><p-button label="Ver rota" [text]="true" (onClick)="detalhesRota(rota)" /></li>
+    }</ul></section>
+  }
+</div>
+
+<p-dialog closeAriaLabel="Fechar detalhes" [resizable]="false" header="Detalhes do transporte" [visible]="!!viagemDetalhe() || !!rotaDetalhe()" (visibleChange)="!$event && fecharDetalhes()" [modal]="true" [draggable]="false" [style]="{ width: '48rem', maxWidth: 'calc(100vw - 2rem)' }">
+  <div class="dialog-dashboard">
+    @if (viagemDetalhe(); as viagem) {
+      <div class="detalhe-destaque">
+        <span class="detalhe-icone grande"><i class="pi pi-truck" aria-hidden="true"></i></span>
+        <div class="detalhe-principal"><span class="detalhe-label">Ônibus da viagem</span><strong class="detalhe-valor">{{ viagem.onibus?.numeroIdentificacao ?? 'Não informado' }}</strong><p class="muted">Placa {{ viagem.onibus?.placa ?? 'Não informado' }}</p></div>
+        <p-tag [value]="estado(viagem.onibus?.statusOnibus)" [severity]="viagem.onibusDisponivel ? 'success' : 'warn'" />
+      </div>
+      <div class="detalhe-metadados"><span>Viagem #{{ viagem.id }}</span><span>{{ viagem.dataOcorrencia ? (viagem.dataOcorrencia | date:'dd/MM/yyyy':'UTC') : 'Programação não definida' }}</span><span>{{ dia(viagem.grade?.diaSemana) }}</span></div>
+      <dl class="detalhe-grid">
+        <div class="detalhe-campo"><span class="detalhe-icone azul"><i class="pi pi-car" aria-hidden="true"></i></span><div><dt>Modelo</dt><dd>{{ viagem.onibus?.modelo ?? 'Não informado' }}</dd></div></div>
+        <div class="detalhe-campo"><span class="detalhe-icone laranja"><i class="pi pi-users" aria-hidden="true"></i></span><div><dt>Capacidade</dt><dd>{{ viagem.onibus?.capacidade ?? 'Não informado' }}</dd></div></div>
+        <div class="detalhe-campo"><span class="detalhe-icone"><i class="pi pi-id-card" aria-hidden="true"></i></span><div><dt>Motorista</dt><dd>{{ viagem.motorista?.nome ?? 'Não informado' }}</dd></div></div>
+        <div class="detalhe-campo"><span class="detalhe-icone azul"><i class="pi pi-calendar" aria-hidden="true"></i></span><div><dt>Grade</dt><dd>{{ viagem.grade ? '#' + viagem.grade.id : 'Não informado' }}</dd><p class="texto muted">{{ viagem.grade?.descricao ?? 'Descrição da grade não informada' }}</p></div></div>
+        <div class="detalhe-campo amplo"><span class="detalhe-icone"><i class="pi pi-directions" aria-hidden="true"></i></span><div><dt>Rota</dt><dd>{{ viagem.rota?.nome ?? 'Não informado' }}</dd><p class="texto muted">{{ viagem.rota?.descricao ?? 'Descrição da rota não informada' }}</p></div></div>
+      </dl>
+      <section class="detalhe-secao">
+        <h3 class="detalhe-titulo"><i class="pi pi-map-marker" aria-hidden="true"></i> Pontos de embarque · itinerário completo <small>{{ viagem.rota?.pontosEmbarque?.length ?? 0 }} pontos</small></h3>
+        <ol class="detalhe-timeline">@for (ponto of viagem.rota?.pontosEmbarque ?? []; track ponto.id) {
+          <li><span class="detalhe-parada">{{ ponto.ordemParada ?? '—' }}</span><div>{{ ponto.descricao ?? 'Não informado' }}</div></li>
+        } @empty { <li class="muted">Nenhum ponto informado.</li> }</ol>
+      </section>
+      <section class="detalhe-secao">
+        <h3 class="detalhe-titulo"><i class="pi pi-building-columns" aria-hidden="true"></i> Faculdades atendidas <small>{{ viagem.faculdades.length }} destinos</small></h3>
+        <ul class="detalhe-destinos">@for (faculdade of viagem.faculdades; track faculdade.id) {
+          <li><strong>{{ faculdade.nome ?? 'Não informado' }}</strong><span>{{ faculdade.endereco ?? 'Endereço não informado' }}</span></li>
+        } @empty { <li class="muted">Nenhuma faculdade informada.</li> }</ul>
+      </section>
+      @for (aviso of avisosViagem(viagem); track aviso) { <p-message severity="warn">{{ aviso }}</p-message> }
+    }
+    @if (rotaDetalhe(); as rota) {
+      <div class="detalhe-destaque"><span class="detalhe-icone grande"><i class="pi pi-directions" aria-hidden="true"></i></span><div class="detalhe-principal"><span class="detalhe-label">Rota cadastrada #{{ rota.id }}</span><strong class="detalhe-valor">{{ rota.nome ?? 'Não informado' }}</strong><p class="texto muted">{{ rota.descricao ?? 'Não informado' }}</p></div></div>
+      <section class="detalhe-secao"><h3 class="detalhe-titulo"><i class="pi pi-map-marker" aria-hidden="true"></i> Pontos de embarque <small>{{ rota.pontosEmbarque.length }} pontos</small></h3>
+        <ol class="detalhe-timeline">@for (ponto of rota.pontosEmbarque; track ponto.id) {
+          <li><span class="detalhe-parada">{{ ponto.ordemParada ?? '—' }}</span><div>{{ ponto.descricao ?? 'Não informado' }}</div></li>
+        } @empty { <li class="muted">Nenhum ponto informado.</li> }</ol>
+      </section>
+    }
+  </div>
+  <ng-template #footer><div class="detalhe-rodape"><p-button label="Fechar" icon="pi pi-check" severity="secondary" [outlined]="true" (onClick)="fecharDetalhes()" /></div></ng-template>
+</p-dialog>

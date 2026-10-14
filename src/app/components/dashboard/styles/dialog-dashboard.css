@@ -1,0 +1,43 @@
+.dialog-dashboard { display: flex; flex-direction: column; gap: 1rem; color: var(--p-text-color); overflow-wrap: anywhere; }
+.dialog-dashboard h3, .dialog-dashboard p { margin: 0; }
+.detalhe-destaque { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1.2rem; border: 1px solid color-mix(in srgb, var(--p-primary-color) 32%, transparent); background: linear-gradient(120deg, color-mix(in srgb, var(--p-primary-color) 12%, transparent), color-mix(in srgb, var(--p-primary-color) 3%, transparent)); border-radius: 1rem; }
+.detalhe-principal { flex: 1; min-width: 0; }
+.detalhe-label { display: block; font-size: .75rem; color: var(--p-text-muted-color); margin-bottom: .3rem; }
+.detalhe-valor { display: block; font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 700; line-height: 1.2; margin-bottom: .4rem; }
+.detalhe-icone { --tom: var(--p-primary-color); display: inline-grid; place-items: center; width: 2.5rem; height: 2.5rem; flex-shrink: 0; border-radius: .75rem; color: var(--tom); background: color-mix(in srgb, var(--tom) 12%, transparent); font-size: 1.15rem; }
+.detalhe-icone.grande { width: 3.5rem; height: 3.5rem; font-size: 1.7rem; }
+.azul { --tom: #2563eb; }
+.laranja { --tom: #b45309; }
+.vermelho { --tom: #b91c1c; }
+.detalhe-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; margin: 0; }
+.detalhe-campo { display: flex; align-items: flex-start; gap: .75rem; min-width: 0; padding: .9rem; border: 1px solid var(--p-content-border-color); border-radius: .85rem; background: color-mix(in srgb, var(--p-text-color) 2%, var(--p-content-background)); }
+.detalhe-campo > div { flex: 1; min-width: 0; }
+.detalhe-campo dd { font-weight: 600; margin: .25rem 0 0; }
+.dialog-dashboard .detalhe-campo p { margin-top: .35rem; font-size: .85rem; }
+.detalhe-campo.amplo { grid-column: 1 / -1; }
+.detalhe-campo .detalhe-valor { font-size: 1.4rem; }
+.detalhe-metadados { display: flex; flex-wrap: wrap; gap: .5rem; }
+.detalhe-metadados span { padding: .4rem .65rem; border-radius: .5rem; background: color-mix(in srgb, var(--p-text-color) 5%, transparent); font-size: .8rem; color: var(--p-text-muted-color); }
+.detalhe-secao { padding: 1rem; border: 1px solid var(--p-content-border-color); border-radius: .9rem; }
+.dialog-dashboard .detalhe-titulo { display: flex; align-items: center; gap: .5rem; font-weight: 600; font-size: .95rem; margin: 0 0 .85rem; }
+.detalhe-titulo i { color: var(--p-primary-color); }
+.detalhe-titulo small { margin-left: auto; color: var(--p-text-muted-color); font-weight: 400; }
+.detalhe-timeline { list-style: none; padding: 0; margin: 0; }
+.detalhe-timeline li { display: flex; align-items: flex-start; gap: .85rem; position: relative; padding-bottom: 1rem; }
+.detalhe-timeline li:last-child { padding-bottom: 0; }
+.detalhe-timeline li:not(:last-child)::before { content: ''; position: absolute; left: .9rem; top: 1.8rem; bottom: 0; border-left: 2px solid var(--p-content-border-color); }
+.detalhe-parada { display: grid; place-items: center; width: 1.9rem; height: 1.9rem; flex-shrink: 0; border-radius: 50%; color: var(--p-primary-color); background: color-mix(in srgb, var(--p-primary-color) 13%, var(--p-content-background)); font-size: .85rem; font-weight: 700; }
+.detalhe-destinos { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+.detalhe-destinos li { padding: .8rem; border-radius: .7rem; background: color-mix(in srgb, var(--p-text-color) 4%, transparent); }
+.detalhe-destinos strong, .detalhe-destinos span { display: block; }
+.detalhe-destinos span { font-size: .85rem; color: var(--p-text-muted-color); margin-top: .35rem; }
+.detalhe-nota { display: flex; align-items: flex-start; gap: .6rem; font-size: .85rem; color: var(--p-text-muted-color); padding: .8rem; background: color-mix(in srgb, var(--p-text-color) 4%, transparent); border-radius: .7rem; }
+.detalhe-rodape { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .75rem; align-items: center; }
+@media (prefers-color-scheme: dark) { .azul { --tom: #93c5fd; } .laranja { --tom: #fbbf24; } .vermelho { --tom: #fca5a5; } }
+@media (max-width: 540px) {
+  .detalhe-grid, .detalhe-destinos { grid-template-columns: 1fr; }
+  .detalhe-destaque { padding: 1rem; align-items: flex-start; }
+  .detalhe-destaque .detalhe-principal { flex-basis: calc(100% - 4.5rem); }
+  .detalhe-destaque p-tag { margin-left: 4.5rem; }
+  .detalhe-campo { padding: .8rem; }
+}

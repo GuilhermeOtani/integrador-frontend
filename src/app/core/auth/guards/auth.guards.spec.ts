@@ -10,7 +10,8 @@ describe('auth guards', () => {
   const state = { url: '/usuarios' } as RouterStateSnapshot;
 
   beforeEach(() => {
-    auth = jasmine.createSpyObj<AuthService>('AuthService', ['token', 'temPapel']);
+    auth = jasmine.createSpyObj<AuthService>('AuthService', ['token', 'temPapel', 'destinoInicial']);
+    auth.destinoInicial.and.returnValue('/inicio');
     TestBed.configureTestingModule({
       providers: [provideRouter([]), { provide: AuthService, useValue: auth }],
     });
@@ -34,7 +35,7 @@ describe('auth guards', () => {
   it('prevents authenticated users from returning to login', () => {
     auth.token.and.returnValue('token');
     const result = TestBed.runInInjectionContext(() => guestGuard(route, state)) as UrlTree;
-    expect(router.serializeUrl(result)).toBe('/perfil');
+    expect(router.serializeUrl(result)).toBe('/inicio');
   });
 
   it('allows only the configured roles', () => {

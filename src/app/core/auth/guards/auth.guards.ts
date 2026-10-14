@@ -14,7 +14,7 @@ export const authGuard: CanActivateFn = (_route, state) => {
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  return auth.token() ? router.createUrlTree(['/perfil']) : true;
+  return auth.token() ? router.createUrlTree([auth.destinoInicial()]) : true;
 };
 
 export function roleGuard(papeis: Papel[]): CanActivateFn {

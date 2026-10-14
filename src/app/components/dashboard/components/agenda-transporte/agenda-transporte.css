@@ -1,0 +1,15 @@
+.cards-transporte { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+.seletor-viagem h2 { margin: .3rem 0 0; font-size: 1.1rem; font-weight: 600; }
+.campo-selecao { display: flex; flex-direction: column; gap: .35rem; max-width: 100%; }
+.campo-selecao label { font-size: .8rem; color: var(--p-text-muted-color); }
+.campo-selecao select { max-width: 100%; width: 25rem; border: 1px solid var(--p-content-border-color); border-radius: .6rem; padding: .65rem; background: var(--p-content-background); color: var(--p-text-color); }
+.pontos { list-style: none; padding: 0; margin: .5rem 0; }
+.pontos li { display: flex; align-items: baseline; gap: .75rem; padding: .5rem 0; }
+.numero-ponto { flex: 0 0 1.6rem; text-align: center; font-weight: 700; color: var(--p-primary-color); }
+.lista-destinos { list-style: none; padding: 0; margin: .5rem 0; }
+.lista-destinos li { padding: .45rem 0; }
+.lista-destinos li span { display: block; margin-top: .2rem; }
+.placa { font-weight: 600; letter-spacing: .04em; }
+.data-viagem { display: flex; flex-direction: column; min-width: 5rem; color: var(--p-primary-color); }
+.data-viagem small { color: var(--p-text-muted-color); }
+@media (max-width: 768px) { .cards-transporte { grid-template-columns: 1fr; } .campo-selecao { width: 100%; } .campo-selecao select { width: 100%; } }

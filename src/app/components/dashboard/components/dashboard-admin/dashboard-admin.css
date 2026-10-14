@@ -1,0 +1,13 @@
+.metricas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.operacao-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+.grafico-pendencias { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 1rem; align-items: start; }
+.resumo-financeiro { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; border-top: 1px solid var(--p-content-border-color); padding-top: .8rem; margin-top: .8rem; }
+.resumo-financeiro div { display: flex; flex-direction: column; gap: .3rem; font-size: .9rem; }
+.valor-pendencia { display: flex; flex-direction: column; gap: .35rem; align-items: flex-end; }
+.alternancia { display: flex; gap: .4rem; padding: .65rem 0; }
+.alternancia button, .botao-texto { cursor: pointer; padding: .5rem .7rem; border-radius: .5rem; }
+.alternancia button { color: var(--p-text-muted-color); border: 1px solid var(--p-content-border-color); background: var(--p-content-background); }
+.alternancia button[aria-pressed="true"] { background: color-mix(in srgb, var(--p-primary-color) 12%, transparent); color: var(--p-primary-color); border-color: var(--p-primary-color); }
+.botao-texto { color: var(--p-primary-color); border: 0; background: transparent; text-decoration: underline; }
+@media (max-width: 1100px) { .operacao-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grafico-pendencias { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .metricas, .operacao-cards { grid-template-columns: 1fr; } .valor-pendencia { align-items: flex-start; } .pendencias > li { align-items: flex-start; } .resumo-financeiro { gap: .5rem; } }

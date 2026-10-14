@@ -59,9 +59,7 @@ export class AuthService {
   }
 
   destinoInicial(): string {
-    if (this.papel() === 'ADMIN') return '/alunos';
-    if (this.papel() === 'MOTORISTA') return '/minhas-viagens';
-    return '/rotas';
+    return '/inicio';
   }
 
   redirecionarAposLogin(retorno?: string | null): void {

@@ -1,0 +1,69 @@
+<div class="dashboard">
+  <header class="cabecalho"><div><span class="sobretitulo">Seu início</span><h1>Visão administrativa</h1></div>
+    <div class="acoes"><div class="campo-mes"><label for="mes-painel">Mês das movimentações</label><input pInputText id="mes-painel" type="month" [formControl]="mes" (change)="alterarMes($any($event.target).value)" /></div><p-button label="Atualizar" icon="pi pi-refresh" [loading]="consulta.carregando()" [disabled]="consulta.carregando()" (onClick)="carregar()" /></div>
+  </header>
+  @if (mes.invalid && (mes.dirty || mes.touched)) { <p-message severity="error">Selecione um mês válido (ano entre 0001 e 9999).</p-message> }
+  @if (consulta.carregando()) { <div class="metricas"><p-skeleton height="9rem" /><p-skeleton height="9rem" /><p-skeleton height="9rem" /></div> }
+  @else if (consulta.erro(); as erro) { <p-message severity="error">{{ erro }}</p-message><p-button label="Tentar novamente" (onClick)="carregar()" /> }
+  @else if (consulta.dados(); as painel) {
+    <div class="metricas">
+      <section class="painel indicador"><div class="titulo-card"><i class="pi pi-arrow-down-left destaque" aria-hidden="true"></i><h2>Recebido no mês</h2></div><strong class="valor positivo">{{ moeda(painel.financeiro.recebidoNoMes) }}</strong><small class="muted">{{ painel.mes }}</small></section>
+      <section class="painel indicador"><div class="titulo-card"><i class="pi pi-arrow-up-right negativo" aria-hidden="true"></i><h2>Pago no mês</h2></div><strong class="valor negativo">{{ moeda(painel.financeiro.pagoNoMes) }}</strong><small class="muted">{{ painel.mes }}</small></section>
+      <section class="painel indicador"><div class="titulo-card"><i class="pi pi-wallet" aria-hidden="true"></i><h2>Saldo das movimentações</h2></div><strong class="valor" [class.negativo]="painel.financeiro.saldoMovimentacoes < 0">{{ moeda(painel.financeiro.saldoMovimentacoes) }}</strong><small class="muted">Recebido − pago · não é saldo bancário ou lucro</small></section>
+    </div>
+    <div class="acoes"><h2 class="titulo-secao">Posição atual</h2><small class="muted">{{ painel.dataReferencia | date:'dd/MM/yyyy':'UTC' }} · independente do mês selecionado</small></div>
+    <div class="duas-colunas">
+      @for (bloco of [{ titulo: 'Contas a receber', dados: painel.financeiro.contasReceber, rota: '/contas-receber', icone: 'pi pi-arrow-circle-down' }, { titulo: 'Contas a pagar', dados: painel.financeiro.contasPagar, rota: '/contapagar', icone: 'pi pi-arrow-circle-up' }]; track bloco.rota) {
+        <section class="painel"><div class="acoes"><div class="titulo-card"><span class="icone-card"><i [class]="bloco.icone" aria-hidden="true"></i></span><h2>{{ bloco.titulo }}</h2></div><a [routerLink]="bloco.rota">Consultar todas</a></div>
+          <strong class="valor">{{ moeda(bloco.dados.emAberto.valor) }}</strong><small class="muted">{{ bloco.dados.emAberto.quantidade }} conta(s) em aberto</small>
+          <div class="resumo-financeiro"><div><span class="muted">Vencidas · {{ bloco.dados.vencidas.quantidade }}</span><strong [class.negativo]="bloco.dados.vencidas.quantidade > 0">{{ moeda(bloco.dados.vencidas.valor) }}</strong></div><div><span class="muted">Próximos 7 dias · {{ bloco.dados.vencemEmSeteDias.quantidade }}</span><strong>{{ moeda(bloco.dados.vencemEmSeteDias.valor) }}</strong></div></div>
+        </section>
+      }
+    </div>
+    <small class="muted">Vencidas já estão incluídas nas abertas. Próximos 7 dias incluem hoje.</small>
+    <div class="operacao-cards">
+      <section class="painel indicador"><div class="titulo-card"><i class="pi pi-users destaque" aria-hidden="true"></i><h2>Alunos</h2></div><strong class="valor">{{ painel.operacao.alunos.total }}</strong><span class="muted">{{ painel.operacao.alunos.ativos }} ativos · {{ painel.operacao.alunos.pendentes }} pendentes</span><p-button label="Detalhes" [text]="true" (onClick)="detalheOperacao.set('alunos')" /></section>
+      <section class="painel indicador"><div class="titulo-card"><i class="pi pi-truck destaque" aria-hidden="true"></i><h2>Frota</h2></div><strong class="valor">{{ painel.operacao.onibus.operando }} <small class="muted">/ {{ painel.operacao.onibus.total }}</small></strong><span class="muted">Ônibus operando</span><p-button label="Detalhes" [text]="true" (onClick)="detalheOperacao.set('frota')" /></section>
+      <section class="painel indicador"><div class="titulo-card"><i class="pi pi-calendar destaque" aria-hidden="true"></i><h2>Viagens</h2></div><strong class="valor">{{ painel.operacao.viagensHoje }}</strong><span class="muted">Hoje · {{ painel.operacao.viagensSemProgramacao }} sem programação</span><p-button label="Detalhes" [text]="true" (onClick)="detalheOperacao.set('viagens')" /></section>
+      <section class="painel indicador"><div class="titulo-card"><i class="pi pi-wrench destaque" aria-hidden="true"></i><h2>Manutenção</h2></div><strong class="valor">{{ painel.operacao.chamados.abertos + painel.operacao.chamados.emAndamento }}</strong><span class="muted">Pendentes · {{ painel.operacao.chamados.prioridadeAlta }} de prioridade alta</span><p-button label="Detalhes" [text]="true" (onClick)="detalheOperacao.set('manutencao')" /></section>
+    </div>
+    <div class="grafico-pendencias">
+      <section class="painel"><div class="acoes"><h2>Últimos seis meses</h2><button type="button" class="botao-texto" [attr.aria-expanded]="tabelaVisivel()" aria-controls="serie-mensal" (click)="tabelaVisivel.set(!tabelaVisivel())">{{ tabelaVisivel() ? 'Ocultar valores' : 'Ver valores em tabela' }}</button></div>
+        <p-chart type="bar" [data]="grafico()" [options]="opcoesGrafico" height="260px" ariaLabel="Recebimentos e pagamentos dos seis meses. Use Ver valores em tabela para consultar os números." />
+        @if (tabelaVisivel()) { <div class="tabela" id="serie-mensal"><table><caption>Valores da série mensal em reais</caption><thead><tr><th scope="col">Mês</th><th scope="col">Recebido</th><th scope="col">Pago</th><th scope="col">Saldo</th></tr></thead><tbody>@for (item of painel.financeiro.serieMensal; track item.mes) { <tr><th scope="row">{{ item.mes }}</th><td>{{ moeda(item.recebido) }}</td><td>{{ moeda(item.pago) }}</td><td>{{ moeda(item.saldoMovimentacoes) }}</td></tr> } @empty { <tr><td colspan="4">Série mensal não informada.</td></tr> }</tbody></table></div> }
+      </section>
+      <section class="painel"><h2>Pendências financeiras</h2>
+        <div class="alternancia" role="group" aria-label="Tipo de pendência"><button type="button" [attr.aria-pressed]="pendenciasTipo() === 'receber'" (click)="pendenciasTipo.set('receber')">A receber</button><button type="button" [attr.aria-pressed]="pendenciasTipo() === 'pagar'" (click)="pendenciasTipo.set('pagar')">A pagar</button></div>
+        <small class="muted">Até cinco contas abertas mais antigas</small>
+        <ul class="lista-compacta pendencias">@for (conta of pendencias(); track conta.id) {
+          <li><div class="resumo-viagem"><strong>{{ conta.nomePessoa ?? 'Não informado' }}</strong><span class="muted texto">{{ conta.descricao ?? 'Não informado' }}</span><small class="muted">Vence {{ conta.dataVencimento ? (conta.dataVencimento | date:'dd/MM/yyyy':'UTC') : 'Não informado' }}</small></div><div class="valor-pendencia"><strong>{{ moeda(conta.valor) }}</strong><p-tag [value]="rotulo(conta.situacao)" [severity]="severidade(conta.situacao)" /></div></li>
+        } @empty { <li class="muted">Nenhuma conta pendente.</li> }</ul>
+        <a [routerLink]="pendenciasTipo() === 'receber' ? '/contas-receber' : '/contapagar'">Abrir listagem</a>
+      </section>
+    </div>
+    <section class="painel"><div class="acoes"><h2>Chamados pendentes</h2><a routerLink="/manutencao">Consultar manutenção</a></div>
+      <ul class="lista-compacta">@for (chamado of painel.operacao.chamadosPendentes; track chamado.id) {
+        <li><div class="resumo-viagem"><strong>Ônibus {{ chamado.numeroIdentificacao ?? 'Não informado' }} · {{ chamado.placa ?? 'Placa não informada' }}</strong><span class="muted">{{ chamado.solicitanteNome ?? 'Solicitante não informado' }} · {{ chamado.dataAbertura | date:'dd/MM/yyyy':'UTC' }}</span><p class="texto">{{ chamado.descricao }}</p></div>
+          <div class="valor-pendencia"><p-tag [value]="chamado.urgencia === 'MEDIA' ? 'Média' : chamado.urgencia === 'ALTA' ? 'Alta' : 'Baixa'" [severity]="chamado.urgencia === 'ALTA' ? 'danger' : 'warn'" /><small class="muted">{{ chamado.status === 'ABERTO' ? 'Aberto' : chamado.status === 'EM_ANDAMENTO' ? 'Em andamento' : 'Resolvido' }}</small><a routerLink="/manutencao" [queryParams]="{ onibusId: chamado.onibusId }">Ver chamados deste ônibus</a></div>
+        </li>
+      } @empty { <li class="muted">Nenhum chamado pendente.</li> }</ul>
+    </section>
+    <small class="muted">Atualizado em {{ geradoEm(painel.geradoEm) }}</small>
+    <p-dialog closeAriaLabel="Fechar detalhes" [resizable]="false" header="Detalhes da operação atual" [visible]="!!detalheOperacao()" (visibleChange)="!$event && detalheOperacao.set(null)" [modal]="true" [draggable]="false" [style]="{ width: '38rem', maxWidth: 'calc(100vw - 2rem)' }">
+      @if (resumoOperacao(); as resumo) {
+        <div class="dialog-dashboard">
+          <div class="detalhe-destaque">
+            <span class="detalhe-icone grande"><i [class]="resumo.icone" aria-hidden="true"></i></span>
+            <div class="detalhe-principal"><span class="detalhe-label">{{ resumo.titulo }}</span><strong class="detalhe-valor">{{ resumo.total }}</strong><p class="muted">{{ resumo.legenda }}</p></div>
+            <p-tag value="Posição atual" severity="secondary" />
+          </div>
+          <dl class="detalhe-grid">@for (item of resumo.itens; track item.label) {
+            <div class="detalhe-campo"><span [class]="'detalhe-icone ' + item.tom"><i [class]="item.icone" aria-hidden="true"></i></span><div><dt>{{ item.label }}</dt><dd class="detalhe-valor">{{ item.valor }}</dd></div></div>
+          }</dl>
+          <div class="detalhe-nota"><i class="pi pi-info-circle" aria-hidden="true"></i><p>Referência {{ painel.dataReferencia | date:'dd/MM/yyyy':'UTC' }} · independente do mês das movimentações.</p></div>
+        </div>
+      }
+      <ng-template #footer><div class="detalhe-rodape">@if (resumoOperacao(); as resumo) { <a [routerLink]="resumo.rota">{{ resumo.acao }} <i class="pi pi-arrow-up-right" aria-hidden="true"></i></a> }<p-button label="Fechar" severity="secondary" [outlined]="true" (onClick)="detalheOperacao.set(null)" /></div></ng-template>
+    </p-dialog>
+  }
+</div>

@@ -1,0 +1,62 @@
+<div class="dashboard">
+  <header class="cabecalho">
+    <div><span class="sobretitulo">Seu início</span><h1>Olá, {{ consulta.dados()?.aluno?.nome ?? 'aluno' }}</h1>
+      @if (consulta.dados(); as painel) { <p>{{ painel.faculdade?.nome ?? 'Faculdade não informada' }} · <a routerLink="/perfil">Meu perfil</a></p> }
+    </div><p-button label="Atualizar" icon="pi pi-refresh" [disabled]="consulta.carregando()" [loading]="consulta.carregando()" (onClick)="carregar()" />
+  </header>
+  @if (consulta.carregando()) { <div class="duas-colunas"><p-skeleton height="13rem" /><p-skeleton height="13rem" /><p-skeleton height="13rem" /><p-skeleton height="13rem" /></div> }
+  @else if (consulta.erro(); as erro) {
+    <p-message severity="error">{{ pagamentoRegistrado() ? 'Pagamento registrado; não foi possível atualizar o painel. ' : '' }}{{ erro }}</p-message>
+    <p-button label="Tentar novamente" (onClick)="carregar()" />
+  } @else if (consulta.dados(); as painel) {
+    <app-agenda-transporte perfil="aluno" [transporte]="painel.transporte" [dataReferencia]="painel.dataReferencia" [faculdade]="painel.faculdade" [avisos]="painel.avisos" [chaveSelecionada]="viagemSelecionada()" (selecaoAlterada)="viagemSelecionada.set($event)">
+      <section class="painel card-resumo financeiro" data-card="mensalidade">
+        <div class="titulo-card"><span class="icone-card"><i class="pi pi-wallet" aria-hidden="true"></i></span><h2>Mensalidade</h2></div>
+        @if (painel.financeiro.cobrancaPrincipal; as conta) {
+          <strong class="valor">{{ moeda(conta.valor) }}</strong>
+          <p-tag [value]="prazo(conta)" [severity]="severidade(conta.situacao)" />
+          <p class="muted">Vencimento: {{ conta.dataVencimento ? (conta.dataVencimento | date:'dd/MM/yyyy':'UTC') : 'Não informado' }}</p>
+          @if (conta.status === 'PAGO') { <p-button label="Ver recibo" icon="pi pi-file" [loading]="pagamento().carregandoRecibo()" (onClick)="pagamento().visualizarRecibo(conta)" /> }
+          @else if (pagamento().podePagar(conta)) { <p-button label="Pagar mensalidade" icon="pi pi-check" severity="success" [disabled]="pagamento().pagando()" (onClick)="pagamento().abrirPagamento(conta)" /> }
+          @else { <p-message severity="warn">Cobrança incompleta. Procure a administração.</p-message> }
+        } @else { <p class="muted">Nenhuma cobrança cadastrada.</p> }
+        <div class="botoes-linha"><p-button label="Resumo financeiro" [text]="true" (onClick)="resumoVisivel.set(true)" /><a routerLink="/minhas-matriculas">Todas as cobranças</a></div>
+      </section>
+    </app-agenda-transporte>
+    <nav class="atalhos" aria-label="Atalhos do aluno"><a routerLink="/rotas"><i class="pi pi-directions" aria-hidden="true"></i> Rotas</a><a routerLink="/pontosembarque"><i class="pi pi-map-marker" aria-hidden="true"></i> Pontos de embarque</a><a routerLink="/grades"><i class="pi pi-calendar" aria-hidden="true"></i> Grades</a><a routerLink="/meus-chamados"><i class="pi pi-wrench" aria-hidden="true"></i> Relatar problema</a></nav>
+    <small class="muted">Atualizado em {{ geradoEm(painel.geradoEm) }} · Referência {{ painel.dataReferencia | date:'dd/MM/yyyy':'UTC' }}</small>
+    <p-dialog closeAriaLabel="Fechar detalhes" [resizable]="false" header="Cadastro e resumo financeiro" [visible]="resumoVisivel()" (visibleChange)="resumoVisivel.set($event)" [modal]="true" [draggable]="false" [style]="{ width: '44rem', maxWidth: 'calc(100vw - 2rem)' }">
+      <div class="dialog-dashboard">
+        <div class="detalhe-destaque">
+          <span class="detalhe-icone grande"><i class="pi pi-wallet" aria-hidden="true"></i></span>
+          <div class="detalhe-principal">
+            @if (painel.financeiro.cobrancaPrincipal; as conta) { <span class="detalhe-label">Cobrança em destaque #{{ conta.id }}</span><strong class="detalhe-valor">{{ moeda(conta.valor) }}</strong><p class="texto muted">{{ conta.descricao ?? 'Não informado' }}</p> }
+            @else { <span class="detalhe-label">Situação financeira</span><strong class="nome-destaque">Nenhuma cobrança cadastrada.</strong> }
+          </div>
+          @if (painel.financeiro.cobrancaPrincipal; as conta) { <p-tag [value]="prazo(conta)" [severity]="severidade(conta.situacao)" /> }
+        </div>
+        <section>
+          <h3 class="detalhe-titulo"><i class="pi pi-chart-bar" aria-hidden="true"></i> Resumo das cobranças</h3>
+          <dl class="detalhe-grid">
+            <div class="detalhe-campo"><span class="detalhe-icone azul"><i class="pi pi-inbox" aria-hidden="true"></i></span><div><dt>Em aberto ({{ painel.financeiro.emAberto.quantidade }})</dt><dd class="detalhe-valor">{{ moeda(painel.financeiro.emAberto.valor) }}</dd></div></div>
+            <div class="detalhe-campo"><span class="detalhe-icone vermelho"><i class="pi pi-clock" aria-hidden="true"></i></span><div><dt>Vencidas ({{ painel.financeiro.vencidas.quantidade }})</dt><dd class="detalhe-valor">{{ moeda(painel.financeiro.vencidas.valor) }}</dd></div></div>
+            <div class="detalhe-campo"><span class="detalhe-icone"><i class="pi pi-money-bill" aria-hidden="true"></i></span><div><dt>Mensalidade do cadastro</dt><dd>{{ moeda(painel.financeiro.mensalidadeCadastro) }}</dd></div></div>
+            <div class="detalhe-campo"><span class="detalhe-icone laranja"><i class="pi pi-calendar" aria-hidden="true"></i></span><div><dt>Vencimento da cobrança em destaque</dt><dd>{{ painel.financeiro.cobrancaPrincipal?.dataVencimento ? (painel.financeiro.cobrancaPrincipal!.dataVencimento | date:'dd/MM/yyyy':'UTC') : 'Não informado' }}</dd></div></div>
+          </dl>
+        </section>
+        <section>
+          <h3 class="detalhe-titulo"><i class="pi pi-id-card" aria-hidden="true"></i> Seu cadastro</h3>
+          <dl class="detalhe-grid">
+            <div class="detalhe-campo"><span class="detalhe-icone azul"><i class="pi pi-user" aria-hidden="true"></i></span><div><dt>Matrícula</dt><dd>{{ painel.aluno.matricula ?? 'Não informado' }}</dd></div></div>
+            <div class="detalhe-campo"><span class="detalhe-icone"><i class="pi pi-verified" aria-hidden="true"></i></span><div><dt>Situação cadastral</dt><dd>{{ situacaoMatricula(painel.aluno.statusMatricula) }}</dd></div></div>
+            <div class="detalhe-campo amplo"><span class="detalhe-icone azul"><i class="pi pi-building-columns" aria-hidden="true"></i></span><div><dt>Faculdade</dt><dd>{{ painel.faculdade?.nome ?? 'Não informado' }}</dd><p class="muted">{{ painel.faculdade?.endereco ?? 'Endereço não informado' }}</p></div></div>
+          </dl>
+        </section>
+        <div class="detalhe-nota"><i class="pi pi-info-circle" aria-hidden="true"></i><p>O vencimento é da cobrança, não uma expiração automática da matrícula. As vencidas já fazem parte do total em aberto.</p></div>
+      </div>
+      <ng-template #footer><div class="detalhe-rodape"><a routerLink="/minhas-matriculas">Ver todas as cobranças</a><p-button label="Fechar" severity="secondary" [outlined]="true" (onClick)="resumoVisivel.set(false)" /></div></ng-template>
+    </p-dialog>
+  }
+</div>
+<!-- Mantido durante carregamento e falha de atualização para preservar o recibo. -->
+<app-pagamento-matricula (concluido)="aposPagamento()" (reconsultar)="carregar()" />

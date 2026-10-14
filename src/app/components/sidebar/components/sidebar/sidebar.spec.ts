@@ -49,6 +49,14 @@ describe('Sidebar', () => {
     expect(component).toBeTruthy();
   });
 
+  it('Início é o primeiro item de todos os papéis e preserva Meu perfil', () => {
+    for (const atual of ['ADMIN', 'ALUNO', 'MOTORISTA'] as Papel[]) {
+      papel.set(atual);
+      expect(component.secoes()[0].itens[0].rota).toBe('/inicio');
+      expect(component.secoes()[0].itens[1].rota).toBe('/perfil');
+    }
+  });
+
   it('mostra chamados somente aos solicitantes e manutenção somente ao ADMIN', () => {
     for (const atual of ['ADMIN', 'ALUNO', 'MOTORISTA'] as Papel[]) {
       papel.set(atual);

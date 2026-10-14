@@ -13,6 +13,7 @@ import { Papel } from './core/auth/models/auth.models';
 
 describe('app routes', () => {
   for (const [path, papeis] of [
+    ['inicio', ['ADMIN', 'ALUNO', 'MOTORISTA']],
     ['manutencao', ['ADMIN']], ['meus-chamados', ['ALUNO', 'MOTORISTA']],
   ] as [string, Papel[]][]) {
     for (const papel of [null, 'ADMIN', 'ALUNO', 'MOTORISTA'] as (Papel | null)[]) {
@@ -53,5 +54,11 @@ describe('app routes', () => {
 
     expect(result).toBeTrue();
     expect(auth.temPapel).toHaveBeenCalledOnceWith('ADMIN');
+  });
+
+  it('raiz e rota desconhecida abrem início, mantendo perfil', () => {
+    expect(routes.find(r => r.path === '')?.redirectTo).toBe('inicio');
+    expect(routes.find(r => r.path === '**')?.redirectTo).toBe('inicio');
+    expect(routes.find(r => r.path === 'perfil')?.loadComponent).toBeDefined();
   });
 });

@@ -17,6 +17,15 @@ export interface ContaReceber {
   nomeAluno: string;
 }
 
+/** Campos necessários para pagar tanto uma conta completa quanto o resumo do dashboard. */
+export interface CobrancaParaPagamento {
+  id: number;
+  descricao: string | null;
+  valor: number | null;
+  dataVencimento: string | null;
+  status: StatusFinanceiro | null;
+}
+
 export interface ReciboMatricula {
   id: number;
   contaId: number;

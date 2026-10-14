@@ -6,13 +6,13 @@ O **Integrador Frontend** é uma SPA administrativa para uma operação de trans
 
 O sistema possui autenticação JWT e três papéis:
 
-- `ADMIN`: administra usuários e acessa todos os módulos existentes;
+- `ADMIN`: administra usuários e acessa os módulos administrativos;
 - `ALUNO`: consulta rotas, pontos e grades, paga as próprias mensalidades e abre/acompanha seus chamados;
 - `MOTORISTA`: consulta o próprio perfil e suas viagens e abre/acompanha seus chamados.
 
 Além da autenticação, o frontend oferece os cadastros de transporte, contas a pagar/receber e chamados de manutenção com atendimento administrativo e alteração explícita do estado do ônibus.
 
-> **Estado da revisão:** estrutura de pastas reorganizada em 10/10/2026, preservando autenticação, matrícula e manutenção. TypeScript, os mesmos 144 testes e build de produção foram aprovados; resultados na seção 11. A homologação com backend real da entrega de manutenção continua pendente. Backend, guias recebidos e diagrama de classes permaneceram intactos.
+> **Estado da revisão:** dashboards por perfil implementados e reorganizados em cards objetivos em 10/10/2026, com transporte, mensalidade e pagamento compartilhado para aluno, escala para motorista e indicadores financeiros/operacionais para ADMIN. Os três perfis foram conferidos com backend real, em desktop e 360px no modo escuro; pagamento integrado e modo claro permanecem pendentes. Resultados na seção 11. Backend, guias recebidos e diagrama de classes permaneceram intactos.
 
 ---
 
@@ -28,7 +28,7 @@ Além da autenticação, o frontend oferece os cadastros de transporte, contas a
 | PrimeIcons | `^7.0.0` | Ícones |
 | PrimeFlex | `^4.0.0` | Classes utilitárias |
 | RxJS | `~7.8.0` | Fluxos HTTP e tratamento de respostas |
-| Chart.js | `^4.5.1` | Dependência disponível para gráficos |
+| Chart.js | `^4.5.1` | Gráfico financeiro de seis meses no dashboard ADMIN |
 | Zone.js | `~0.15.0` | Integração Angular |
 
 ### Desenvolvimento e build
@@ -105,7 +105,19 @@ src/
 │   │   ├── login/components/login/
 │   │   ├── perfil/components/perfil/
 │   │   ├── sem-permissao/components/sem-permissao/
-│   │   ├── dashboard/components/dashboard/
+│   │   ├── dashboard/
+│   │   │   ├── models/dashboard.models.ts
+│   │   │   ├── service/dashboard-service.ts
+│   │   │   ├── utils/
+│   │   │   ├── styles/dashboard.css
+│   │   │   ├── styles/dialog-dashboard.css
+│   │   │   ├── testing/dashboard.fixtures.ts
+│   │   │   └── components/
+│   │   │       ├── inicio/
+│   │   │       ├── dashboard-aluno/
+│   │   │       ├── dashboard-motorista/
+│   │   │       ├── dashboard-admin/
+│   │   │       └── agenda-transporte/
 │   │   └── sidebar/components/sidebar/
 │   ├── app.config.ts
 │   ├── app.routes.ts
@@ -163,9 +175,9 @@ Uma URL interna de retorno é preservada quando o usuário é enviado ao login. 
 
 | Papel | Destino |
 |---|---|
-| `ADMIN` | `/alunos` |
-| `ALUNO` | `/rotas` |
-| `MOTORISTA` | `/minhas-viagens` |
+| `ADMIN` | `/inicio` |
+| `ALUNO` | `/inicio` |
+| `MOTORISTA` | `/inicio` |
 
 ---
 
@@ -174,6 +186,7 @@ Uma URL interna de retorno é preservada quando o usuário é enviado ao login. 
 | URL | Acesso | Finalidade |
 |---|---|---|
 | `/login` | Pública, apenas visitante | Autenticação |
+| `/inicio` | `ADMIN`, `ALUNO`, `MOTORISTA` | Dashboard específico do papel |
 | `/perfil` | Autenticado | Dados de `/auth/me` |
 | `/sem-permissao` | Autenticado | Aviso de acesso negado |
 | `/usuarios` | `ADMIN` | Administração de contas |
@@ -191,7 +204,7 @@ Uma URL interna de retorno é preservada quando o usuário é enviado ao login. 
 | `/meus-chamados` | `ALUNO`, `MOTORISTA` | Abrir e acompanhar os próprios relatos |
 | `/manutencao` | `ADMIN` | Consultar e atender chamados de manutenção |
 
-`/onibuss` foi mantida como redirecionamento de compatibilidade para `/onibus`. A raiz e URLs desconhecidas redirecionam para `/perfil`.
+`/onibuss` foi mantida como redirecionamento de compatibilidade para `/onibus`. A raiz, URLs desconhecidas e login já autenticado redirecionam para `/inicio`. O menu Início é o primeiro item dos três papéis; Meu perfil permanece disponível.
 
 A sidebar calcula os itens pelo papel, exibe nome, papel e iniciais reais do usuário e executa o logout. Ela fica invisível no login e sempre que não existe sessão.
 
@@ -236,6 +249,22 @@ Editar o próprio e-mail ou redefinir a própria senha encerra a sessão após o
 
 A página chama somente `GET /viagem/minhas`; o frontend não envia `motoristaId`. Ela apresenta data, rota, ônibus e faculdades, além dos estados de carregamento, lista vazia e erro.
 
+### Início por perfil
+
+O distribuidor em `/inicio` instancia somente o componente do papel atual. `DashboardService` usa `GET /dashboard/aluno`, `GET /dashboard/motorista` ou `GET /dashboard/admin`, sem identificação de pessoa na requisição. Apenas ADMIN pode enviar o mês opcional `mes=yyyy-MM`.
+
+ALUNO encontra nome/faculdade no cabeçalho e quatro cards separados: Ônibus, Pontos de embarque (até três), Rota e viagem e Mensalidade. A cobrança principal escolhida pelo backend mostra valor, vencimento, prazo e ação de pagar/recibo. Cadastro, endereços, mensalidade cadastrada e totais ficam nos detalhes, sem confundir mensalidade com cobrança. Vencimento é da cobrança, não expiração automática da matrícula.
+
+MOTORISTA recebe suas atribuições em cards de Ônibus, Pontos, Rota e Destinos, com programação compacta. ADMIN recebe cards mensais e de contas, quatro cards operacionais com diálogos, gráfico de seis meses com tabela recolhida e pendências com alternância Receber/Pagar. Trocar mês cancela GET anterior; pendências e operação permanecem posição atual de todos os períodos. Saldo das movimentações não representa lucro ou saldo bancário.
+
+`AgendaTransporte` compartilha cards, seletor e diálogos entre aluno/motorista. A seleção inicial é a primeira viagem de hoje ou próxima ocorrência, identificada por ID e data; a chave é preservada no componente do perfil durante atualização e retorna à primeira disponível se desaparecer. Todos os cards de transporte correspondem à mesma ocorrência. Hoje é deduplicado da agenda, seções vazias/repetidas são omitidas e dados completos permanecem nos diálogos. Pontos preservam a ordem recebida; não existe ponto individual nem ônibus exclusivo do aluno. Datas vêm do backend. Avisos iguais são deduplicados; veículo indisponível permanece visível, sem cancelamento automático. Layout em duas colunas no computador e uma até 768px; estilos específicos do ADMIN em `dashboard-admin.css`.
+
+Os diálogos do dashboard compartilham `styles/dialog-dashboard.css`: destaque principal com ícone e status, blocos de informação com bordas suaves, itinerário numerado e destinos em cards. O resumo do aluno separa cobrança, valores complementares e cadastro; o ADMIN destaca totais operacionais e oferece acesso ao módulo correspondente. No celular, os campos ficam em uma coluna e o status abaixo da identificação. O conteúdo rola dentro do diálogo, mantendo o rodapé com Fechar disponível. Pagamento e recibo existentes não foram redesenhados nesta etapa.
+
+Dados ausentes aparecem como Não informado, sem números/estados fictícios. LocalDate é apresentado em UTC, geradoEm em São Paulo e valores em BRL. Signals e `ConsultaDashboard<T>` controlam carregamento/erro e cancelamento; não há cache persistido nem polling. O erro oculta dados antigos e não vira estado vazio.
+
+Documento detalhado: `PLANO_IMPLEMENTACAO_DASHBOARD_FRONTEND.md`.
+
 ### Minhas matrículas
 
 A página `/minhas-matriculas` chama `GET /contareceber/minhas` e mostra somente as cobranças do aluno identificado pelo JWT. A interface separa cobranças em aberto do histórico, oferece pesquisa, paginação e atualização manual e apresenta valor, vencimento e status `PENDENTE`, `ATRASADO` ou `PAGO`.
@@ -243,6 +272,8 @@ A página `/minhas-matriculas` chama `GET /contareceber/minhas` e mostra somente
 O aluno pode pagar cobranças pendentes ou atrasadas escolhendo apenas a forma de pagamento. O diálogo mostra o valor integral sem permitir edição e chama `POST /recebimentos/realizar/{contaId}` com corpo `null` e somente o query param `formaPagamento`. O frontend nunca envia `alunoId`, `pessoaId` ou valor do pagamento.
 
 Após sucesso, a lista é recarregada e o recibo retornado é aberto. Cobranças pagas oferecem `GET /recebimentos/recibo/conta/{contaId}`. O botão é bloqueado durante a requisição; um `409` fecha o diálogo e atualiza os dados, enquanto `400` mantém a confirmação aberta com a mensagem de validação.
+
+O pagamento/recibo agora é concentrado em `conta-receber/components/pagamento-matricula/`, compartilhado com o início do aluno. Usa `CobrancaParaPagamento`, formulário reativo de forma de pagamento e seleção copiada para o recibo. A instância permanece montada durante a atualização. Em resposta de rede incerta não há repetição automática: solicita revisão das cobranças antes de novo envio. O sucesso continua válido mesmo se a reconsulta falhar, preservando o recibo e informando o erro da atualização. É registro interno, sem gateway bancário.
 
 A primeira cobrança, o vencimento em 30 dias e as próximas cobranças mensais são controlados pelo backend. O Angular apenas consulta novamente os dados; ele não possui agendador nem cria contas localmente.
 
@@ -296,7 +327,6 @@ Detalhamento dos arquivos, contratos e homologação: `PLANO_IMPLEMENTACAO_MANUT
 - a exclusão em massa remove itens apenas da tabela local e não envia todos os `DELETE` ao backend;
 - parte dos formulários legados usa validação visual/incompleta, sem formulário reativo;
 - máscaras de CPF/CNPJ e CNH não validam dígitos verificadores;
-- o componente `Dashboard` continua como placeholder sem rota;
 - a relação motorista–ônibus não existe no modelo de motorista atual.
 
 ---
@@ -410,18 +440,18 @@ Credenciais administrativas não devem ser registradas no código, documentaçã
 
 ## 11. Testes automatizados
 
-Em 10/10/2026 foram validados após a reorganização:
+Em 10/10/2026 foram validados após a implementação dos dashboards:
 
 | Verificação | Resultado |
 |---|---|
 | TypeScript da aplicação | Aprovado |
 | TypeScript dos testes | Aprovado |
-| Karma + Chrome Headless | **144/144 aprovados** |
+| Karma + Chrome Headless | **209/209 aprovados** |
 | Build Angular de produção | Aprovado |
-| Bundle inicial | `1,09 MB` bruto; `194,53 kB` estimados para transferência |
-| Comparação antes/depois | 144 testes aprovados antes e depois; 43 arquivos de spec preservados |
+| Bundle inicial | `1,09 MB` bruto; `194,47 kB` estimados para transferência |
+| Comparação antes/depois | 144 antes dos dashboards; 196 antes do redesign; 206 após o redesign dos cards; 209 após os diálogos, em 50 arquivos de spec |
 
-Foram executados `tsc --noEmit` para aplicação e testes, Karma/Chrome Headless e build Angular de produção. Os imports, o lazy loading, templates e estilos foram ajustados para os novos caminhos. A conferência das referências não encontrou caminhos antigos pendentes.
+Foram executados `tsc --noEmit` para aplicação e testes, Karma/Chrome Headless e build Angular de produção. O redesign acrescentou testes de cards/detalhes, seleção por ID/data e preservação após recriação, limite de pontos, ausência de repetição, avisos, alternância de pendências e tabela expansível. O build final passou sem avisos. O dashboard vazio foi substituído por testes de comportamento; os testes existentes de pagamento foram adaptados ao componente compartilhado, preservando sua cobertura. `git diff --check` também foi aprovado.
 
 Durante a instalação, o npm informou 17 alertas na árvore de dependências (2 baixos, 2 moderados e 13 altos). Nenhum `npm audit fix` foi aplicado automaticamente, pois a atualização deve ser analisada separadamente para evitar alterações incompatíveis.
 
@@ -447,7 +477,15 @@ A cobertura adicionada contempla:
 
 Para manutenção, foram adicionados testes dos seis endpoints, filtros e payloads sem autoria/campos extras; textos e limites; envio duplicado; resolução/reabertura; observação preservada/limpa; alteração explícita de ônibus; erros e permanência de formulários; menus/guards por papel; atalho; seleção `OPERANDO`; preservação de IDs/faculdades e cancelamento de grade. Também há testes de texto seguro, UTC e exclusões individuais protegidas.
 
+Para dashboards, há testes dos três endpoints sem identidade, mês opcional, apenas um componente/consulta por papel, rota e menu Início, agenda sem duplicação, ônibus indisponível, pontos ordenados, múltiplas faculdades, programação indefinida, rotas sem viagem, mensalidade/cobrança distintas, nulos, estados de erro/vazio, prazos, moeda, São Paulo, cancelamento de GET e recuperação após falha. O pagamento compartilhado possui testes de envio único, fechamento bloqueado, 400/404/409/status 0, revisão manual de resposta incerta e recibo preservado após falha de atualização.
+
 O compilador Angular teve bloqueio de leitura de diretórios pela sandbox Windows. Build e Karma foram executados com autorização fora da sandbox. Nenhum framework/dependência adicional foi instalado. Na entrega de manutenção de 08/10/2026, uma consulta sem credenciais confirmou conexão recusada em `localhost:8080`; a reorganização não realizou testes integrados novos. Os testes automatizados não equivalem à homologação com dados reais.
+
+Na entrega do dashboard, o backend respondeu **401** à consulta sem autenticação em `/dashboard/aluno`. No navegador, `/inicio` sem sessão redirecionou para `/login?retorno=%2Finicio`, sem sidebar. Após login feito pelo usuário, ADMIN foi validado com dados reais: seleção de mês alterou movimentações/série e preservou posição atual; as contas a receber corresponderam à listagem; o atalho de manutenção abriu o filtro de ônibus corretamente. Layout conferido em 1440px e 360px, no modo escuro disponível, sem overflow horizontal do documento e sem erros/avisos de console na conferência. As tabelas têm rolagem interna e os links multilinha receberam área clicável contínua. A sessão continuou disponível ao navegar e recarregar. A conferência adicional do ALUNO/MOTORISTA está registrada abaixo. Modo claro e pagamento integrado permanecem pendentes. Não foram geradas credenciais ou alterados dados financeiros para simular homologação.
+
+No redesign, o ADMIN foi novamente conferido em 1440px/360px no modo escuro com dados reais: cards, diálogo da frota, fechamento por Escape, pendências Receber/Pagar e tabela expansível. Medição em 360px confirmou documento sem overflow e main com clientWidth/scrollWidth de 289px. ALUNO e MOTORISTA foram conferidos após o usuário fazer login, em 1440px/360px no modo escuro: cards, programação, destinos completos, troca de ônibus/ocorrência e aviso de indisponibilidade. Atualizar preservou a viagem e o valor exibido no seletor, corrigido após a conferência real; o teste agora verifica também o select nativo após recriação. Nos dois perfis não houve overflow do documento nem do main. O aluno consultado não tinha cobrança principal: validado o estado vazio, sem pagamento real. Modo claro, pagamento integrado e demais cenários de homologação permanecem pendentes; os testes automatizados não substituem essas verificações.
+
+Após a melhoria dos diálogos, o transporte do MOTORISTA foi conferido com dados reais no modo escuro, no computador e no celular: destaque legível, campos separados, conteúdo sem overflow horizontal e fechamento pelo botão do rodapé. Os novos resumos do ALUNO e ADMIN foram validados por testes automatizados; a conferência visual desses dois diálogos com dados reais e o modo claro permanecem pendentes. Os três testes adicionais verificam itinerário/destinos completos, fechamento, valores zero, cadastro e acesso aos módulos, sem alterar o componente de pagamento.
 
 Os specs legados de componentes continuam majoritariamente como testes básicos de criação. Ampliar a cobertura de cada CRUD, validação e payload continua recomendado.
 
@@ -526,10 +564,15 @@ location / {
 | Chamados de manutenção | Abertura/acompanhamento para ALUNO/MOTORISTA e atendimento para ADMIN |
 | Estado operacional do ônibus | Alteração explícita no atendimento; sem liberação/cancelamento automático |
 | Compatibilidade de grades | Novas viagens somente OPERANDO; vínculos/IDs existentes preservados |
+| Início por papel | Implementado em `/inicio`, preservando `/perfil` |
+| Transporte no dashboard | Cards por ocorrência, seletor, programação compacta e detalhes completos |
+| Financeiro no dashboard | Cobrança do ALUNO e movimentações/posição atual do ADMIN |
+| Pagamento compartilhado | Mesmo componente de confirmação/recibo no início e em Minhas matrículas |
 | Geração mensal da cobrança | Responsabilidade do backend; validação integrada pendente |
-| Testes automatizados | 144 aprovados |
+| Testes automatizados | 209 aprovados |
 | Build de produção | Aprovado |
-| Teste integrado dos três papéis | Pendente de execução com credenciais reais |
+| Teste integrado dos três papéis | Dashboards conferidos com login real; demais fluxos completos ainda pendentes |
+| Dashboards com backend real | Três perfis conferidos em desktop/360px no modo escuro; ADMIN inclui mês, posição atual e atalhos |
 | Importação e exclusão em massa persistente | Não implementadas |
 | Ambiente de produção | URL ainda não definida |
 
@@ -539,4 +582,4 @@ location / {
 
 **Versão do pacote:** 0.0.0
 
-**Status:** autenticação, matrícula e manutenção implementadas; resta homologação manual com backend real, credenciais e dados apropriados.
+**Status:** autenticação, matrícula, manutenção e dashboards implementados; redesign em cards objetivos concluído. Três dashboards conferidos com dados reais em modo escuro; pagamento integrado, modo claro e demais fluxos de homologação ainda pendentes.
