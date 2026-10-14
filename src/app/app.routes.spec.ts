@@ -14,6 +14,8 @@ import { Papel } from './core/auth/models/auth.models';
 describe('app routes', () => {
   for (const [path, papeis] of [
     ['inicio', ['ADMIN', 'ALUNO', 'MOTORISTA']],
+    ['programacao-email', ['ADMIN']],
+    ['alunos', ['ADMIN']],
     ['manutencao', ['ADMIN']], ['meus-chamados', ['ALUNO', 'MOTORISTA']],
   ] as [string, Papel[]][]) {
     for (const papel of [null, 'ADMIN', 'ALUNO', 'MOTORISTA'] as (Papel | null)[]) {
@@ -22,7 +24,8 @@ describe('app routes', () => {
           token: () => papel ? 'jwt' : null,
           temPapel: (...permitidos: Papel[]) => papel !== null && permitidos.includes(papel),
         } }] });
-        const guard = routes.find(r => r.path === path)!.canActivate![0] as CanActivateFn;
+        const guards = routes.find(r => r.path === path)!.canActivate!;
+        const guard = guards[guards.length - 1] as CanActivateFn;
         const result = TestBed.runInInjectionContext(() => guard({} as ActivatedRouteSnapshot, { url: `/${path}` } as RouterStateSnapshot));
         if (papel !== null && papeis.includes(papel)) expect(result).toBeTrue();
         else {

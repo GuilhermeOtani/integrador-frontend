@@ -1,0 +1,99 @@
+<section class="email-painel">
+  <header class="cabecalho"><div><span class="sobretitulo">Comunicação · ADMIN</span><h1>Programação por e-mail</h1><p>Escala geral de hoje para alunos e motoristas com conta ativa.</p></div><p-button label="Atualizar" icon="pi pi-refresh" [outlined]="true" [disabled]="enviando() || configurando()" (onClick)="atualizar()" /></header>
+  @if (aviso(); as m) { <p-message severity="success" role="status">{{ m }}</p-message> }
+  @if (avisoStorage(); as m) { <p-message severity="warn">{{ m }}</p-message> }
+  @if (erroEnvio(); as m) { <p-message severity="error" role="alert">{{ m }}</p-message> }
+  @if (intencao(); as i) {
+    <article class="painel pendencia"><h2>Solicitação sem confirmação</h2><p>Programação de {{ dia(i.dataReferencia) }} · {{ i.request.reenviar ? 'Correção' : 'Envio normal' }}. Consulte o resultado antes de criar outra ação.</p>
+      <div class="acoes"><p-button label="Consultar solicitação" icon="pi pi-search" [disabled]="enviando()" (onClick)="consultarPendente()" /><p-button label="Retomar mesma solicitação" severity="secondary" [outlined]="true" [disabled]="!podeRetomar()" (onClick)="retomar()" />
+        @if (podeResolverAntiga()) { <p-button label="Resolver pendência de outro dia" severity="warn" [outlined]="true" (onClick)="resolucaoVisivel.set(true)" /> }
+      </div>@if (pendenciaNaoLocalizada()) { <p class="muted">O lote ainda não foi localizado. Isso não comprova que uma solicitação concorrente nunca será concluída.</p> }
+    </article>
+  }
+  <div class="resumos">
+    <article class="painel"><h2><i class="pi pi-envelope" aria-hidden="true"></i> Integração</h2>
+      @if (config.carregando()) { <p role="status">Consultando configuração…</p> }
+      @if (config.erro(); as e) { <p-message severity="error">{{ e }} @if (config.dados()) { Dados desatualizados. }</p-message> }
+      @if (config.dados(); as c) { <div class="acoes"><p-tag [value]="c.disponivel ? 'Disponível' : 'Indisponível'" [severity]="c.disponivel ? 'success' : 'warn'" /><p-tag [value]="c.modoTeste ? 'Modo de teste' : 'Público completo'" severity="info" /></div><p>{{ c.habilitado ? 'Habilitada no servidor' : 'Desativada no servidor' }}</p>
+        <p class="muted">Disponibilidade não comprova conexão SMTP. Credenciais ficam somente no backend.</p> }
+    </article>
+    <article class="painel"><h2><i class="pi pi-clock" aria-hidden="true"></i> Automático</h2>
+      @if (config.dados(); as c) { <strong class="valor">{{ c.horario }}</strong><p>{{ c.fuso }} · recuperação até antes das 18h</p><p-tag [value]="c.automatico ? 'Ativado' : 'Desativado'" [severity]="c.automatico ? 'success' : 'secondary'" />
+        <div class="acoes"><p-button [label]="c.automatico ? 'Desativar automático' : 'Ativar automático'" [outlined]="true" [loading]="configurando()" [disabled]="configurando() || enviando() || config.carregando() || !!config.erro() || (!c.automatico && !c.disponivel)" (onClick)="solicitarAutomatico()" /></div><p class="muted">O backend deve estar ligado. Desativar não cancela mensagens já enfileiradas.</p>
+      } @else { <p class="muted">Aguardando configuração.</p> }
+      @if (erroConfiguracao(); as e) { <p-message severity="error" role="alert">{{ e }}</p-message> }
+    </article>
+    <article class="painel"><h2><i class="pi pi-calendar" aria-hidden="true"></i> Programação</h2>
+      @if (previa.dados(); as p) { <strong class="valor">{{ p.viagens.length }} <small>{{ p.viagens.length === 1 ? 'viagem' : 'viagens' }}</small></strong><p>{{ dia(p.dataReferencia) }}</p><p class="muted">Todas as grades do dia. Consulta: {{ instante(p.geradoEm) }}.</p> } @else { <p class="muted">Aguardando programação.</p> }
+    </article>
+    <article class="painel"><h2><i class="pi pi-users" aria-hidden="true"></i> Público</h2>
+      @if (previa.dados(); as p) { <strong class="valor">{{ p.destinatariosElegiveis }} <small>elegíveis</small></strong><p>{{ p.destinatariosIgnorados }} ignorados na seleção</p> }<p class="muted">ADMIN não recebe. Pessoas sem conta não participam. Duplicidades de hoje são calculadas no lote.</p>
+    </article>
+  </div>
+  @if (config.dados(); as c) { @if (c.impedimentos.length) {
+    <aside class="painel" aria-label="Impedimentos de configuração"><h2>O que falta configurar no servidor</h2><div class="impedimentos">@for (i of c.impedimentos; track $index) { <p class="alerta">{{ i }}</p> }</div></aside>
+  } }
+  <section class="painel"><div class="cabecalho"><div><h2>Programação geral por faculdade</h2><p class="muted">Cada associado recebe o mesmo conteúdo, em uma mensagem separada.</p></div><p-button label="Ver mensagem do e-mail" icon="pi pi-eye" [text]="true" [disabled]="!previa.dados() || previa.carregando() || !!previa.erro()" (onClick)="mensagemVisivel.set(true)" /></div>
+    @if (previa.carregando()) { <p role="status">Carregando programação…</p> }
+    @if (previa.erro(); as e) { <p-message severity="error" role="alert">{{ e }} @if (previa.dados()) { A programação abaixo está desatualizada. Atualize antes de enviar. }</p-message> }
+    @if (previa.dados(); as p) {
+      @for (a of p.avisos; track $index) { <p-message severity="warn">{{ a }}</p-message> }
+      @if (!p.viagens.length) { <div class="vazio"><i class="pi pi-calendar" aria-hidden="true"></i><h3>Não há programação para hoje</h3><p>Nenhum e-mail será enviado.</p></div> } @else {
+        <label class="pesquisa" for="email-pesquisa"><span>Pesquisar faculdade, ônibus, motorista ou rota</span><input id="email-pesquisa" pInputText type="search" [value]="pesquisa()" (input)="pesquisa.set($any($event.target).value)" placeholder="Pesquisar na programação…" /></label><p class="muted">A pesquisa altera somente a visualização, não o envio.</p>
+        <div class="faculdades">@for (g of grupos(); track g.nome) {
+          <article class="faculdade"><h3><i class="pi pi-building" aria-hidden="true"></i> {{ g.nome }}</h3>@for (v of g.viagens; track v.id) {
+            <div class="viagem"><div class="destaques"><div><span class="muted">Ônibus</span><strong>{{ texto(v.onibus?.numeroIdentificacao) }}</strong></div><div><span class="muted">Motorista</span><strong>{{ texto(v.motorista?.nome) }}</strong></div></div>
+              <p><strong>{{ texto(v.rota?.nome) }}</strong> · {{ dia(v.dataOcorrencia) }}</p><p-tag [value]="estadoOnibus(v.onibus?.statusOnibus)" [severity]="v.onibusDisponivel ? 'success' : 'warn'" />
+              @for (a of avisosViagem(v); track $index) { <p class="alerta"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i> {{ a }}</p> }<p-button label="Ver itinerário e detalhes" icon="pi pi-map-marker" [text]="true" (onClick)="viagemDetalhe.set(v)" />
+            </div> }
+          </article> } @empty { <p>Nenhuma viagem corresponde à pesquisa. O envio continua usando a programação completa.</p> }
+        </div>
+      }
+      @if (!p.destinatariosElegiveis) { <p-message severity="warn">Nenhum destinatário elegível. Confira as contas ativas e a lista permitida no modo de teste.</p-message> }
+      <div class="acoes envio-acoes"><p-button label="Enviar programação de hoje" icon="pi pi-envelope" [disabled]="!podeEnviar()" [loading]="enviando()" (onClick)="abrirEnvio(false)" /><p-button label="Reenviar correção" icon="pi pi-refresh" severity="warn" [outlined]="true" [disabled]="!podeEnviar()" (onClick)="abrirEnvio(true)" /></div>
+    }
+  </section>
+  <section class="painel"><div class="cabecalho"><h2>Histórico de lotes</h2><p-button label="Atualizar histórico" icon="pi pi-refresh" [text]="true" (onClick)="carregarHistorico()" /></div>
+    @if (historico.carregando()) { <p role="status">Consultando histórico…</p> } @if (historico.erro(); as e) { <p-message severity="error" role="alert">{{ e }} @if (historico.dados()) { Dados desatualizados. }</p-message> }
+    @if (historico.dados(); as h) { <div class="tabela"><p-table [value]="h.itens" [lazy]="true" [paginator]="true" [rows]="tamanho()" [first]="pagina() * tamanho()" [totalRecords]="h.totalElementos" [rowsPerPageOptions]="[20,50,100]" [loading]="historico.carregando()" (onPage)="paginar($event)" [tableStyle]="{ 'min-width': '42rem' }">
+      <ng-template #header><tr><th>Programação / criação</th><th>Origem</th><th>Resultados</th><th>Ações</th></tr></ng-template>
+      <ng-template #body let-l><tr><td>{{ dia(l.dataReferencia) }}<small>{{ instante(l.criadoEm) }}</small></td><td>{{ l.origem === 'MANUAL' ? 'Manual' : 'Automática' }}<small>{{ l.reenvio ? 'Correção' : 'Envio normal' }}</small></td><td><div class="totais-linha">@for (e of estados; track e.value) { @if (l.totais[e.value] > 0) { <span>{{ e.label }}: {{ l.totais[e.value] }}</span> } }</div><small>Ignorados: {{ l.ignorados }}</small></td><td><p-button label="Detalhes" icon="pi pi-eye" [text]="true" (onClick)="abrirDetalhe(l.id)" /></td></tr></ng-template>
+      <ng-template #emptymessage><tr><td colspan="4">@if (!historico.erro() && !historico.carregando()) { Nenhum lote registrado nesta página. }</td></tr></ng-template>
+    </p-table></div> }
+  </section>
+</section>
+
+<p-dialog closeAriaLabel="Fechar confirmação" [header]="retomando() ? 'Retomar a mesma solicitação' : reenvio() ? 'Confirmar correção' : 'Confirmar envio de hoje'" [visible]="envioVisivel()" (visibleChange)="!enviando() && envioVisivel.set($event)" [modal]="true" [closable]="!enviando()" [closeOnEscape]="!enviando()" [draggable]="false" [style]="{ width: 'min(95vw, 38rem)' }">
+  <div class="dialogo"><div class="hero"><i class="pi pi-envelope" aria-hidden="true"></i><div><strong>{{ dia(retomando() ? intencao()?.dataReferencia : previa.dados()?.dataReferencia) }}</strong><p>Programação geral · mensagens separadas por destinatário</p></div></div><p>{{ previa.dados()?.viagens?.length }} viagens · {{ previa.dados()?.destinatariosElegiveis }} destinatários elegíveis na prévia. Duplicidades serão conferidas pelo servidor.</p>
+    @if (config.dados()?.modoTeste) { <p-message severity="info">Modo de teste: somente os endereços permitidos pelo backend.</p-message> }
+    @if (reenvio()) { <p-message severity="warn">Outra mensagem poderá ser enviada a quem já recebeu hoje. A anterior não será apagada.</p-message><label for="email-motivo">Motivo da correção</label><textarea id="email-motivo" pTextarea [formControl]="motivo" rows="4" maxlength="500" [readOnly]="enviando() || retomando()" aria-describedby="email-motivo-ajuda"></textarea><small id="email-motivo-ajuda">{{ motivo.value.length }}/500 caracteres · obrigatório, sem apenas espaços</small>
+      @if (motivo.touched && motivo.invalid) { <p class="alerta" role="alert">{{ motivo.errors?.['servidor'] || 'Informe um motivo válido com até 500 caracteres.' }}</p> }
+    }
+    @if (retomando()) { <p-message severity="warn">O mesmo identificador e os mesmos parâmetros serão usados. Confira a solicitação antes de repetir.</p-message> } @if (erroEnvio(); as e) { <p-message severity="error" role="alert">{{ e }}</p-message> }
+  </div><ng-template #footer><p-button label="Voltar" severity="secondary" [text]="true" [disabled]="enviando()" (onClick)="envioVisivel.set(false)" /><p-button [label]="retomando() ? 'Confirmar mesma solicitação' : reenvio() ? 'Confirmar correção' : 'Confirmar envio'" icon="pi pi-send" [loading]="enviando()" [disabled]="enviando() || (retomando() ? !podeRetomar() : !podeEnviar() || (reenvio() && motivo.invalid))" (onClick)="confirmarEnvio()" /></ng-template>
+</p-dialog>
+<p-dialog closeAriaLabel="Fechar ativação" header="Ativar envio automático" [visible]="automaticoVisivel()" (visibleChange)="!configurando() && automaticoVisivel.set($event)" [modal]="true" [closable]="!configurando()" [closeOnEscape]="!configurando()" [draggable]="false" [style]="{ width: 'min(95vw, 36rem)' }">
+  <div class="dialogo"><div class="hero"><i class="pi pi-clock" aria-hidden="true"></i><div><strong>{{ config.dados()?.horario }}</strong><p>{{ config.dados()?.fuso }}</p></div></div><p>O backend enviará a programação geral aos alunos e motoristas elegíveis nos dias com viagens. Confirme somente depois de validar um envio real.</p><p>O backend deve permanecer ligado. O navegador não agenda os envios.</p>@if (erroConfiguracao(); as e) { <p-message severity="error" role="alert">{{ e }}</p-message> }</div>
+  <ng-template #footer><p-button label="Voltar" [text]="true" [disabled]="configurando()" (onClick)="automaticoVisivel.set(false)" /><p-button label="Confirmar ativação" [loading]="configurando()" [disabled]="configurando() || !config.dados()?.disponivel || !!config.erro() || config.carregando()" (onClick)="confirmarAutomatico()" /></ng-template>
+</p-dialog>
+<p-dialog closeAriaLabel="Fechar mensagem" header="Mensagem da prévia" [visible]="mensagemVisivel()" (visibleChange)="mensagemVisivel.set($event)" [modal]="true" [draggable]="false" [style]="{ width: 'min(95vw, 54rem)' }">
+  @if (previa.dados(); as p) { <div class="dialogo"><div class="hero"><i class="pi pi-envelope" aria-hidden="true"></i><div><strong>{{ p.mensagem.assunto }}</strong><p>Texto exato retornado pelo backend · também enviado em HTML</p></div></div><pre class="mensagem">{{ p.mensagem.texto }}</pre></div> }
+</p-dialog>
+<p-dialog closeAriaLabel="Fechar resultado" header="Resultado do lote" [visible]="detalheVisivel()" (visibleChange)="!$event && fecharDetalhe()" [modal]="true" [draggable]="false" [style]="{ width: 'min(95vw, 68rem)' }">
+  <div class="dialogo"><p-message severity="info">Aceito pelo SMTP não comprova chegada à caixa de entrada nem leitura. Pode haver rejeição posterior ou spam.</p-message>
+    @if (detalhe.carregando()) { <p role="status">Consultando lote…</p> } @if (detalhe.erro(); as e) { <p-message severity="error" role="alert">{{ e }} @if (detalhe.dados()) { Resultados desatualizados. }</p-message> }
+    @if (pollingExpirou()) { <p-message severity="warn">Atualização automática encerrada após dez minutos. Use Atualizar resultado.</p-message> }
+    @if (detalhe.dados(); as l) { <div class="hero"><i class="pi pi-inbox" aria-hidden="true"></i><div><strong>{{ dia(l.dataReferencia) }} · {{ l.origem === 'MANUAL' ? 'Manual' : 'Automática' }}</strong><p>{{ l.reenvio ? 'Correção' : 'Envio normal' }} · {{ instante(l.criadoEm) }}</p></div></div><p class="muted">Identificador: {{ l.id }}</p>@if (l.motivo) { <p class="texto"><strong>Motivo:</strong> {{ l.motivo }}</p> }
+      <div class="resumos totais">@for (e of estados; track e.value) { <div class="total"><span>{{ e.label }}</span><strong>{{ l.totais[e.value] }}</strong></div> }<div class="total"><span>Ignorados na seleção/duplicidade</span><strong>{{ l.ignorados }}</strong></div></div>
+      <div class="tabela"><p-table [value]="l.entregas" [paginator]="l.entregas.length > 10" [rows]="10" [tableStyle]="{ 'min-width': '42rem' }"><ng-template #header><tr><th>Destinatário</th><th>Estado</th><th>Revisão / tentativas</th><th>Erro / aceite SMTP</th></tr></ng-template><ng-template #body let-e><tr><td>{{ e.email }}</td><td><p-tag [value]="rotulo(e.estado)" [severity]="severidade(e.estado)" /></td><td>{{ e.revisao }} / {{ e.tentativas }}</td><td>{{ e.erro || '—' }}<small>{{ instante(e.aceitoEm) }}</small></td></tr></ng-template><ng-template #emptymessage><tr><td colspan="4">Nenhuma entrega registrada neste lote. Confira os ignorados.</td></tr></ng-template></p-table></div>
+      @if (l.mensagem; as m) { <details><summary>Mensagem efetivamente enfileirada</summary><h3>{{ m.assunto }}</h3><pre class="mensagem">{{ m.texto }}</pre></details> }
+    }
+  </div><ng-template #footer><p-button label="Fechar" [text]="true" (onClick)="fecharDetalhe()" /><p-button label="Atualizar resultado" icon="pi pi-refresh" [disabled]="detalhe.carregando()" (onClick)="atualizarDetalhe()" /></ng-template>
+</p-dialog>
+<p-dialog closeAriaLabel="Fechar itinerário" header="Itinerário e detalhes" [visible]="!!viagemDetalhe()" (visibleChange)="!$event && viagemDetalhe.set(null)" [modal]="true" [draggable]="false" [style]="{ width: 'min(95vw, 48rem)' }">
+  @if (viagemDetalhe(); as v) { <div class="dialogo"><div class="hero"><i class="pi pi-truck" aria-hidden="true"></i><div><strong>Ônibus {{ texto(v.onibus?.numeroIdentificacao) }}</strong><p>{{ texto(v.motorista?.nome) }} · {{ dia(v.dataOcorrencia) }}</p></div></div>@for (a of avisosViagem(v); track $index) { <p-message severity="warn">{{ a }}</p-message> }
+    <dl><div><dt>Rota</dt><dd>{{ texto(v.rota?.nome) }}</dd></div><div><dt>Grade</dt><dd>{{ texto(v.grade?.descricao) }}</dd></div><div><dt>Placa / modelo</dt><dd>{{ texto(v.onibus?.placa) }} / {{ texto(v.onibus?.modelo) }}</dd></div><div><dt>Capacidade / estado</dt><dd>{{ v.onibus?.capacidade ?? 'Não informado' }} / {{ estadoOnibus(v.onibus?.statusOnibus) }}</dd></div></dl>
+    <h3>Itinerário</h3><p class="texto">{{ texto(v.rota?.descricao) }}</p><ol>@for (p of v.rota?.pontosEmbarque || []; track $index) { <li>{{ texto(p.descricao) }}</li> } @empty { <li>Pontos não informados</li> }</ol><h3>Faculdades atendidas</h3>@for (f of v.faculdades; track $index) { <p><strong>{{ texto(f.nome) }}</strong><small>{{ texto(f.endereco) }}</small></p> } @empty { <p>Destino não informado</p> }
+  </div> }
+</p-dialog>
+<p-dialog header="Resolver pendência de outro dia" [visible]="resolucaoVisivel()" (visibleChange)="resolucaoVisivel.set($event)" [modal]="true" [draggable]="false" [style]="{ width: 'min(95vw, 36rem)' }"><p>O identificador de {{ dia(intencao()?.dataReferencia) }} não foi localizado após consulta. Confira também o histórico. Encerrar esta pendência não cancela nenhuma mensagem no servidor.</p><p>Uma nova solicitação será uma ação separada, com a programação de hoje.</p><ng-template #footer><p-button label="Voltar" [text]="true" (onClick)="resolucaoVisivel.set(false)" /><p-button label="Confirmar encerramento local" severity="warn" [disabled]="!podeResolverAntiga() || enviando()" (onClick)="resolverAntiga()" /></ng-template></p-dialog>

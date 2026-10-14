@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import Aluno from '../models/aluno';
+import Aluno, { SituacaoExclusaoAluno, SituacaoListaAluno } from '../models/aluno';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
@@ -15,12 +15,20 @@ export class AlunoService {
 
   constructor(private httpCliente: HttpClient) {}
 
-  listarAlunos(): Observable<Aluno[]> {
-    return this.httpCliente.get<Aluno[]>(`${this.urlUsuario}/listar`);
+  listarAlunos(situacao: SituacaoListaAluno = 'NAO_ARQUIVADOS'): Observable<Aluno[]> {
+    return this.httpCliente.get<Aluno[]>(`${this.urlUsuario}/listar`, { params: { situacao } });
+  }
+
+  atualizarArquivamento(id: number, arquivado: boolean): Observable<Aluno> {
+    return this.httpCliente.patch<Aluno>(`${this.urlUsuario}/${id}/arquivamento`, { arquivado });
+  }
+
+  consultarSituacaoExclusao(id: number): Observable<SituacaoExclusaoAluno> {
+    return this.httpCliente.get<SituacaoExclusaoAluno>(`${this.urlUsuario}/${id}/situacao-exclusao`);
   }
 
   CadastroAlunos(aluno: Aluno): Observable<Aluno> {
-    return this.httpCliente.post<Aluno>(`${this.urlUsuario}/salvar-aluno`, aluno);
+    return this.httpCliente.post<Aluno>(`${this.urlUsuario}/salvar-aluno`, this.dadosCadastro(aluno));
   }
 
   ExcluirAlunos(id: string | number):Observable<void>{
@@ -28,7 +36,18 @@ export class AlunoService {
   }
 
   EditarAlunos(aluno:Aluno):Observable<Aluno>{
-    return this.httpCliente.put<Aluno>(`${this.urlUsuario}/atualizar-aluno/${aluno.id}`,aluno);
+    return this.httpCliente.put<Aluno>(`${this.urlUsuario}/atualizar-aluno/${aluno.id}`, this.dadosCadastro(aluno));
+  }
+
+  private dadosCadastro(aluno: Aluno) {
+    return {
+      nome: aluno.nome,
+      cpfCnpj: aluno.cpfCnpj,
+      telefone: aluno.telefone,
+      matricula: aluno.matricula,
+      mensalidade: aluno.mensalidade,
+      faculdadeId: aluno.faculdadeId,
+    };
   }
 
 }

@@ -4,6 +4,7 @@
   <p-toolbar class="mb-6">
     <ng-template #start>
       @if (podeEditar()) {
+        <a pButton routerLink="/programacao-email" class="mr-2"><i class="pi pi-envelope" aria-hidden="true"></i> Enviar programação de hoje</a>
         <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
         <p-button severity="danger" label="Excluir" icon="pi pi-trash" outlined (onClick)="deleteSelectedGrades()" [disabled]="!selectedGrade || !selectedGrade.length" />
       }
