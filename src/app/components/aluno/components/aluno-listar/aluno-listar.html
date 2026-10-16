@@ -1,10 +1,17 @@
-<div class="card alunos-pagina">
+<div class="app-listagem">
   <p-toast />
-  <header class="alunos-cabecalho">
-    <div><h1>Alunos</h1><p>Gerencie os cadastros. Arquive quem saiu sem apagar seu histórico.</p></div>
-    <p-button label="Atualizar lista" icon="pi pi-refresh" [text]="true" [loading]="carregando()"
+  <header class="app-cabecalho"><div><h1>Alunos</h1><p>Gerencie os cadastros. Arquive quem saiu sem apagar seu histórico.</p></div><div class="app-acoes"><p-button [outlined]="true" severity="secondary" label="Atualizar lista" icon="pi pi-refresh"  [loading]="carregando()"
       [disabled]="processando() || consultandoExclusao()" (onClick)="carregarAlunos()" />
-  </header>
+      <div class="alunos-acoes">
+        <p-button label="Novo aluno" icon="pi pi-plus" [disabled]="bloqueado()" (onClick)="openNew()" />
+        <p-button label="Arquivar selecionados" icon="pi pi-inbox" severity="secondary" [outlined]="true"
+          [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria() || !selecionadosArquivaveis.length"
+          (onClick)="arquivarSelecionados()" />
+      </div>
+
+      <p-button [outlined]="true" label="Exportar" icon="pi pi-upload" severity="secondary"
+        [disabled]="carregando() || !alunos.length" (onClick)="exportCSV()" />
+    </div></header>
 
   @if (erroLista()) {
     <p-message severity="error" [closable]="false">{{ erroLista() }} Os dados visíveis podem estar desatualizados.</p-message>
@@ -15,22 +22,7 @@
     </p-message>
   }
 
-  <p-toolbar>
-    <ng-template #start>
-      <div class="alunos-acoes">
-        <p-button label="Novo aluno" icon="pi pi-plus" [disabled]="bloqueado()" (onClick)="openNew()" />
-        <p-button label="Arquivar selecionados" icon="pi pi-inbox" severity="secondary" [outlined]="true"
-          [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria() || !selecionadosArquivaveis.length"
-          (onClick)="arquivarSelecionados()" />
-      </div>
-    </ng-template>
-    <ng-template #end>
-      <p-button label="Exportar" icon="pi pi-upload" severity="secondary" [text]="true"
-        [disabled]="carregando() || !alunos.length" (onClick)="exportCSV()" />
-    </ng-template>
-  </p-toolbar>
-
-  <div class="alunos-filtros">
+  <section class="app-tabela-painel"><div class="alunos-filtros app-tabela-ferramentas">
     <div class="filtro-situacao">
       <label for="situacao-alunos">Situação do cadastro</label>
       <p-select inputId="situacao-alunos" [options]="opcoesSituacao" optionLabel="label" optionValue="value"
@@ -46,7 +38,6 @@
       </p-iconfield>
     </div>
   </div>
-  <p class="alunos-nota">Arquivar bloqueia acesso, novas mensalidades e novos envios. Cobranças e recibos existentes permanecem.</p>
 
   @if (resultados().length && !dialogAcao) {
     <section class="resultado-lote" aria-label="Resultado da última operação" aria-live="polite">
@@ -61,43 +52,43 @@
     </section>
   }
 
-  <p-table #dt [value]="alunos" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]" [columns]="cols"
+  <div class="app-tabela-rolagem"><p-table appTabelaPadrao #dt [value]="alunos" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]" [columns]="cols"
     [paginator]="true" [loading]="carregando()" [scrollable]="true" [tableStyle]="{ 'min-width': '68rem' }"
     [globalFilterFields]="['id', 'nome', 'cpfCnpj', 'telefone', 'matricula', 'mensalidade', 'faculdade.nome']"
     [(selection)]="selectedAlunos" [rowHover]="true" dataKey="id"
-    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} alunos" [showCurrentPageReport]="true">
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros" [showCurrentPageReport]="true">
     <ng-template #header>
       <tr>
-        <th style="width: 3rem"><p-tableHeaderCheckbox [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria()" /></th>
-        <th pSortableColumn="id">ID <p-sortIcon field="id" /></th>
-        <th pSortableColumn="nome">Nome <p-sortIcon field="nome" /></th>
-        <th>CPF/CNPJ</th><th>Telefone</th><th>Matrícula</th><th>Mensalidade</th><th>Faculdade</th><th>Cadastro</th><th>Ações</th>
+        <th class="app-selecao app-col-centro"><p-tableHeaderCheckbox [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria()" /></th>
+        <th pSortableColumn="id" class="app-col-centro"><span class="app-titulo-coluna">ID <p-sortIcon field="id" /></span></th>
+        <th pSortableColumn="nome" class="app-col-texto"><span class="app-titulo-coluna">Nome <p-sortIcon field="nome" /></span></th>
+        <th class="app-col-centro">CPF/CNPJ</th><th class="app-col-centro">Telefone</th><th class="app-col-centro">Matrícula</th><th class="app-valor app-col-centro">Mensalidade</th><th class="app-col-texto">Faculdade</th><th class="app-col-centro">Cadastro</th><th class="app-col-acoes app-col-centro">Ações</th>
       </tr>
     </ng-template>
     <ng-template #body let-aluno>
       <tr>
-        <td><p-tableCheckbox [value]="aluno" [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria() || aluno.arquivado !== false" /></td>
-        <td>{{ aluno.id }}</td><td class="nome-aluno">{{ aluno.nome }}</td><td>{{ aluno.cpfCnpj || '—' }}</td>
-        <td>{{ aluno.telefone || '—' }}</td><td>{{ aluno.matricula || '—' }}</td>
-        <td>{{ aluno.mensalidade != null ? (aluno.mensalidade | currency: 'BRL' : 'symbol') : 'Não informada' }}</td>
-        <td>{{ aluno.faculdade?.nome || 'Não vinculada' }}</td>
-        <td><p-tag [value]="aluno.arquivado === true ? 'Arquivado' : aluno.arquivado === false ? 'Não arquivado' : 'Não informada'"
+        <td class="app-selecao app-col-centro"><p-tableCheckbox [value]="aluno" [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria() || aluno.arquivado !== false" /></td>
+        <td class="app-col-centro app-dado-compacto">{{ aluno.id }}</td><td class="nome-aluno app-col-texto">{{ aluno.nome }}</td><td class="app-col-centro app-dado-compacto">{{ aluno.cpfCnpj || '—' }}</td>
+        <td class="app-col-centro app-dado-compacto">{{ aluno.telefone || '—' }}</td><td class="app-col-centro app-dado-compacto">{{ aluno.matricula || '—' }}</td>
+        <td class="app-valor app-col-centro app-dado-compacto">{{ aluno.mensalidade != null ? (aluno.mensalidade | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR') : 'Não informada' }}</td>
+        <td class="app-col-texto">{{ aluno.faculdade?.nome || 'Não vinculada' }}</td>
+        <td class="app-col-centro"><p-tag [value]="aluno.arquivado === true ? 'Arquivado' : aluno.arquivado === false ? 'Não arquivado' : 'Não informada'"
           [severity]="aluno.arquivado === true ? 'secondary' : aluno.arquivado === false ? 'info' : 'warn'" /></td>
-        <td>
-          <div class="alunos-acoes acoes-linha">
-            <p-button icon="pi pi-pencil" [ariaLabel]="'Editar aluno ' + aluno.nome" [rounded]="true" [outlined]="true"
-              [disabled]="bloqueado()" (onClick)="editAluno(aluno)" />
+        <td class="app-col-centro app-col-acoes">
+          <div class="app-acoes-linha">
+            <app-acao-tabela severity="primary" icon="pi pi-pencil" [ariaLabel]="'Editar aluno ' + aluno.nome"
+              [disabled]="bloqueado()" (acionar)="editAluno(aluno)" />
             @if (aluno.arquivado === true) {
-              <p-button label="Restaurar" icon="pi pi-history" severity="secondary" [text]="true"
+              <app-acao-tabela severity="secondary" icon="pi pi-history"
                 [ariaLabel]="'Restaurar aluno ' + aluno.nome" [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria()"
-                (onClick)="restaurarAluno(aluno)" />
-              <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true"
+                (acionar)="restaurarAluno(aluno)" />
+              <app-acao-tabela severity="danger" icon="pi pi-trash"
                 [ariaLabel]="'Consultar exclusão definitiva de ' + aluno.nome"
-                [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria()" (onClick)="deleteAluno(aluno)" />
+                [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria()" (acionar)="deleteAluno(aluno)" />
             } @else if (aluno.arquivado === false) {
-              <p-button label="Arquivar" icon="pi pi-inbox" severity="secondary" [text]="true"
+              <app-acao-tabela severity="secondary" icon="pi pi-inbox"
                 [ariaLabel]="'Arquivar aluno ' + aluno.nome" [disabled]="bloqueado() || !contratoDisponivel() || revisaoNecessaria()"
-                (onClick)="arquivarAluno(aluno)" />
+                (acionar)="arquivarAluno(aluno)" />
             }
           </div>
         </td>
@@ -109,7 +100,7 @@
         <p>{{ erroLista() ? 'Não foi possível confirmar esta lista. Confira o aviso e tente atualizar.' : 'Nenhum aluno encontrado nesta lista.' }}</p>
       </div></td></tr>
     </ng-template>
-  </p-table>
+  </p-table></div></section>
 
   <p-dialog [(visible)]="alunoDialog" [style]="{ width: '32rem', maxWidth: 'calc(100vw - 2rem)' }"
     header="Dados do aluno" closeAriaLabel="Fechar dados do aluno" [modal]="true">

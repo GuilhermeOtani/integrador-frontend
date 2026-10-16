@@ -1,5 +1,5 @@
 import { StatusMatricula } from '../../../core/auth/models/auth.models';
-import { StatusFinanceiro } from '../../conta-receber/models/conta-receber';
+import { CobrancaParaPagamento, StatusFinanceiro } from '../../conta-receber/models/conta-receber';
 import { PrioridadeChamado, StatusChamado, StatusOnibus } from '../../manutencao/models/manutencao.models';
 export type DiaSemana = 'SEGUNDA' | 'TERCA' | 'QUARTA' | 'QUINTA' | 'SEXTA';
 export type SituacaoCobranca = 'PAGO' | 'VENCIDA' | 'VENCE_HOJE' | 'A_VENCER' | 'SEM_VENCIMENTO';
@@ -63,7 +63,7 @@ export interface TransporteResumo {
   programacaoSemGrade: ViagemResumo[];
   rotas: RotaResumo[];
 }
-export interface CobrancaResumo {
+export interface CobrancaResumo extends CobrancaParaPagamento {
   id: number;
   descricao: string | null;
   valor: number | null;

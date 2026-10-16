@@ -1,11 +1,9 @@
-<div class="card">
-  <h1 class="text-2xl font-bold mb-2">Manutenção</h1>
-  <p class="mb-5 text-muted-color">Consulte os relatos, responda aos solicitantes e defina a prioridade de atendimento.</p>
-  <p-toolbar styleClass="mb-4">
-    <ng-template #start><span class="font-semibold">Chamados de manutenção</span></ng-template>
-    <ng-template #end><p-button label="Atualizar" icon="pi pi-refresh" [outlined]="true" [disabled]="carregando()" (onClick)="carregar(); carregarOnibus()" /></ng-template>
-  </p-toolbar>
-  <form [formGroup]="filtros" (ngSubmit)="aplicar()" class="filtros">
+<div class="app-listagem">
+  <header class="app-cabecalho"><div><h1>Manutenção</h1>
+  <p>Consulte os relatos, responda aos solicitantes e defina a prioridade de atendimento.</p></div><div class="app-acoes"><p-button severity="secondary" label="Atualizar" icon="pi pi-refresh" [outlined]="true" [disabled]="carregando()" (onClick)="carregar(); carregarOnibus()" /></div></header>
+
+  <section class="app-tabela-painel">
+<form [formGroup]="filtros" (ngSubmit)="aplicar()" class="filtros">
     <div class="filtro"><label for="filtroAndamento">Andamento</label><p-select inputId="filtroAndamento" formControlName="status" [options]="estados" optionLabel="label" optionValue="value" placeholder="Todos" [showClear]="true" [fluid]="true" /></div>
     <div class="filtro"><label for="filtroPrioridade">Prioridade</label><p-select inputId="filtroPrioridade" formControlName="urgencia" [options]="prioridades" optionLabel="label" optionValue="value" placeholder="Todas" [showClear]="true" [fluid]="true" /></div>
     <div class="filtro"><label for="filtroOnibus">Ônibus</label><p-select inputId="filtroOnibus" formControlName="onibusId" [options]="opcoesOnibus()" optionLabel="label" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" filterBy="label" [loading]="carregandoOnibus()" [fluid]="true" /></div>
@@ -13,21 +11,21 @@
   </form>
   @if (erroOnibus()) { <p class="erro" role="alert">{{ erroOnibus() }} Use Atualizar para recarregar as opções de ônibus.</p> }
   @if (erroLista()) { <p class="erro" role="alert">{{ erroLista() }}</p> }
-  <p-table #dt [value]="chamados()" [loading]="carregando()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]" dataKey="id" [globalFilterFields]="camposPesquisa" [tableStyle]="{'min-width':'65rem'}">
-    <ng-template #caption><div class="flex justify-between items-center gap-3 flex-wrap"><span class="font-semibold">{{ chamados().length }} chamado(s)</span><input pInputText type="search" [value]="pesquisaLocal" aria-label="Pesquisar chamados" placeholder="Solicitante, ônibus ou relato..." (input)="pesquisaLocal = $any($event.target).value; dt.filterGlobal(pesquisaLocal, 'contains')" /></div></ng-template>
+  <div class="app-tabela-ferramentas"><span class="font-semibold">{{ chamados().length }} chamado(s)</span><label class="app-campo-pesquisa"><span>Pesquisar chamados</span><input pInputText type="search" [value]="pesquisaLocal" aria-label="Pesquisar chamados" placeholder="Solicitante, ônibus ou relato..." (input)="pesquisaLocal = $any($event.target).value; dt.filterGlobal(pesquisaLocal, 'contains')" /></label></div><div class="app-tabela-rolagem"><p-table appTabelaPadrao #dt [value]="chamados()" [loading]="carregando()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]" dataKey="id" [globalFilterFields]="camposPesquisa" [tableStyle]="{'min-width':'65rem'}">
+
     <ng-template #header><tr>
-      <th pSortableColumn="id">Nº <p-sortIcon field="id" /></th><th>Ônibus</th>
-      <th pSortableColumn="solicitante.nome">Solicitante <p-sortIcon field="solicitante.nome" /></th>
-      <th pSortableColumn="dataAbertura">Abertura <p-sortIcon field="dataAbertura" /></th><th>Prioridade</th><th>Andamento</th><th>Ações</th>
+      <th pSortableColumn="id" class="app-col-centro"><span class="app-titulo-coluna">Nº <p-sortIcon field="id" /></span></th><th class="app-col-centro">Ônibus</th>
+      <th pSortableColumn="solicitante.nome" class="app-col-texto"><span class="app-titulo-coluna">Solicitante <p-sortIcon field="solicitante.nome" /></span></th>
+      <th pSortableColumn="dataAbertura" class="app-col-centro"><span class="app-titulo-coluna">Abertura <p-sortIcon field="dataAbertura" /></span></th><th class="app-col-centro">Prioridade</th><th class="app-col-centro">Andamento</th><th class="app-col-acoes app-col-centro">Ações</th>
     </tr></ng-template>
     <ng-template #body let-c><tr>
-      <td>{{ c.id }}</td><td>{{ rotuloOnibus(c.onibus) }}</td><td>{{ c.solicitante.nome }}<small class="block text-muted-color">{{ papel(c.solicitante.tipoPessoa) }}</small></td>
-      <td>{{ c.dataAbertura | date:'dd/MM/yyyy':'UTC' }}</td><td><p-tag [value]="prioridade(c.urgencia)" [severity]="corPrioridade(c.urgencia)" /></td>
-      <td><p-tag [value]="andamento(c.status)" [severity]="corAndamento(c.status)" /></td>
-      <td><p-button label="Atender" icon="pi pi-wrench" [outlined]="true" [disabled]="abrindo() || salvando()" (onClick)="atender(c.id)" /></td>
+      <td class="app-col-centro app-dado-compacto">{{ c.id }}</td><td class="app-col-centro app-dado-compacto">{{ rotuloOnibus(c.onibus) }}</td><td class="app-col-texto">{{ c.solicitante.nome }}<small class="block text-muted-color">{{ papel(c.solicitante.tipoPessoa) }}</small></td>
+      <td class="app-col-centro app-dado-compacto">{{ c.dataAbertura | date:'dd/MM/yyyy':'UTC' }}</td><td class="app-col-centro"><p-tag [value]="prioridade(c.urgencia)" [severity]="corPrioridade(c.urgencia)" /></td>
+      <td class="app-col-centro"><p-tag [value]="andamento(c.status)" [severity]="corAndamento(c.status)" /></td>
+      <td class="app-col-centro app-col-acoes"><app-acao-tabela severity="info" [ariaLabel]="'Atender chamado ' + c.id" icon="pi pi-wrench" [disabled]="abrindo() || salvando()" (acionar)="atender(c.id)" /></td>
     </tr></ng-template>
-    <ng-template #emptymessage><tr><td colspan="7" class="text-center p-6">{{ carregando() ? 'Carregando chamados...' : erroLista() ? 'Falha na consulta. Clique em Atualizar para tentar novamente.' : 'Nenhum chamado encontrado para os filtros informados.' }}</td></tr></ng-template>
-  </p-table>
+    <ng-template #emptymessage><tr><td colspan="7" class=" p-6">{{ carregando() ? 'Carregando chamados...' : erroLista() ? 'Falha na consulta. Clique em Atualizar para tentar novamente.' : 'Nenhum chamado encontrado para os filtros informados.' }}</td></tr></ng-template>
+  </p-table></div></section>
 </div>
 
 <p-dialog header="Atender chamado" closeAriaLabel="Fechar atendimento" [(visible)]="dialogoAberto" [modal]="true" [draggable]="false"

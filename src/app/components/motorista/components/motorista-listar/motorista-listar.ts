@@ -1,3 +1,6 @@
+import { EstadoLista } from '../../../../shared/ui/tabelas/estado-lista';
+import { TabelaPadrao } from '../../../../shared/ui/tabelas/tabela-padrao';
+import { AcaoTabela } from '../../../../shared/ui/tabelas/acao-tabela';
 import { Component, inject } from '@angular/core';
 import { mensagemApi } from '../../../../core/auth/utils/api-error';
 import { FormsModule } from '@angular/forms';
@@ -16,7 +19,6 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { ToolbarModule } from 'primeng/toolbar';
 import { MotoristaService } from '../../service/motorista-service';
 import { CommonModule } from '@angular/common';
 import { ViewChild } from '@angular/core';
@@ -28,7 +30,7 @@ import { OnibusService } from '../../../onibus/service/onibus-service';
 @Component({
   standalone: true,
   selector: 'app-motorista-listar',
-  imports: [
+  imports: [TabelaPadrao, AcaoTabela,
     CommonModule,
     ButtonModule,
     ConfirmDialogModule,
@@ -43,7 +45,7 @@ import { OnibusService } from '../../../onibus/service/onibus-service';
     TableModule,
     TagModule,
     ToastModule,
-    ToolbarModule,
+
     InputTextModule,
     FormsModule,
     MotoristaCadastro,
@@ -53,6 +55,7 @@ import { OnibusService } from '../../../onibus/service/onibus-service';
   styleUrl: './motorista-listar.css',
 })
 export class MotoristaListar {
+  readonly estadoLista = new EstadoLista();
   private motoristaService = inject(MotoristaService);
   private onibusService = inject(OnibusService);
   private messageService = inject(MessageService);
@@ -98,15 +101,13 @@ export class MotoristaListar {
   }
 
   carregarMotoristas() {
-    this.motoristaService.listarMotoristas().subscribe({
+    this.estadoLista.acompanhar(this.motoristaService.listarMotoristas()).subscribe({
       next: (data) => {
         this.motoristas = data;
       },
       error: (err) => console.error('Erro ao carregar motoristas:', err),
     });
   }
-
- 
 
   editMotorista(motorista: motorista) {
     this.motorista = { ...motorista };

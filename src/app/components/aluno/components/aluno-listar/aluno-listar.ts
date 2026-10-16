@@ -1,3 +1,5 @@
+import { TabelaPadrao } from '../../../../shared/ui/tabelas/tabela-padrao';
+import { AcaoTabela } from '../../../../shared/ui/tabelas/acao-tabela';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, signal, ViewChild } from '@angular/core';
@@ -15,7 +17,6 @@ import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { ToolbarModule } from 'primeng/toolbar';
 import { mensagemApi } from '../../../../core/auth/utils/api-error';
 import { FaculdadeService } from '../../../faculdade/service/faculdade-service';
 import Aluno, { SituacaoExclusaoAluno, SituacaoListaAluno, VinculosAluno } from '../../models/aluno';
@@ -34,9 +35,9 @@ interface ResultadoArquivamento {
 @Component({
   standalone: true,
   selector: 'app-aluno-listar',
-  imports: [CommonModule, FormsModule, ButtonModule, DialogModule, IconFieldModule,
+  imports: [TabelaPadrao, AcaoTabela, CommonModule, FormsModule, ButtonModule, DialogModule, IconFieldModule,
     InputIconModule, InputTextModule, MessageModule, SelectModule, TableModule,
-    TagModule, ToastModule, ToolbarModule, AlunoCadastro],
+    TagModule, ToastModule, AlunoCadastro],
   providers: [AlunoService, MessageService],
   templateUrl: './aluno-listar.html',
   styleUrl: './aluno-listar.css',

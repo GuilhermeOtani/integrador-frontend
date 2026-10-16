@@ -1,3 +1,6 @@
+import { EstadoLista } from '../../../../shared/ui/tabelas/estado-lista';
+import { TabelaPadrao } from '../../../../shared/ui/tabelas/tabela-padrao';
+import { AcaoTabela } from '../../../../shared/ui/tabelas/acao-tabela';
 import { Component, computed, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -17,19 +20,16 @@ import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { ToolbarModule } from 'primeng/toolbar';
-
 import GradeDiaria from '../../models/grade-diaria';
 import { GradeDiariaService } from '../../service/grade-diaria-service';
-import { GradeDiariaCadastro } from '../grade-diaria-cadastro/grade-diaria-cadastro'; 
-import { TooltipModule } from 'primeng/tooltip';
+import { GradeDiariaCadastro } from '../grade-diaria-cadastro/grade-diaria-cadastro';
 import { BadgeModule } from 'primeng/badge';
 import { AuthService } from '../../../../core/auth/service/auth.service';
 
 @Component({
   standalone: true,
   selector: 'app-grade-diaria-listar',
-  imports: [
+  imports: [TabelaPadrao, AcaoTabela,
     CommonModule,
     RouterLink,
     ButtonModule,
@@ -45,26 +45,27 @@ import { AuthService } from '../../../../core/auth/service/auth.service';
     TableModule,
     TagModule,
     ToastModule,
-    ToolbarModule,
+
     InputTextModule,
     FormsModule,
     GradeDiariaCadastro,
-    TooltipModule,
+
     BadgeModule,
   ],
   providers: [GradeDiariaService, MessageService, ConfirmationService],
   templateUrl: './grade-diaria-listar.html',
-  styleUrl: './grade-diaria-listar.css', 
+  styleUrl: './grade-diaria-listar.css',
 })
 export class GradeDiariaListar implements OnInit {
+  readonly estadoLista = new EstadoLista();
   private gradeDiariaService = inject(GradeDiariaService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   private readonly auth = inject(AuthService);
   readonly podeEditar = computed(() => this.auth.temPapel('ADMIN'));
-  
+
   gradeDialog: boolean = false;
-  
+
   detalhesDialog: boolean = false;
   gradeSelecionadaParaDetalhes: GradeDiaria | null = null;
 
@@ -72,7 +73,7 @@ export class GradeDiariaListar implements OnInit {
   grade: GradeDiaria = new GradeDiaria();
   selectedGrade: GradeDiaria[] | null = null;
   submitted: boolean = false;
-  
+
   cols!: Column[];
   exportColumns!: ExportColumn[];
   @ViewChild('dt') dt!: Table;
@@ -88,7 +89,6 @@ export class GradeDiariaListar implements OnInit {
     this.exportColumns = this.cols.map((col) => ({ title: col.header, dataKey: col.field }));
   }
 
-  
   exportCSV() {
     this.dt.exportCSV();
   }
@@ -106,15 +106,15 @@ export class GradeDiariaListar implements OnInit {
   }
 
   carregarGrades() {
-    this.gradeDiariaService.listarTodasGrades().subscribe({
+    this.estadoLista.acompanhar(this.gradeDiariaService.listarTodasGrades()).subscribe({
       next: (data) => {
         this.grades = data;
-        
+
         console.log("DADOS RECEBIDOS DO BACKEND:", data);
         if(data.length > 0 && data[0].viagens) {
            console.log("VIAGENS DA PRIMEIRA GRADE:", data[0].viagens);
         }
-        
+
       },
       error: (err) => console.error('Erro ao carregar grades diárias:', err),
     });

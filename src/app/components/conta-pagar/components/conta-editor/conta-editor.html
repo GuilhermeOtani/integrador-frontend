@@ -1,0 +1,21 @@
+<p-dialog [header]="contaId() === null ? 'Nova conta a pagar' : 'Editar conta a pagar'" closeAriaLabel="Fechar cadastro de conta" [(visible)]="visivel" (onHide)="fechar()" [modal]="true" [draggable]="false" [resizable]="false" [closable]="!salvando()" [closeOnEscape]="!salvando()" [style]="{width:'min(95vw, 44rem)'}">
+  @if (carregando()) { <p role="status">Consultando conta e comprovantes…</p> }
+  @if (erro()) { <p-message severity="error" role="alert">{{ erro() }}</p-message> }
+  @if (aviso()) { <p-message severity="warn" role="alert">{{ aviso() }}</p-message> }
+  @if (erroOpcoes()) { <p-message severity="warn">Não foi possível carregar todos os beneficiários. {{ erroOpcoes() }}</p-message><p-button label="Atualizar beneficiários" severity="secondary" [text]="true" (onClick)="carregarOpcoes()" [disabled]="salvando()" /> }
+  @if (!pronto() && !carregando()) { <p-button label="Tentar carregar conta" icon="pi pi-refresh" (onClick)="carregar()" /> }
+  @if (pronto()) {
+    <form class="formulario filtros" [formGroup]="form" (ngSubmit)="salvar()">
+      <div class="campo amplo"><label for="conta-descricao">Descrição</label><input pInputText id="conta-descricao" formControlName="descricao" /></div>
+      <div class="campo"><label for="conta-classificacao">Classificação</label><p-select inputId="conta-classificacao" formControlName="classificacao" [options]="classificacoes" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" /></div>
+      <div class="campo"><label for="conta-competencia">Competência</label><input pInputText id="conta-competencia" type="month" formControlName="competencia" /></div>
+      <div class="campo"><label for="conta-vencimento">Vencimento</label><input pInputText id="conta-vencimento" type="date" formControlName="dataVencimento" /></div>
+      <div class="campo"><label for="conta-valor">Valor original</label><p-inputnumber inputId="conta-valor" formControlName="valor" mode="decimal" locale="pt-BR" [minFractionDigits]="2" [maxFractionDigits]="2" [fluid]="true" /></div>
+      <div class="campo amplo"><label for="conta-beneficiario">Beneficiário {{ form.controls.classificacao.value === 'SALARIO' ? '(motorista obrigatório)' : '(opcional)' }}</label><p-select inputId="conta-beneficiario" formControlName="beneficiarioId" [options]="opcoes()" optionLabel="label" optionValue="id" [filter]="true" [showClear]="true" placeholder="Sem beneficiário" [loading]="carregandoOpcoes()" [fluid]="true" appendTo="body" /></div>
+      @if (protegido()) { <p-message severity="info" class="amplo">Esta conta possui comprovantes ou quitação histórica. Valor e beneficiário não podem ser alterados.</p-message> }
+      @if (form.controls.classificacao.value === 'SALARIO') { <p class="amplo muted">A recorrência salarial é mensal e controlada pelo servidor. O dia original é preservado: dia 31 ajusta fevereiro e retorna ao dia 31 nos meses compatíveis. Não é permitido salário duplicado para motorista e competência.</p> }
+      @if (validacao()) { <small class="amplo">{{ validacao() }}</small> }
+    </form>
+  }
+  <ng-template #footer><p-button label="Cancelar" icon="pi pi-times" severity="secondary" [text]="true" [disabled]="salvando()" (onClick)="fechar()" /><p-button label="Salvar conta" icon="pi pi-check" [loading]="salvando()" [disabled]="!pronto() || carregando() || carregandoOpcoes() || !!validacao()" (onClick)="salvar()" /></ng-template>
+</p-dialog>

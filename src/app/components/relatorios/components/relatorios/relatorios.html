@@ -1,0 +1,74 @@
+<section class="financeiro app-listagem">
+  <header class="app-cabecalho"><h1>Relatórios financeiros</h1><p class="muted">Consulte a posição financeira e baixe os demonstrativos gerados pelo servidor.</p></header>
+  <form class="app-tabela-painel filtros" [formGroup]="form" (ngSubmit)="consultar()">
+    <div class="campo amplo"><label for="relatorio-tipo">Relatório</label><p-select inputId="relatorio-tipo" formControlName="tipo" [options]="tipos" optionLabel="label" optionValue="value" [fluid]="true" /></div>
+    @switch (tipo()) {
+      @case ('inadimplencia') {
+        <div class="campo"><label for="relatorio-aluno">Aluno (opcional)</label><p-select inputId="relatorio-aluno" formControlName="alunoId" [options]="alunos()" optionLabel="label" optionValue="id" placeholder="Todos os alunos" [filter]="true" filterBy="label" [showClear]="true" [loading]="carregandoAlunos()" [fluid]="true" /></div>
+        <div class="campo"><label for="vencimento-inicio">Vencimento inicial</label><input pInputText type="date" id="vencimento-inicio" formControlName="vencimentoInicio" /></div>
+        <div class="campo"><label for="vencimento-fim">Vencimento final</label><input pInputText type="date" id="vencimento-fim" formControlName="vencimentoFim" /></div>
+
+        @if (erroAlunos()) { <div class="amplo"><p-message severity="warn">{{ erroAlunos() }} A consulta geral continua disponível.</p-message><p-button label="Tentar carregar alunos" severity="secondary" [text]="true" [disabled]="carregando() || baixando()" (onClick)="carregarAlunos()" /></div> }
+      }
+      @case ('fluxo-caixa') {
+        <div class="campo"><label for="fluxo-inicio">Data inicial</label><input pInputText type="date" id="fluxo-inicio" formControlName="dataInicio" [min]="saldo()?.dataReferencia || ''" /></div>
+        <div class="campo"><label for="fluxo-fim">Data final</label><input pInputText type="date" id="fluxo-fim" formControlName="dataFim" /></div>
+
+      }
+      @case ('acerto-motoristas') {
+        <div class="campo"><label for="acerto-mes">Competência</label><input pInputText type="month" id="acerto-mes" formControlName="mes" /></div>
+        <div class="campo"><label for="relatorio-motorista">Motorista (opcional)</label><p-select inputId="relatorio-motorista" formControlName="motoristaId" [options]="motoristas()" optionLabel="label" optionValue="id" placeholder="Todos os motoristas" [filter]="true" filterBy="label" [showClear]="true" [loading]="carregandoMotoristas()" [fluid]="true" /></div>
+
+        @if (erroMotoristas()) { <div class="amplo"><p-message severity="warn">{{ erroMotoristas() }} A consulta geral continua disponível.</p-message><p-button label="Tentar carregar motoristas" severity="secondary" [text]="true" [disabled]="carregando() || baixando()" (onClick)="carregarMotoristas()" /></div> }
+      }
+    }
+    <div class="acoes amplo"><p-button type="submit" label="Consultar" icon="pi pi-search" [loading]="carregando()" [disabled]="carregando() || baixando() || !!validacao()" />
+      <p-button type="button" label="Baixar PDF" icon="pi pi-file-pdf" severity="secondary" [outlined]="true" [loading]="baixando()" [disabled]="carregando() || baixando() || !!validacao()" (onClick)="baixar()" /></div>
+    @if (validacao()) { <small class="amplo">{{ validacao() }}</small> }
+  </form>
+  @if (tipo() === 'fluxo-caixa') { <app-saldo-base [bloqueado]="carregando() || baixando()" (carregado)="saldoCarregado($event)" (salvo)="saldoSalvo()" /> }
+  @if (erro()) { <p-message severity="error" role="alert">{{ erro() }}</p-message> }
+  @if (aviso()) { <p-message severity="info" role="status">{{ aviso() }}</p-message> }
+  @if (carregando()) { <p class="painel" role="status">Consultando relatório…</p> }
+  @if (resultado(); as resultado) {
+    <div class="consulta-referencia"><span>Posição: {{ dia(resultado.dados.dataReferencia) }}</span><span>Emitido em {{ emissao(resultado.dados.geradoEm) }} · São Paulo</span></div>
+
+    <div class="avisos">@for (a of resultado.dados.avisos; track $index) { <p-message severity="warn">{{ a }}</p-message> }</div>
+    @switch (resultado.tipo) {
+      @case ('inadimplencia') {
+        <div class="resumos"><div class="resumo"><span>Alunos com débitos</span><strong>{{ resultado.dados.alunos.length }}</strong></div><div class="resumo"><span>Cobranças vencidas</span><strong>{{ resultado.dados.quantidadeCobrancas }}</strong></div><div class="resumo destaque"><span>Total em aberto</span><strong>{{ moeda(resultado.dados.totalGeral) }}</strong></div></div>
+        @for (aluno of resultado.dados.alunos; track aluno.alunoId) {
+          <section class="app-tabela-painel"><div class="titulo-grupo"><h2>{{ texto(aluno.nome) }} <small>· #{{ aluno.alunoId }}</small></h2>@if (aluno.arquivado) { <p-tag value="Arquivado" severity="secondary" /> }</div>
+            <p class="muted">Matrícula: {{ texto(aluno.matricula) }} · Telefone: {{ texto(aluno.telefone) }}</p>
+            <div class="app-tabela-rolagem"><p-table appTabelaPadrao [value]="aluno.cobrancas" dataKey="contaId" [rowHover]="true" [tableStyle]="{'min-width':'40rem'}">
+              <ng-template #header><tr><th class="app-col-texto">Conta / descrição</th><th class="app-col-centro">Competência</th><th class="app-col-centro">Vencimento</th><th class="app-col-centro">Dias de atraso</th><th class="valor app-col-centro">Original</th><th class="valor app-col-centro">Recebido</th><th class="valor app-col-centro">Em aberto</th></tr></ng-template>
+              <ng-template #body let-c><tr><td class="descricao app-col-texto">#{{ c.contaId }} · {{ texto(c.descricao) }} @if (c.recebimentoParcial) { <p-tag value="Parcial" severity="info" /> }<ul class="lista-avisos">@for (a of c.avisos; track $index) { <li>{{ avisoConta(a) }}</li> }</ul></td><td class="app-col-centro app-dado-compacto">{{ texto(c.competencia) }}</td><td class="app-col-centro app-dado-compacto">{{ dia(c.vencimento) }}</td><td class="app-col-centro app-dado-compacto">{{ c.diasAtraso }}</td><td class="valor app-col-centro app-dado-compacto">{{ moeda(c.valor) }}</td><td class="valor app-col-centro app-dado-compacto">{{ moeda(c.valorRecebido) }}</td><td class="valor app-col-centro"><strong>{{ moeda(c.saldoRestante) }}</strong></td></tr></ng-template>
+            </p-table></div><p class="total-grupo">Total do aluno: {{ moeda(aluno.total) }}</p>
+          </section>
+        } @empty { <div class="painel vazio"><i class="pi pi-check-circle" aria-hidden="true"></i>Nenhuma mensalidade vencida e não paga para os filtros selecionados.</div> }
+      }
+      @case ('fluxo-caixa') {
+        <div class="resumos"><div class="resumo"><span>Saldo inicial</span><strong>{{ moeda(resultado.dados.saldoInicial) }}</strong></div><div class="resumo"><span>Entradas</span><strong class="entrada">{{ moeda(resultado.dados.totalEntradas) }}</strong></div><div class="resumo"><span>Saídas</span><strong class="saida">{{ moeda(resultado.dados.totalSaidas) }}</strong></div><div class="resumo destaque"><span>Saldo final</span><strong>{{ moeda(resultado.dados.saldoFinal) }}</strong></div></div>
+        <section class="app-tabela-painel"><h2>Movimentações de {{ dia(resultado.dados.dataInicio) }} a {{ dia(resultado.dados.dataFim) }}</h2>
+          <p class="muted">Base em {{ dia(resultado.dados.saldoBase.dataReferencia) }}: {{ moeda(resultado.dados.saldoBase.saldo) }}. Ordem contábil preservada conforme o servidor.</p>
+          <div class="app-tabela-rolagem"><p-table appTabelaPadrao styleClass="movimentos" [value]="resultado.dados.movimentos" [rowTrackBy]="chaveMovimento" [rowHover]="true" [tableStyle]="{'min-width':'65rem'}">
+            <ng-template #header><tr><th class="app-col-centro">Data</th><th class="app-col-centro">Tipo</th><th class="app-col-texto">Descrição</th><th class="app-col-texto">Pessoa</th><th class="valor app-col-centro">Entrada</th><th class="valor app-col-centro">Saída</th><th class="valor app-col-centro">Saldo</th></tr></ng-template>
+            <ng-template #body let-m><tr><td class="app-col-centro app-dado-compacto">{{ dia(m.data) }}</td><td class="app-col-centro"><p-tag [value]="m.tipo === 'ENTRADA' ? 'Entrada' : 'Saída'" [severity]="m.tipo === 'ENTRADA' ? 'success' : 'warn'" /></td><td class="descricao app-col-texto">{{ texto(m.descricao) }}<small class="aviso-linha">{{ m.tipo === 'ENTRADA' ? 'Recebimento' : 'Pagamento' }} #{{ m.id }} · Conta {{ m.contaId ?? 'não informada' }}</small></td><td class="app-col-texto">{{ texto(m.pessoa) }}</td><td class="valor entrada app-col-centro app-dado-compacto">{{ m.tipo === 'ENTRADA' ? moeda(m.valor) : '—' }}</td><td class="valor saida app-col-centro app-dado-compacto">{{ m.tipo === 'SAIDA' ? moeda(m.valor) : '—' }}</td><td class="valor app-col-centro app-dado-compacto">{{ moeda(m.saldoAcumulado) }}</td></tr></ng-template>
+            <ng-template #emptymessage><tr><td colspan="7" class="vazio">Nenhuma movimentação no período selecionado.</td></tr></ng-template>
+          </p-table></div>
+        </section>
+      }
+      @case ('acerto-motoristas') {
+        <div class="resumos"><div class="resumo"><span>Total previsto · {{ resultado.dados.mes }}</span><strong>{{ moeda(resultado.dados.totalPrevisto) }}</strong></div><div class="resumo"><span>Total pago</span><strong>{{ moeda(resultado.dados.totalPago) }}</strong></div><div class="resumo destaque"><span>Saldo a pagar</span><strong>{{ moeda(resultado.dados.saldoAPagar) }}</strong></div></div>
+        @for (m of resultado.dados.motoristas; track m.motoristaId) {
+          <section class="app-tabela-painel"><h2>{{ texto(m.nome) }} <small>· Motorista #{{ m.motoristaId }}</small></h2><p class="muted">Salários: {{ moeda(m.totalSalarios) }} · Despesas: {{ moeda(m.totalDespesas) }}</p>
+            <div class="app-tabela-rolagem"><p-table appTabelaPadrao [value]="m.lancamentos" dataKey="contaId" [rowHover]="true" [tableStyle]="{'min-width':'58rem'}"><ng-template #header><tr><th class="app-col-texto">Descrição</th><th class="app-col-centro">Classificação / competência</th><th class="app-col-centro">Vencimento</th><th class="valor app-col-centro">Previsto</th><th class="valor app-col-centro">Pago</th><th class="valor app-col-centro">Saldo</th></tr></ng-template>
+              <ng-template #body let-l><tr><td class="descricao app-col-texto">#{{ l.contaId }} · {{ texto(l.descricao) }}<ul class="lista-avisos">@for (a of l.avisos; track $index) { <li>{{ avisoConta(a) }}</li> }</ul></td><td class="app-col-centro">{{ l.classificacao === 'SALARIO' ? 'Salário' : 'Despesa' }} · {{ l.competencia }} @if (l.pagamentoParcial) { <p-tag value="Parcial" severity="info" /> }</td><td class="app-col-centro app-dado-compacto">{{ dia(l.vencimento) }}</td><td class="valor app-col-centro app-dado-compacto">{{ moeda(l.valor) }}</td><td class="valor app-col-centro app-dado-compacto">{{ moeda(l.valorPago) }}</td><td class="valor app-col-centro app-dado-compacto">{{ moeda(l.saldoRestante) }}</td></tr></ng-template>
+            </p-table></div><p class="total-grupo">Previsto: {{ moeda(m.totalPrevisto) }} · Pago: {{ moeda(m.totalPago) }} · Saldo a pagar: {{ moeda(m.saldoAPagar) }}</p>
+          </section>
+        } @empty { <div class="painel vazio"><i class="pi pi-inbox" aria-hidden="true"></i>Nenhum lançamento de motorista na competência selecionada.</div> }
+
+      }
+    }
+  } @else if (!carregando()) { <div class="painel vazio"><i class="pi pi-file-pdf" aria-hidden="true"></i>Escolha os filtros e clique em Consultar. O PDF também pode ser baixado diretamente com filtros válidos.</div> }
+</section>

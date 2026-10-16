@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-6 pt-2 px-2">
-  
+
   <div class="rounded-lg p-4 grid grid-cols-1 md:grid-cols-3 gap-4 border border-gray-400 dark:border-gray-700">
-    
+
     <div>
       <label class="block font-semibold mb-2 text-sm text-color">Dia da Semana</label>
       <p-select [options]="listaDiasSemana" [(ngModel)]="grade.diaSemana" optionLabel="label" optionValue="value" placeholder="Selecione..." [fluid]="true" appendTo="body"></p-select>
@@ -20,7 +20,6 @@
       <p class="text-sm text-gray-500 mb-4">Adicione os veículos, motoristas e as faculdades que farão parte desta grade.</p>
     </div>
 
-    
     <div class="flex flex-col lg:flex-row items-end gap-3 w-full mb-4">
       <div class="flex-1 w-full">
         <label class="block font-semibold mb-1 text-xs text-gray-400">Rota</label>
@@ -48,32 +47,25 @@
     </div>
 
     <div class="mt-2" *ngIf="grade.viagens && grade.viagens.length > 0">
-      <p-table [value]="grade.viagens" styleClass="p-datatable-sm p-datatable-striped">
+      <div class="app-tabela-rolagem"><p-table appTabelaPadrao [value]="grade.viagens" [tableStyle]="{'min-width':'40rem'}">
         <ng-template pTemplate="header">
-            <ng-template pTemplate="emptymessage">
+
           <tr>
-            <td colspan="5" class="text-center p-6 text-gray-400 border-dashed border-2 border-gray-700 rounded-lg">
-              <i class="pi pi-map text-2xl mb-2 block"></i>
-              Nenhuma viagem adicionada ainda. Preencha os campos acima e clique em "Adicionar".
-            </td>
-          </tr>
-        </ng-template>
-          <tr>
-            <th>Rota</th>
-            <th>Ônibus</th>
-            <th>Motorista</th>
-            <th>Faculdades Atendidas</th>
-            <th style="width: 4rem" class="text-center"><i class="pi pi-cog"></i></th>
+            <th class="app-col-texto">Rota</th>
+            <th class="app-col-centro">Ônibus</th>
+            <th class="app-col-texto">Motorista</th>
+            <th class="app-col-texto">Faculdades Atendidas</th>
+            <th style="width: 4rem" class="app-col-centro app-col-acoes"><i class="pi pi-cog"></i></th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-viagem let-i="rowIndex">
           <tr>
-            <td class="font-medium text-color">{{ viagem.rotaNome }}</td>
-            <td class="text-color">{{ viagem.onibusPlaca || viagem.numeroIdentificacao }}
+            <td class="font-medium text-color app-col-texto">{{ viagem.rotaNome }}</td>
+            <td class="text-color app-col-centro">{{ viagem.onibusPlaca || viagem.numeroIdentificacao }}
               <small *ngIf="avisoOnibus(viagem)" class="block text-orange-500">{{ avisoOnibus(viagem) }}</small>
             </td>
-            <td class="text-color">{{ viagem.motoristaNome }}</td>
-            <td>
+            <td class="text-color app-col-texto">{{ viagem.motoristaNome }}</td>
+            <td class="app-col-texto">
               <div class="flex gap-1 flex-wrap items-center">
                 <ng-container *ngIf="viagem.faculdades && viagem.faculdades.length > 0; else semFaculCadastro">
                   <p-tag *ngFor="let faculdade of viagem.faculdades" [value]="extrairNomeFaculdade(faculdade)" severity="info"></p-tag>
@@ -83,12 +75,20 @@
                 </ng-template>
               </div>
             </td>
-            <td class="text-center">
-              <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" [disabled]="salvando" (onClick)="removerViagem(i)"></p-button>
+            <td class="app-col-acoes app-col-centro">
+              <app-acao-tabela severity="danger" [ariaLabel]="'Remover viagem ' + (i + 1)" icon="pi pi-trash" [disabled]="salvando" (acionar)="removerViagem(i)"></app-acao-tabela>
             </td>
           </tr>
         </ng-template>
-      </p-table>
+      <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class=" p-6 text-gray-400 border-dashed border-2 border-gray-700 rounded-lg">
+              <i class="pi pi-map text-2xl mb-2 block"></i>
+              Nenhuma viagem adicionada ainda. Preencha os campos acima e clique em "Adicionar".
+            </td>
+          </tr>
+        </ng-template>
+</p-table></div>
     </div>
   </div>
 

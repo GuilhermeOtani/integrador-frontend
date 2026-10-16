@@ -24,7 +24,7 @@ p { margin: .65rem 0; overflow-wrap: anywhere; }
 .pesquisa { display: grid; gap: .5rem; margin-top: 1rem; } .pesquisa input { width: min(100%, 36rem); }
 .envio-acoes { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--p-content-border-color); }
 .vazio { text-align: center; padding: 1.5rem; } .vazio > i { font-size: 2rem; color: var(--p-primary-color); margin-bottom: 1rem; }
-.tabela { overflow-x: auto; min-width: 0; } small { display: block; margin-top: .35rem; }
+small { display: block; margin-top: .35rem; }
 .totais-linha { display: flex; flex-direction: column; gap: .3rem; }
 .hero { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: .85rem; background: color-mix(in srgb, var(--p-primary-color) 10%, transparent); }
 .hero > i { font-size: 1.8rem; color: var(--p-primary-color); } .hero strong { font-size: 1.2rem; } .hero p { margin-bottom: 0; color: var(--p-text-muted-color); }

@@ -1,3 +1,19 @@
+@if (pendente(); as i) {
+  <section class="painel financeiro" aria-label="Confirmação pendente">
+    <p-message severity="warn">{{ i.estado === 'REGISTRADA' ? 'Pagamento registrado. Atualize os dados antes de iniciar outro pagamento.' : 'Há uma confirmação incerta. Não inicie outro pagamento antes de conferir.' }} Conta #{{ i.contaId }} · {{ i.formaPagamento }} · {{ i.valorPago === undefined ? 'Saldo integral da intenção original' : moeda(i.valorPago) }}</p-message>
+    @if (erroPagamento()) { <p-message severity="error">{{ erroPagamento() }}</p-message> }
+    <div class="acoes">
+      @if (i.estado === 'INCERTA') { <p-button label="Repetir confirmação" icon="pi pi-replay" [disabled]="pagando() || consultando()" [loading]="pagando()" (onClick)="repetirConfirmacao()" /> }
+      <p-button label="Conferir / atualizar dados" icon="pi pi-refresh" severity="secondary" [loading]="consultando()" [disabled]="pagando() || consultando()" (onClick)="atualizarAposFalha()" />
+    </div>
+    @if (i.estado === 'INCERTA' && conferido()) {
+      <p class="muted">Confira os recibos e a posição atual. Abandonar esta chave não cancela uma requisição já recebida pelo servidor. Em caso de dúvida, procure a administração.</p>
+      <p-button label="Conferi o histórico e quero abandonar esta intenção" severity="danger" [text]="true" [disabled]="pagando() || consultando()" (onClick)="abandonarAposConferencia()" />
+    }
+  </section>
+}
+@if (armazenamentoBloqueado()) { <p-message severity="error">Armazenamento da confirmação indisponível ou inválido. Pagamentos bloqueados por segurança. Confira com a administração antes de limpar os dados deste navegador.</p-message> }
+@if (!contaSelecionada() && !pendente() && erroPagamento()) { <p-message severity="error" role="alert">{{ erroPagamento() }}</p-message> }
 <p-dialog
   header="Confirmar Transação"
   [visible]="contaSelecionada() !== null"
@@ -6,9 +22,9 @@
   [style]="{ width: '450px', 'max-width': '95vw' }"
   [draggable]="false"
   [resizable]="false"
-  [closable]="!pagando()"
-  [closeOnEscape]="!pagando()"
-  [dismissableMask]="!pagando()"
+  [closable]="!pagando() && !consultando()"
+  [closeOnEscape]="!pagando() && !consultando()"
+  [dismissableMask]="false"
 >
   @if (contaSelecionada(); as conta) {
     <div class="flex flex-col gap-4 pt-2">
@@ -24,14 +40,16 @@
 
       <div class="p-4 rounded-xl border border-gray-700 bg-gray-800/30 flex flex-col gap-4">
         <div class="flex flex-col gap-2">
-          <label for="valorReceber" class="font-bold text-sm text-gray-400">Valor a Pagar</label>
+          <p>Valor original: {{ moeda(conta.valor) }} · Já recebido: {{ moeda(conta.valorRecebido) }}</p>
+          <p><strong>Saldo restante: {{ moeda(conta.saldoRestante) }}</strong></p>
+          <label for="valorReceber" class="font-bold text-sm text-gray-400">Valor deste pagamento</label>
           <p-inputNumber
             inputId="valorReceber"
-            [ngModel]="conta.valor"
+            [formControl]="valorPago"
             mode="currency"
             currency="BRL"
             locale="pt-BR"
-            [disabled]="true"
+            [min]="0.01" [max]="conta.saldoRestante" [minFractionDigits]="2" [maxFractionDigits]="2"
             [style]="{ width: '100%' }"
           />
         </div>
@@ -52,10 +70,13 @@
           />
         </div>
       </div>
+      <small>Um pagamento parcial mantém o restante em aberto. A matrícula pendente será ativada somente após a quitação integral.</small>
+      @for (a of conta.avisos; track $index) { <p-message severity="warn">{{ aviso(a) }}</p-message> }
+      @if (consultando()) { <p role="status">Conferindo a posição atual…</p> }
+      @if (validacao() && !pendente()) { <small>{{ validacao() }}</small> }
 
       @if (erroPagamento()) {
         <p-message severity="error" [text]="erroPagamento()!" />
-        @if (falhaRede()) { <p-button label="Atualizar cobranças" icon="pi pi-refresh" (onClick)="atualizarAposFalha()" /> }
       }
     </div>
   }
@@ -67,7 +88,7 @@
         icon="pi pi-times"
         severity="secondary"
         [text]="true"
-        [disabled]="pagando()"
+        [disabled]="pagando() || consultando()"
         (onClick)="fecharPagamento()"
       />
       <p-button
@@ -75,15 +96,29 @@
         icon="pi pi-check"
         severity="success"
         [loading]="pagando()"
-        [disabled]="!contaSelecionada() || pagando() || formaPagamento.invalid || falhaRede()"
+        [disabled]="!contaSelecionada() || pagando() || consultando() || !!pendente() || armazenamentoBloqueado() || !!validacao()"
         (onClick)="confirmarPagamento()"
       />
     </div>
   </ng-template>
 </p-dialog>
 
+<p-dialog header="Histórico de recebimentos" [visible]="historicoVisivel()" (visibleChange)="historicoVisivel.set($event)" [modal]="true" [draggable]="false" [resizable]="false" [style]="{width:'min(95vw, 48rem)'}">
+  <h2>Conta #{{ contaRecibo()?.id }} · {{ contaRecibo()?.descricao ?? 'Não informado' }}</h2>
+  @if (carregandoRecibo()) { <p role="status">Consultando recebimentos…</p> }
+  @else if (erroHistorico()) { <p-message severity="error">{{ erroHistorico() }}</p-message><p-button label="Tentar novamente" (onClick)="visualizarRecibo(contaRecibo()!)" /> }
+  @else {
+    <div class="app-tabela-rolagem"><p-table appTabelaPadrao [value]="recibos()" dataKey="id" [rowHover]="true" [tableStyle]="{'min-width':'32rem'}">
+      <ng-template #header><tr><th class="app-col-centro">Data</th><th class="app-col-centro">Forma</th><th class="valor app-col-centro">Valor recebido</th><th class="app-col-centro app-col-acoes">Recibo</th></tr></ng-template>
+      <ng-template #body let-r><tr><td class="app-col-centro app-dado-compacto">{{ r.dataRecebimento | date:'dd/MM/yyyy':'UTC' }}</td><td class="app-col-centro app-dado-compacto">{{ r.formaPagamento ?? 'Não informada' }}</td><td class="valor app-col-centro app-dado-compacto">{{ moeda(r.valor) }}</td><td class="app-col-centro app-col-acoes"><app-acao-tabela severity="info" icon="pi pi-eye" [ariaLabel]="'Abrir recibo ' + r.id" tooltip="Ver recibo" (acionar)="abrirReciboExistente(r)" /> #{{ r.id }}</td></tr></ng-template>
+      <ng-template #emptymessage><tr><td colspan="4" class="vazio">Nenhum recebimento registrado. Uma quitação histórica pode não possuir comprovante.</td></tr></ng-template>
+    </p-table></div>
+  }
+  <ng-template #footer><p-button label="Fechar histórico" icon="pi pi-times" severity="secondary" [text]="true" (onClick)="historicoVisivel.set(false)" /></ng-template>
+</p-dialog>
+
 <p-dialog
-  header="Recibo de Pagamento"
+  header="Recibo de recebimento"
   [visible]="recibo() !== null"
   (onHide)="fecharRecibo()"
   [modal]="true"
@@ -98,7 +133,7 @@
         <i class="pi pi-check-circle text-green-500 text-5xl drop-shadow-md"></i>
         <div class="flex flex-col">
           <span class="text-sm uppercase font-bold text-green-400 tracking-wider">
-            Pagamento Realizado
+            Recebimento registrado · #{{ comprovante.id }}
           </span>
           <span class="text-3xl font-bold text-color">
             {{ comprovante.valor | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
@@ -113,7 +148,7 @@
           </div>
           <div>
             <span class="block text-xs uppercase font-bold text-gray-400 mb-1">Referente a</span>
-            <strong class="text-lg text-color font-medium">{{ comprovante.descricaoConta }}</strong>
+            <strong class="text-lg text-color font-medium">{{ comprovante.descricaoConta ?? 'Não informado' }}</strong>
           </div>
         </div>
 
@@ -137,7 +172,7 @@
             <span class="block text-xs uppercase font-bold text-gray-400 mb-1">
               Forma de Pagamento
             </span>
-            <p-tag [value]="comprovante.formaPagamento" severity="info" styleClass="text-sm" />
+            <p-tag [value]="comprovante.formaPagamento ?? 'Não informada'" severity="info" styleClass="text-sm" />
           </div>
         </div>
 
@@ -147,7 +182,7 @@
           </div>
           <div>
             <span class="block text-xs uppercase font-bold text-gray-400 mb-1">Aluno</span>
-            <span class="text-color text-base">{{ comprovante.nomeAluno }}</span>
+            <span class="text-color text-base">{{ comprovante.nomeAluno ?? 'Não informado' }}</span>
           </div>
         </div>
 

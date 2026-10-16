@@ -14,7 +14,7 @@ describe('Inicio', () => {
   for (const papel of ['ALUNO', 'MOTORISTA', 'ADMIN'] as Papel[]) {
     it(`instancia e consulta somente ${papel}`, () => {
       TestBed.configureTestingModule({ imports: [Inicio], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]), provideNoopAnimations(), MessageService,
-        { provide: AuthService, useValue: { papel: () => papel } }] });
+        { provide: AuthService, useValue: { papel: () => papel, usuario: () => null } }] });
       const fixture = TestBed.createComponent(Inicio); fixture.detectChanges();
       const http = TestBed.inject(HttpTestingController);
       const consultas = http.match(req => req.url.startsWith(`${environment.apiUrl}/dashboard`));

@@ -1,7 +1,4 @@
-import { registerLocaleData } from '@angular/common';
-import ptBR from '@angular/common/locales/pt';
 import { CobrancaResumo, SituacaoCobranca } from '../models/dashboard.models';
-registerLocaleData(ptBR, 'pt-BR');
 export const moeda = (valor: number | null | undefined): string => valor == null ? 'Não informado' :
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
 export const geradoEm = (valor: string): string => new Intl.DateTimeFormat('pt-BR', {

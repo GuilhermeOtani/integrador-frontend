@@ -1,3 +1,4 @@
+import './core/i18n/locale';
 import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,

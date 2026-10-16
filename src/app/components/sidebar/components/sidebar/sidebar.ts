@@ -74,6 +74,7 @@ export class Sidebar {
         {
           titulo: 'Financeiro',
           itens: [
+            { label: 'Relatórios', icon: 'pi pi-file-pdf', rota: '/relatorios' },
             { label: 'Contas a pagar', icon: 'pi pi-money-bill', rota: '/contapagar' },
             { label: 'Contas a receber', icon: 'pi pi-wallet', rota: '/contas-receber' },
           ],

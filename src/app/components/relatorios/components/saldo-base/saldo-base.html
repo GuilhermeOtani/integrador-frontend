@@ -1,0 +1,24 @@
+<section class="painel saldo-base">
+  <div class="cabecalho"><div><h2><i class="pi pi-wallet" aria-hidden="true"></i> Saldo base do caixa</h2>
+    @if (base(); as b) { <p>Abertura em {{ dia(b.dataReferencia) }} · <strong>{{ moeda(b.saldo) }}</strong></p> }
+    @else { <p>{{ carregando() ? 'Consultando saldo base…' : conhecido() ? 'Saldo base não configurado.' : 'Não foi possível consultar o saldo base.' }}</p> }
+  </div><div class="acoes">
+    <p-button label="Atualizar saldo base" icon="pi pi-refresh" severity="secondary" [text]="true" [disabled]="bloqueado() || carregando() || salvando()" (onClick)="carregar()" />
+    <p-button [label]="base() ? 'Editar saldo base' : 'Configurar saldo base'" icon="pi pi-pencil" severity="secondary" [outlined]="true" [disabled]="bloqueado() || !conhecido() || carregando() || salvando()" (onClick)="abrir()" />
+  </div></div>
+  @if (erro() && !visivel) { <p-message severity="error" role="alert">{{ erro() }}</p-message> }
+</section>
+<p-dialog header="Configurar saldo base" closeAriaLabel="Fechar configuração de saldo base" [(visible)]="visivel" [modal]="true" [draggable]="false" [resizable]="false" [closable]="!salvando()" [closeOnEscape]="!salvando()" [style]="{width:'min(95vw, 34rem)'}">
+  <form [formGroup]="form" (ngSubmit)="salvar()" class="formulario">
+    <p>Informe o saldo existente na abertura desta data, antes das movimentações daquele dia.</p>
+    <p class="muted">Alterar este saldo ou a data muda os próximos cálculos. O resultado atual será limpo e precisará ser consultado novamente.</p>
+    @if (aviso()) { <p-message severity="warn" role="alert">{{ aviso() }}</p-message> }
+    @if (erro()) { <p-message severity="error" role="alert">{{ erro() }}</p-message> }
+    <div class="campo"><label for="saldo-data">Data de abertura</label><input pInputText type="date" id="saldo-data" formControlName="dataReferencia" />
+      @if (form.controls.dataReferencia.touched && form.controls.dataReferencia.invalid) { <small class="erro">Informe uma data válida.</small> }</div>
+    <div class="campo"><label for="saldo-valor">Saldo de abertura (R$)</label><p-inputnumber inputId="saldo-valor" formControlName="saldo" mode="decimal" locale="pt-BR" [minFractionDigits]="2" [maxFractionDigits]="2" [fluid]="true" />
+      <small>O saldo pode ser negativo.</small>
+      @if (form.controls.saldo.touched && form.controls.saldo.invalid) { <small class="erro">Informe um valor com até duas casas decimais.</small> }</div>
+  </form>
+  <ng-template #footer><p-button label="Cancelar" icon="pi pi-times" severity="secondary" [text]="true" [disabled]="salvando()" (onClick)="visivel=false" /><p-button label="Salvar saldo base" icon="pi pi-check" [loading]="salvando()" [disabled]="form.invalid || carregando() || !conhecido()" (onClick)="salvar()" /></ng-template>
+</p-dialog>

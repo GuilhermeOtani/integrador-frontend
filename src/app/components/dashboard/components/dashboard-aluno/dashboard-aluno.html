@@ -13,12 +13,15 @@
       <section class="painel card-resumo financeiro" data-card="mensalidade">
         <div class="titulo-card"><span class="icone-card"><i class="pi pi-wallet" aria-hidden="true"></i></span><h2>Mensalidade</h2></div>
         @if (painel.financeiro.cobrancaPrincipal; as conta) {
-          <strong class="valor">{{ moeda(conta.valor) }}</strong>
+          <strong class="valor">{{ moeda(conta.saldoRestante) }}</strong><small class="muted">Saldo restante · competência {{ conta.competencia ?? 'Não informada' }}</small>
+          <p class="muted">Original: {{ moeda(conta.valor) }} · Recebido: {{ moeda(conta.valorRecebido) }}</p>
+          @if (conta.recebimentoParcial) { <p-tag value="Parcial" severity="info" /> }
+          @for (a of conta.avisos; track $index) { <p-message severity="warn">{{ avisoConta(a) }}</p-message> }
           <p-tag [value]="prazo(conta)" [severity]="severidade(conta.situacao)" />
           <p class="muted">Vencimento: {{ conta.dataVencimento ? (conta.dataVencimento | date:'dd/MM/yyyy':'UTC') : 'Não informado' }}</p>
-          @if (conta.status === 'PAGO') { <p-button label="Ver recibo" icon="pi pi-file" [loading]="pagamento().carregandoRecibo()" (onClick)="pagamento().visualizarRecibo(conta)" /> }
-          @else if (pagamento().podePagar(conta)) { <p-button label="Pagar mensalidade" icon="pi pi-check" severity="success" [disabled]="pagamento().pagando()" (onClick)="pagamento().abrirPagamento(conta)" /> }
-          @else { <p-message severity="warn">Cobrança incompleta. Procure a administração.</p-message> }
+          @if (pagamento().podeVerHistorico(conta)) { <p-button label="Ver recibos" icon="pi pi-file" [loading]="pagamento().carregandoRecibo()" (onClick)="pagamento().visualizarRecibo(conta)" /> }
+          @if (pagamento().podePagar(conta)) { <p-button label="Pagar mensalidade" icon="pi pi-check" severity="success" [disabled]="pagamento().pagando()" (onClick)="pagamento().abrirPagamento(conta)" /> }
+          @else if (conta.saldoRestante > 0 && !pagamento().pendente()) { <p-message severity="warn">Cobrança incompleta ou com restrições. Procure a administração.</p-message> }
         } @else { <p class="muted">Nenhuma cobrança cadastrada.</p> }
         <div class="botoes-linha"><p-button label="Resumo financeiro" [text]="true" (onClick)="resumoVisivel.set(true)" /><a routerLink="/minhas-matriculas">Todas as cobranças</a></div>
       </section>
@@ -30,7 +33,7 @@
         <div class="detalhe-destaque">
           <span class="detalhe-icone grande"><i class="pi pi-wallet" aria-hidden="true"></i></span>
           <div class="detalhe-principal">
-            @if (painel.financeiro.cobrancaPrincipal; as conta) { <span class="detalhe-label">Cobrança em destaque #{{ conta.id }}</span><strong class="detalhe-valor">{{ moeda(conta.valor) }}</strong><p class="texto muted">{{ conta.descricao ?? 'Não informado' }}</p> }
+            @if (painel.financeiro.cobrancaPrincipal; as conta) { <span class="detalhe-label">Saldo da cobrança em destaque #{{ conta.id }}</span><strong class="detalhe-valor">{{ moeda(conta.saldoRestante) }}</strong><p class="texto muted">{{ conta.descricao ?? 'Não informado' }} · {{ conta.competencia ?? 'Competência não informada' }}</p><p>Original: {{ moeda(conta.valor) }} · Recebido: {{ moeda(conta.valorRecebido) }}</p> }
             @else { <span class="detalhe-label">Situação financeira</span><strong class="nome-destaque">Nenhuma cobrança cadastrada.</strong> }
           </div>
           @if (painel.financeiro.cobrancaPrincipal; as conta) { <p-tag [value]="prazo(conta)" [severity]="severidade(conta.situacao)" /> }

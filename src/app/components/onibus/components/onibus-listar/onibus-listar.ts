@@ -1,3 +1,6 @@
+import { EstadoLista } from '../../../../shared/ui/tabelas/estado-lista';
+import { TabelaPadrao } from '../../../../shared/ui/tabelas/tabela-padrao';
+import { AcaoTabela } from '../../../../shared/ui/tabelas/acao-tabela';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -15,7 +18,6 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { ToolbarModule } from 'primeng/toolbar';
 import { CommonModule } from '@angular/common';
 import { ViewChild } from '@angular/core';
 import { Table } from 'primeng/table';
@@ -30,7 +32,7 @@ import { rotuloEstadoOnibus } from '../../../manutencao/utils/manutencao.utils';
 @Component({
   standalone: true,
   selector: 'app-onibus-listar',
-  imports: [
+  imports: [TabelaPadrao, AcaoTabela,
     CommonModule,
     ButtonModule,
     ConfirmDialogModule,
@@ -45,7 +47,7 @@ import { rotuloEstadoOnibus } from '../../../manutencao/utils/manutencao.utils';
     TableModule,
     TagModule,
     ToastModule,
-    ToolbarModule,
+
     InputTextModule,
     FormsModule,
     OnibusCadastro
@@ -56,6 +58,7 @@ import { rotuloEstadoOnibus } from '../../../manutencao/utils/manutencao.utils';
   styleUrl: './onibus-listar.css',
 })
 export class OnibusListar {
+  readonly estadoLista = new EstadoLista();
   private onibusService = inject(OnibusService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
@@ -105,7 +108,7 @@ export class OnibusListar {
   }
 
   carregarOnibuss() {
-    this.onibusService.listarOnibus().subscribe({
+    this.estadoLista.acompanhar(this.onibusService.listarOnibus()).subscribe({
       next: (data) => {
         this.onibuss = data;
       },
@@ -114,7 +117,7 @@ export class OnibusListar {
   }
 
   carregaronibus() {
-    this.onibusService.listarOnibus().subscribe({
+    this.estadoLista.acompanhar(this.onibusService.listarOnibus()).subscribe({
       next: (data) => {
         this.onibuss = data;
       },

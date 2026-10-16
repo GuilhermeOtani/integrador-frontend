@@ -1,3 +1,5 @@
+import { TabelaPadrao } from '../../../../shared/ui/tabelas/tabela-padrao';
+import { AcaoTabela } from '../../../../shared/ui/tabelas/acao-tabela';
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -6,14 +8,14 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { MultiSelectModule } from 'primeng/multiselect'; 
+import { MultiSelectModule } from 'primeng/multiselect';
 import { TagModule } from 'primeng/tag';
 
 import { GradeDiariaService } from '../../service/grade-diaria-service';
 import { RotaService } from '../../../rota/service/rota-service';
 import { OnibusService } from '../../../onibus/service/onibus-service';
 import { MotoristaService } from '../../../motorista/service/motorista-service';
-import { FaculdadeService } from '../../../faculdade/service/faculdade-service'; 
+import { FaculdadeService } from '../../../faculdade/service/faculdade-service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
 import { mensagemApi } from '../../../../core/auth/utils/api-error';
@@ -22,12 +24,12 @@ import { rotuloEstadoOnibus } from '../../../manutencao/utils/manutencao.utils';
 @Component({
   standalone: true,
   selector: 'app-grade-diaria-cadastro',
-  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, SelectModule, TableModule, MultiSelectModule, TagModule],
+  imports: [TabelaPadrao, AcaoTabela, CommonModule, FormsModule, InputTextModule, ButtonModule, SelectModule, TableModule, MultiSelectModule, TagModule],
   templateUrl: './grade-diaria-cadastro.html',
   styleUrl: './grade-diaria-cadastro.css',
 })
 export class GradeDiariaCadastro implements OnInit {
-  
+
   @Input() grade: any = {};
   @Output() aoSalvar = new EventEmitter<void>();
   @Output() aoCancelar = new EventEmitter<void>();
@@ -37,14 +39,14 @@ export class GradeDiariaCadastro implements OnInit {
   private rotaService = inject(RotaService);
   private onibusService = inject(OnibusService);
   private motoristaService = inject(MotoristaService);
-  private faculdadeService = inject(FaculdadeService); 
+  private faculdadeService = inject(FaculdadeService);
 
   submitted: boolean = false;
   salvando = false;
   erroSalvar = '';
   erroOnibus = '';
   carregandoOnibus = false;
-  novaViagem: any = { faculdadesIds: [] }; 
+  novaViagem: any = { faculdadesIds: [] };
 
   listaDiasSemana = [
     { label: 'Segunda-feira', value: 'SEGUNDA' },
@@ -103,7 +105,7 @@ export class GradeDiariaCadastro implements OnInit {
         this.messageService.add({ severity: 'warn', summary: 'Ônibus indisponível', detail: 'Novas viagens exigem um ônibus OPERANDO. Atualize a disponibilidade e revise a seleção.' });
         return;
       }
-      
+
       const faculdadesSelecionadas = this.listaFaculdades.filter(f => this.novaViagem.faculdadesIds.includes(f.id));
 
       this.grade.viagens.push({
@@ -114,10 +116,10 @@ export class GradeDiariaCadastro implements OnInit {
         numeroIdentificacao: onibus.numeroIdentificacao,
         motoristaId: motorista.id,
         motoristaNome: motorista.nome,
-        faculdades: faculdadesSelecionadas 
+        faculdades: faculdadesSelecionadas
       });
 
-      this.novaViagem = { faculdadesIds: [] }; 
+      this.novaViagem = { faculdadesIds: [] };
     } else {
       this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Preencha Rota, Ônibus, Motorista e ao menos 1 Faculdade.', life: 4000 });
     }

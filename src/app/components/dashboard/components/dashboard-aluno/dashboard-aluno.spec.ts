@@ -12,16 +12,20 @@ import { RecebimentoService } from '../../../conta-receber/service/recebimento-s
 import { ReciboMatricula } from '../../../conta-receber/models/conta-receber';
 import { alunoFixture } from '../../testing/dashboard.fixtures';
 import { DashboardAluno } from './dashboard-aluno';
+import { AuthService } from '../../../../core/auth/service/auth.service';
+import { authReceberFixture, cobrancaFixture } from '../../../conta-receber/testing/receber.fixtures';
+import { ContaReceberService } from '../../../conta-receber/service/conta-receber-service';
 
 describe('DashboardAluno', () => {
   let fixture: ComponentFixture<DashboardAluno>;
   let http: HttpTestingController;
   const url = `${environment.apiUrl}/dashboard/aluno`;
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [DashboardAluno], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]), provideNoopAnimations(), MessageService] });
+    sessionStorage.removeItem('integrador.recebimento.pendente.7');
+    TestBed.configureTestingModule({ imports: [DashboardAluno], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]), provideNoopAnimations(), MessageService, { provide: AuthService, useValue: authReceberFixture() }] });
     http = TestBed.inject(HttpTestingController); fixture = TestBed.createComponent(DashboardAluno); fixture.detectChanges();
   });
-  afterEach(() => http.verify());
+  afterEach(() => { http.verify(); sessionStorage.removeItem('integrador.recebimento.pendente.7'); });
   it('resumo separa cobrança, cadastro e valores zero sem alterar o pagamento', () => {
     http.expectOne(url).flush(alunoFixture); fixture.detectChanges();
     const pagamento = fixture.componentInstance.pagamento();
@@ -77,6 +81,14 @@ describe('DashboardAluno', () => {
     fixture.componentInstance.resumoVisivel.set(true); fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Não informado');
   });
+  it('parcela mostra saldo em destaque, recebido separado, histórico e não ativa matrícula localmente', () => {
+    const dados = structuredClone(alunoFixture);
+    Object.assign(dados.financeiro.cobrancaPrincipal!, { valor: 300, valorRecebido: 100, saldoRestante: 200, recebimentoParcial: true });
+    http.expectOne(url).flush(dados); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-card="mensalidade"] .valor').textContent).toContain('200,00');
+    for (const texto of ['300,00', '100,00', 'Parcial', 'Ver recibos', 'Pagar mensalidade']) expect(fixture.nativeElement.textContent).toContain(texto);
+    expect(fixture.componentInstance.consulta.dados()?.aluno.statusMatricula).toBe(dados.aluno.statusMatricula);
+  });
   for (const status of [0, 403, 500]) {
     it(`erro ${status} não vira estado vazio ou mantém dados antigos`, () => {
       http.expectOne(url).flush(alunoFixture); fixture.detectChanges();
@@ -94,6 +106,8 @@ describe('DashboardAluno', () => {
     http.expectOne(url).flush(alunoFixture); fixture.detectChanges();
     const recibo: ReciboMatricula = { id: 1, contaId: 42, valor: 230, dataRecebimento: '2026-10-12', formaPagamento: 'PIX', nomeAluno: 'Ana', descricaoConta: 'Mensalidade Ana' };
     spyOn(TestBed.inject(RecebimentoService), 'pagar').and.returnValue(of(recibo));
+    spyOn(TestBed.inject(ContaReceberService), 'listarMinhas').and.returnValue(of([cobrancaFixture({ valor: 230, saldoRestante: 230, valorRecebido: 0 })]));
+    spyOn(TestBed.inject(RecebimentoService), 'listarRecibos').and.returnValue(of([recibo]));
     const pagamento = fixture.componentInstance.pagamento();
     pagamento.abrirPagamento(alunoFixture.financeiro.cobrancaPrincipal!); pagamento.confirmarPagamento(); fixture.detectChanges();
     expect(fixture.componentInstance.consulta.carregando()).toBeTrue();
@@ -113,11 +127,12 @@ describe('DashboardAluno', () => {
     { situacao: 'VENCIDA' as const, dias: -4, status: 'PENDENTE' as const, texto: 'Vencida há 4 dias', pagar: true, recibo: false },
     { situacao: 'A_VENCER' as const, dias: 5, status: 'PENDENTE' as const, texto: 'Vence em 5 dias', pagar: true, recibo: false },
     { situacao: 'PAGO' as const, dias: null, status: 'PAGO' as const, texto: 'Pago', pagar: false, recibo: true },
-    { situacao: 'SEM_VENCIMENTO' as const, dias: null, status: 'PENDENTE' as const, texto: 'Sem vencimento', pagar: false, recibo: false },
+    { situacao: 'SEM_VENCIMENTO' as const, dias: null, status: 'PENDENTE' as const, texto: 'Sem vencimento', pagar: true, recibo: false },
   ]) {
     it(`apresenta situação ${caso.situacao} e ações corretas`, () => {
       const dados = structuredClone(alunoFixture);
       Object.assign(dados.financeiro.cobrancaPrincipal!, { situacao: caso.situacao, diasParaVencimento: caso.dias, status: caso.status });
+      if (caso.status === 'PAGO') Object.assign(dados.financeiro.cobrancaPrincipal!, { saldoRestante: 0, valorRecebido: 230 });
       if (caso.situacao === 'SEM_VENCIMENTO') dados.financeiro.cobrancaPrincipal!.dataVencimento = null;
       http.expectOne(url).flush(dados); fixture.detectChanges();
       const texto = fixture.nativeElement.textContent as string;

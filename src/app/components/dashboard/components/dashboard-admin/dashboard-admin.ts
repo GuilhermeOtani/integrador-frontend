@@ -1,4 +1,6 @@
 import { CommonModule } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FinanceiroEventos } from '../../../../core/financeiro/financeiro-eventos.service';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -56,6 +58,7 @@ export class DashboardAdmin implements OnInit {
     return (this.pendenciasTipo() === 'receber' ? financeiro?.pendenciasReceber : financeiro?.pendenciasPagar) ?? [];
   });
   private readonly service = inject(DashboardService);
+  private readonly eventos = inject(FinanceiroEventos);
   readonly mes = new FormControl('', { nonNullable: true, validators: control => mesValido(control.value) ? null : { mes: true } });
   readonly consulta = new ConsultaDashboard(mes => this.service.admin(mes), dados => this.mes.setValue(dados.mes, { emitEvent: false }));
   readonly moeda = moeda;
@@ -74,6 +77,7 @@ export class DashboardAdmin implements OnInit {
     plugins: { legend: { labels: { color: '#64748b' } }, tooltip: { callbacks: { label: context => `${context.dataset.label}: ${moeda(context.parsed.y)}` } } },
     scales: { y: { beginAtZero: true, ticks: { color: '#64748b', callback: valor => moeda(Number(valor)) } }, x: { ticks: { color: '#64748b' } } },
   };
+  constructor() { this.eventos.alterado.pipe(takeUntilDestroyed()).subscribe(() => this.carregar()); }
   ngOnInit(): void { this.consulta.carregar(); }
   alterarMes(valor: string): void {
     this.mes.setValue(valor);

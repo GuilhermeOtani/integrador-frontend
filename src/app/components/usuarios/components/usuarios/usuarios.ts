@@ -1,3 +1,5 @@
+import { TabelaPadrao } from '../../../../shared/ui/tabelas/tabela-padrao';
+import { AcaoTabela } from '../../../../shared/ui/tabelas/acao-tabela';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import {
@@ -21,8 +23,6 @@ import { PasswordModule } from 'primeng/password';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ToolbarModule } from 'primeng/toolbar';
-import { TooltipModule } from 'primeng/tooltip';
 import { mensagemApi, problemaApi } from '../../../../core/auth/utils/api-error';
 import { Papel, UsuarioResumo } from '../../../../core/auth/models/auth.models';
 import { PessoaDisponivelResponse } from '../../models/usuario.models';
@@ -38,7 +38,7 @@ const senhasIguais: ValidatorFn = (control: AbstractControl): ValidationErrors |
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [
+  imports: [TabelaPadrao, AcaoTabela,
     ReactiveFormsModule,
     ButtonModule,
     ConfirmDialogModule,
@@ -50,9 +50,8 @@ const senhasIguais: ValidatorFn = (control: AbstractControl): ValidationErrors |
     ProgressSpinnerModule,
     TableModule,
     TagModule,
-    ToolbarModule,
-    TooltipModule,
-  ],
+
+    ],
   providers: [ConfirmationService],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.css',

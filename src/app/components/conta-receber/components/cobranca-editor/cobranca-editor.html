@@ -1,0 +1,20 @@
+<p-dialog [header]="contaId() === null ? 'Nova conta a receber' : 'Editar conta a receber'" closeAriaLabel="Fechar cadastro da cobrança" [(visible)]="visivel" (onHide)="fechar()" [modal]="true" [draggable]="false" [resizable]="false" [closable]="!salvando()" [closeOnEscape]="!salvando()" [style]="{width:'min(95vw, 44rem)'}">
+  @if (carregando()) { <p role="status">Consultando a cobrança atual…</p> }
+  @if (erro()) { <p-message severity="error" role="alert">{{ erro() }}</p-message> }
+  @if (aviso()) { <p-message severity="warn">{{ aviso() }}</p-message> }
+  @if (erroAlunos()) { <p-message severity="warn">{{ erroAlunos() }}</p-message><p-button label="Atualizar alunos" [text]="true" severity="secondary" (onClick)="carregarAlunos()" [disabled]="salvando()" /> }
+  @if (!pronto() && !carregando()) { <p-button label="Tentar novamente" (onClick)="carregar()" /> }
+  @if (pronto()) {
+    <form class="formulario filtros" [formGroup]="form" (ngSubmit)="salvar()">
+      <div class="campo amplo"><label for="cobranca-descricao">Descrição</label><input pInputText id="cobranca-descricao" formControlName="descricao" /></div>
+      <div class="campo amplo"><label for="cobranca-aluno">Aluno</label><p-select inputId="cobranca-aluno" formControlName="alunoId" [options]="alunos()" optionLabel="label" optionValue="id" [filter]="true" [fluid]="true" appendTo="body" [loading]="carregandoAlunos()" placeholder="Selecione o aluno" /></div>
+      <div class="campo"><label for="cobranca-competencia">Competência</label><input pInputText id="cobranca-competencia" type="month" formControlName="competencia" /></div>
+      <div class="campo"><label for="cobranca-vencimento">Vencimento</label><input pInputText id="cobranca-vencimento" type="date" formControlName="dataVencimento" /></div>
+      <div class="campo"><label for="cobranca-valor">Valor original</label><p-inputnumber inputId="cobranca-valor" formControlName="valor" mode="currency" currency="BRL" locale="pt-BR" [minFractionDigits]="2" [maxFractionDigits]="2" [fluid]="true" /></div>
+      @if (protegido()) { <p-message severity="info" class="amplo">Cobrança protegida por recebimentos, quitação histórica ou posição incompleta. Valor e aluno são preservados.</p-message> }
+      <p class="amplo muted">Competência e vencimento são independentes. Não é permitido duplicar aluno/competência. Alterar o vencimento redefine o dia da sequência mensal. A recorrência é executada pelo servidor: dia 31 ajusta fevereiro e retorna ao dia original no mês compatível; o primeiro vencimento automático continua em 30 dias.</p>
+      @if (validacao()) { <small class="amplo">{{ validacao() }}</small> }
+    </form>
+  }
+  <ng-template #footer><p-button label="Cancelar" icon="pi pi-times" severity="secondary" [text]="true" [disabled]="salvando()" (onClick)="fechar()" /><p-button label="Salvar cobrança" icon="pi pi-check" [loading]="salvando()" [disabled]="!pronto() || carregando() || carregandoAlunos() || !!validacao()" (onClick)="salvar()" /></ng-template>
+</p-dialog>

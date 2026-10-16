@@ -1,27 +1,25 @@
-<div class="card">
-  <h1 class="text-2xl font-bold mb-2">Meus chamados</h1>
-  <p class="mb-5 text-muted-color">Relate problemas nos ônibus e acompanhe a resposta da administração.</p>
-  <p-toolbar styleClass="mb-4">
-    <ng-template #start><p-button label="Abrir chamado" icon="pi pi-plus" (onClick)="abrirFormulario()" /></ng-template>
-    <ng-template #end><p-button label="Atualizar" icon="pi pi-refresh" [outlined]="true" [disabled]="carregando()" (onClick)="carregar()" /></ng-template>
-  </p-toolbar>
-  @if (erroLista()) { <p class="erro" role="alert">{{ erroLista() }}</p> }
-  <p-table #dt [value]="chamados()" [loading]="carregando()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]" dataKey="id" [globalFilterFields]="camposPesquisa" [tableStyle]="{'min-width':'55rem'}">
-    <ng-template #caption>
-      <div class="flex justify-between items-center gap-3 flex-wrap">
+<div class="app-listagem">
+  <header class="app-cabecalho"><div><h1>Meus chamados</h1>
+  <p>Relate problemas nos ônibus e acompanhe a resposta da administração.</p></div><div class="app-acoes"><p-button label="Abrir chamado" icon="pi pi-plus" (onClick)="abrirFormulario()" /><p-button severity="secondary" label="Atualizar" icon="pi pi-refresh" [outlined]="true" [disabled]="carregando()" (onClick)="carregar()" /></div></header>
+
+  <section class="app-tabela-painel">
+@if (erroLista()) { <p class="erro" role="alert">{{ erroLista() }}</p> }
+
+      <div class="app-tabela-ferramentas">
         <span class="font-semibold">Chamados enviados</span>
-        <input pInputText type="search" aria-label="Pesquisar chamados" placeholder="Pesquisar..." (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+        <label class="app-campo-pesquisa"><span>Pesquisar chamados</span><input pInputText type="search" aria-label="Pesquisar chamados" placeholder="Pesquisar..." (input)="dt.filterGlobal($any($event.target).value, 'contains')" /></label>
       </div>
-    </ng-template>
-    <ng-template #header><tr><th pSortableColumn="id">Nº <p-sortIcon field="id" /></th><th>Ônibus</th><th pSortableColumn="dataAbertura">Abertura <p-sortIcon field="dataAbertura" /></th><th>Prioridade</th><th>Andamento</th><th>Ações</th></tr></ng-template>
+    <div class="app-tabela-rolagem"><p-table appTabelaPadrao #dt [value]="chamados()" [loading]="carregando()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]" dataKey="id" [globalFilterFields]="camposPesquisa" [tableStyle]="{'min-width':'55rem'}">
+
+    <ng-template #header><tr><th pSortableColumn="id" class="app-col-centro"><span class="app-titulo-coluna">Nº <p-sortIcon field="id" /></span></th><th class="app-col-centro">Ônibus</th><th pSortableColumn="dataAbertura" class="app-col-centro"><span class="app-titulo-coluna">Abertura <p-sortIcon field="dataAbertura" /></span></th><th class="app-col-centro">Prioridade</th><th class="app-col-centro">Andamento</th><th class="app-col-acoes app-col-centro">Ações</th></tr></ng-template>
     <ng-template #body let-c><tr>
-      <td>{{ c.id }}</td><td>{{ rotuloOnibus(c.onibus) }}</td><td>{{ c.dataAbertura | date:'dd/MM/yyyy':'UTC' }}</td>
-      <td><p-tag [value]="prioridade(c.urgencia)" [severity]="corPrioridade(c.urgencia)" /></td>
-      <td><p-tag [value]="andamento(c.status)" [severity]="corAndamento(c.status)" /></td>
-      <td><p-button label="Detalhes" icon="pi pi-eye" [outlined]="true" [disabled]="carregandoDetalhe()" (onClick)="ver(c.id)" /></td>
+      <td class="app-col-centro app-dado-compacto">{{ c.id }}</td><td class="app-col-centro app-dado-compacto">{{ rotuloOnibus(c.onibus) }}</td><td class="app-col-centro app-dado-compacto">{{ c.dataAbertura | date:'dd/MM/yyyy':'UTC' }}</td>
+      <td class="app-col-centro"><p-tag [value]="prioridade(c.urgencia)" [severity]="corPrioridade(c.urgencia)" /></td>
+      <td class="app-col-centro"><p-tag [value]="andamento(c.status)" [severity]="corAndamento(c.status)" /></td>
+      <td class="app-col-centro app-col-acoes"><app-acao-tabela severity="info" [ariaLabel]="'Detalhes ' + c.id" icon="pi pi-eye" [disabled]="carregandoDetalhe()" (acionar)="ver(c.id)" /></td>
     </tr></ng-template>
-    <ng-template #emptymessage><tr><td colspan="6" class="text-center p-6">{{ carregando() ? 'Carregando chamados...' : erroLista() ? 'Não foi possível carregar. Clique em Atualizar para tentar novamente.' : chamados().length ? 'Nenhum resultado para esta pesquisa.' : 'Você ainda não abriu chamados.' }}</td></tr></ng-template>
-  </p-table>
+    <ng-template #emptymessage><tr><td colspan="6" class=" p-6">{{ carregando() ? 'Carregando chamados...' : erroLista() ? 'Não foi possível carregar. Clique em Atualizar para tentar novamente.' : chamados().length ? 'Nenhum resultado para esta pesquisa.' : 'Você ainda não abriu chamados.' }}</td></tr></ng-template>
+  </p-table></div></section>
 </div>
 
 <p-dialog header="Abrir chamado" [(visible)]="novoAberto" [modal]="true" [closable]="!salvando()" [closeOnEscape]="!salvando()" [style]="{width:'min(95vw, 640px)'}">

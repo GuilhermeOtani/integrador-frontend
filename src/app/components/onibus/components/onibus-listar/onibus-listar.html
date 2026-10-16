@@ -1,8 +1,6 @@
-<div class="card">
+<div class="app-listagem">
   <p-toast />
-  <p-toolbar class="mb-6">
-    <ng-template #start>
-      <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+  <header class="app-cabecalho"><div><h1>Ônibus</h1><p>Veículos, capacidade e situação operacional.</p></div><div class="app-acoes"><p-button label="Novo" icon="pi pi-plus" (onClick)="openNew()" />
       <p-button
         severity="danger"
         label="Excluir"
@@ -11,9 +9,7 @@
         (onClick)="deleteSelectedOnibuss()"
         [disabled]="!selectedOnibus || !selectedOnibus.length"
       />
-    </ng-template>
-    <ng-template #end>
-      <p-fileUpload
+<p-fileUpload
         mode="basic"
         accept="image/*"
         [maxFileSize]="1000000"
@@ -22,73 +18,60 @@
         auto
         customUpload
         class="mr-2 inline-block"
-        [chooseButtonProps]="{ severity: 'secondary' }"
+        [chooseButtonProps]="{ severity: 'secondary', outlined: true }"
       />
-      <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
-    </ng-template>
-  </p-toolbar>
+      <p-button [outlined]="true" label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" /></div></header>
 
-  <p-table
+  <section class="app-tabela-painel"><div class="app-tabela-ferramentas"><div class="app-campo-pesquisa"><label for="pesquisa-onibus">Pesquisar registros</label><p-iconfield>
+          <p-inputicon class="pi pi-search" />
+          <input id="pesquisa-onibus"
+            pInputText
+            type="search"
+            (input)="dt.filterGlobal($event.target.value, 'contains')"
+            placeholder="Pesquisar..."
+          />
+        </p-iconfield></div></div>@if (estadoLista.erro()) { <div role="alert"><p class="app-erro">{{ estadoLista.erro() }}</p><p-button label="Tentar novamente" icon="pi pi-refresh" severity="secondary" [outlined]="true" [disabled]="estadoLista.carregando()" (onClick)="carregarOnibuss()" /></div> }
+<div class="app-tabela-rolagem"><p-table appTabelaPadrao [loading]="estadoLista.carregando()"
     #dt
     [value]="onibuss"
     [rows]="10"
     [columns]="cols"
     [paginator]="true"
     [globalFilterFields]="['numeroIdentificacao', 'placa', 'modelo', 'statusOnibus']"
-    [tableStyle]="{ 'min-width': '75rem' }"
+    [tableStyle]="{ 'min-width': '64rem' }"
     [(selection)]="selectedOnibus"
     [rowHover]="true"
     dataKey="id"
-    currentPageReportTemplate="Exibindo {first} a {last} de {totalRecords} registros"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
     [showCurrentPageReport]="true"
   >
-    <ng-template #caption>
-      <div class="flex items-center justify-between">
-        <h5 class="m-0">Gerenciar Ônibus</h5>
-        <p-iconfield>
-          <p-inputicon class="pi pi-search" />
-          <input
-            pInputText
-            type="text"
-            (input)="dt.filterGlobal($event.target.value, 'contains')"
-            placeholder="Pesquisar..."
-          />
-        </p-iconfield>
-      </div>
-    </ng-template>
 
     <ng-template #header>
       <tr>
-        <th style="width: 3rem">
-          <p-tableHeaderCheckbox />
-        </th>
-        <th pSortableColumn="id" style="min-width: 5rem" class="text-center">
-          Id
-          <p-sortIcon field="id" />
-        </th>
-        <th style="min-width: 16rem" class="text-center">Número de Identificação</th>
-        <th style="min-width: 12rem" class="text-center">Placa</th>
-        <th style="min-width: 12rem" class="text-center">Modelo</th>
-        <th style="min-width: 12rem" class="text-center">Capacidade</th>
-        <th style="min-width: 12rem" class="text-center">Foto</th>
-        <th style="min-width: 10rem" class="text-center">Status</th>
-        <th style="min-width: 10rem" class="text-center">Ações</th>
+        <th class="app-selecao app-col-centro"><p-tableHeaderCheckbox /></th>
+        <th pSortableColumn="id" class="app-col-centro"><span class="app-titulo-coluna">Id
+          <p-sortIcon field="id" /></span></th>
+        <th class="app-col-centro">Número de Identificação</th>
+        <th class="app-col-centro">Placa</th>
+        <th class="app-col-texto">Modelo</th>
+        <th class="app-col-centro">Capacidade</th>
+        <th class="app-col-centro">Foto</th>
+        <th class="app-col-centro">Status</th>
+        <th class="app-col-acoes app-col-centro">Ações</th>
       </tr>
     </ng-template>
 
     <ng-template #body let-onibus>
       <tr>
-        <td style="width: 3rem">
-          <p-tableCheckbox [value]="onibus" />
-        </td>
-        <td class="text-center">{{ onibus.id }}</td>
-        <td class="text-center">{{ onibus.numeroIdentificacao }}</td>
-        <td class="text-center">{{ onibus.placa }}</td>
-        <td class="text-center">{{ onibus.modelo }}</td>
-        <td class="text-center">{{ onibus.capacidade }}</td>
-        
-        <td class="text-center">
-          <img 
+        <td class="app-selecao app-col-centro"><p-tableCheckbox [value]="onibus" /></td>
+        <td class="app-col-centro app-dado-compacto">{{ onibus.id }}</td>
+        <td class="app-col-centro app-dado-compacto">{{ onibus.numeroIdentificacao }}</td>
+        <td class="app-col-centro app-dado-compacto">{{ onibus.placa }}</td>
+        <td class="app-col-texto">{{ onibus.modelo }}</td>
+        <td class="app-col-centro app-dado-compacto">{{ onibus.capacidade }}</td>
+
+        <td class="app-col-centro">
+          <img
             *ngIf="onibus.fotoUrl"
             [src]="onibus.fotoUrl"
             [alt]="onibus.numeroIdentificacao"
@@ -98,31 +81,27 @@
           <span *ngIf="!onibus.fotoUrl" class="text-gray-400 text-sm">Sem foto</span>
         </td>
 
-        <td class="text-center">
+        <td class="app-col-centro">
           <p-tag [value]="rotuloEstado(onibus.statusOnibus)" [severity]="getSeverity(onibus.statusOnibus)" />
         </td>
-        <td class="text-center">
-          <div class="flex justify-center gap-2">
-            <p-button label="Ver chamados" icon="pi pi-wrench" [outlined]="true" (onClick)="verChamados(onibus)" />
-            <p-button
+        <td class="app-col-acoes app-col-centro">
+          <div class="app-acoes-linha">
+            <app-acao-tabela severity="info" [ariaLabel]="'Ver chamados ' + onibus.id" icon="pi pi-wrench" (acionar)="verChamados(onibus)" />
+            <app-acao-tabela severity="primary" [ariaLabel]="'Editar ônibus ' + onibus.id"
               icon="pi pi-pencil"
-              class="mr-2"
-              [rounded]="true"
-              [outlined]="true"
-              (click)="editOnibus(onibus)"
+              (acionar)="editOnibus(onibus)"
             />
-            <p-button
+            <app-acao-tabela severity="danger" [ariaLabel]="'Excluir ônibus ' + onibus.id"
               icon="pi pi-trash"
-              severity="danger"
-              [rounded]="true"
-              [outlined]="true"
-              (click)="deleteOnibus(onibus)"
+
+              (acionar)="deleteOnibus(onibus)"
             />
           </div>
         </td>
-      </tr> 
+      </tr>
     </ng-template>
-  </p-table>
+  <ng-template #emptymessage><tr><td [attr.colspan]="9">{{ estadoLista.carregando() ? 'Carregando registros…' : estadoLista.erro() ? 'Não foi possível carregar os registros.' : 'Nenhum registro encontrado para esta seleção.' }}</td></tr></ng-template>
+</p-table></div></section>
 
   <p-dialog
     [(visible)]="onibusDialog"

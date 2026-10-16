@@ -1,5 +1,31 @@
 :host {
   display: block;
+  max-width: 80rem;
+  margin-inline: auto;
+  container-type: inline-size;
+}
+
+.usuarios-pagina { gap:1.5rem; }
+.usuarios-cabecalho { align-items:center; }
+.usuarios-cabecalho h1 { font-size:clamp(1.4rem,3vw,1.85rem); margin:0 0 .5rem; }
+.usuarios-layout { display:grid; grid-template-columns:minmax(0,1fr); gap:1.25rem; align-items:start; }
+.usuarios-painel { min-width:0; padding:1.1rem; }
+.usuarios-painel-titulo { display:flex; align-items:center; gap:.7rem; padding-bottom:1rem; margin-bottom:.25rem; border-bottom:1px solid var(--p-content-border-color); }
+.usuarios-painel-titulo h2 { margin:0; min-width:0; font-size:1rem; font-weight:650; line-height:1.4; }
+.usuarios-icone { display:grid; place-items:center; width:2.25rem; height:2.25rem; flex-shrink:0; border-radius:.7rem; color:var(--p-primary-color); background:color-mix(in srgb,var(--p-primary-color) 12%,transparent); }
+.usuarios-quantidade { display:grid; place-items:center; margin-left:auto; min-width:1.8rem; padding:.2rem .45rem; border-radius:2rem; font-size:.8rem; font-weight:650; color:var(--p-text-muted-color); background:var(--p-content-hover-background); }
+.usuario-nome { width:27%; }
+.usuario-email { width:31%; }
+:host ::ng-deep .usuarios-painel .p-datatable-table { min-width:35rem; }
+:host ::ng-deep .usuarios-disponiveis .p-datatable-table { min-width:19rem; }
+:host ::ng-deep .usuarios-painel td.app-col-texto { overflow-wrap:anywhere; }
+@container (min-width:70rem) { .usuarios-layout { grid-template-columns:minmax(0,3fr) minmax(0,2fr); } }
+@container (max-width:30rem) {
+  .usuarios-cabecalho { align-items:stretch; }
+  .usuarios-painel { padding:.85rem; }
+  .usuarios-painel-titulo { gap:.5rem; }
+  :host ::ng-deep .usuarios-painel .p-paginator { column-gap:.1rem; }
+  :host ::ng-deep .usuarios-painel .p-paginator-current { flex-basis:100%; }
 }
 
 :host ::ng-deep .usuario-danger-item .p-menu-item-link,

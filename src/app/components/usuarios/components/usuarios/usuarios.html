@@ -1,20 +1,17 @@
 <p-confirmDialog />
 <p-menu #menuAcoes [model]="itensAcoes()" [popup]="true" appendTo="body" />
 
-<section>
-  <p-toolbar class="mb-5">
-    <ng-template #start>
+<section class="app-listagem usuarios-pagina">
+  <header class="app-cabecalho usuarios-cabecalho">
       <div>
         <h1 class="m-0 text-2xl">Administração de usuários</h1>
         <span class="text-color-secondary text-sm">
           Gerencie acessos sem alterar o papel ou a pessoa vinculada.
         </span>
       </div>
-    </ng-template>
-    <ng-template #end>
+    <div class="app-acoes">
       <p-button label="Novo administrador" icon="pi pi-shield" (onClick)="abrirAdmin()" />
-    </ng-template>
-  </p-toolbar>
+    </div></header>
 
   @if (carregando()) {
     <div class="flex justify-content-center p-8">
@@ -29,11 +26,14 @@
       (onClick)="carregarDados()"
     />
   } @else {
-    <div class="grid">
-      <div class="col-12 xl:col-8">
-        <div class="surface-card border-1 surface-border border-round-xl p-4 h-full">
-          <h2 class="mt-0 text-xl">Contas cadastradas</h2>
-          <p-table
+    <div class="usuarios-layout">
+        <section class="app-tabela-painel usuarios-painel" aria-labelledby="titulo-contas">
+          <header class="usuarios-painel-titulo">
+            <span class="usuarios-icone"><i class="pi pi-users" aria-hidden="true"></i></span>
+            <h2 id="titulo-contas">Contas cadastradas</h2>
+            <span class="usuarios-quantidade" aria-label="Quantidade de contas cadastradas">{{ usuarios().length }}</span>
+          </header>
+          <div class="app-tabela-rolagem"><p-table appTabelaPadrao
             [value]="usuarios()"
             [paginator]="true"
             [rows]="10"
@@ -42,69 +42,69 @@
           >
             <ng-template #header>
               <tr>
-                <th>Nome</th>
-                <th>E-mail</th>
-                <th>Papel</th>
-                <th>Status</th>
-                <th class="text-center">Ações</th>
+                <th class="app-col-texto usuario-nome">Nome</th>
+                <th class="app-col-texto usuario-email">E-mail</th>
+                <th class="app-col-centro">Papel</th>
+                <th class="app-col-centro">Status</th>
+                <th class="app-col-acoes app-col-centro">Ações</th>
               </tr>
             </ng-template>
             <ng-template #body let-usuario>
               <tr>
-                <td>
+                <td class="app-col-texto">
                   <span class="block">{{ usuario.nome }}</span>
                   @if (ehPropriaConta(usuario)) {
                     <small class="text-primary font-semibold">Sua conta</small>
                   }
                 </td>
-                <td>{{ usuario.email }}</td>
-                <td>
+                <td class="app-col-texto">{{ usuario.email }}</td>
+                <td class="app-col-centro">
                   <p-tag
                     [value]="rotuloPapel(usuario.tipoPessoa)"
                     [severity]="severidadePapel(usuario.tipoPessoa)"
                   />
                 </td>
-                <td>
+                <td class="app-col-centro">
                   <p-tag
                     [value]="usuario.ativo ? 'Ativo' : 'Inativo'"
                     [severity]="usuario.ativo ? 'success' : 'secondary'"
                   />
                 </td>
-                <td class="text-center">
-                  <p-button
+                <td class="app-col-acoes app-col-centro">
+                  <app-acao-tabela severity="secondary"
                     icon="pi pi-ellipsis-v"
-                    severity="secondary"
-                    [text]="true"
-                    [rounded]="true"
+
                     [loading]="processandoId() === usuario.id"
                     [disabled]="processandoId() !== null"
-                    [pTooltip]="
+                    [tooltip]="
                       ehPropriaConta(usuario)
                         ? 'Desativar e excluir não estão disponíveis para sua própria conta'
                         : 'Gerenciar acesso'
                     "
                     tooltipPosition="left"
                     ariaLabel="Gerenciar acesso"
-                    (onClick)="abrirMenu($event, usuario, menuAcoes)"
+                    (acionar)="abrirMenu($event, usuario, menuAcoes)"
                   />
                 </td>
               </tr>
             </ng-template>
             <ng-template #emptymessage>
               <tr>
-                <td colspan="5" class="text-center p-5 text-color-secondary">
+                <td colspan="5" class=" p-5 text-color-secondary">
                   Nenhuma conta encontrada.
                 </td>
               </tr>
             </ng-template>
-          </p-table>
-        </div>
-      </div>
+          </p-table></div>
+        </section>
 
-      <div class="col-12 xl:col-4">
-        <div class="surface-card border-1 surface-border border-round-xl p-4 h-full">
-          <h2 class="mt-0 text-xl">Pessoas sem usuário</h2>
-          <p-table
+        <section class="app-tabela-painel usuarios-painel usuarios-disponiveis" aria-labelledby="titulo-disponiveis">
+          <header class="usuarios-painel-titulo">
+            <span class="usuarios-icone"><i class="pi pi-user-plus" aria-hidden="true"></i></span>
+            <h2 id="titulo-disponiveis">Pessoas sem usuário</h2>
+            <span class="usuarios-quantidade" aria-label="Quantidade de pessoas sem usuário">{{ pessoasDisponiveis().length }}</span>
+          </header>
+          <div class="app-tabela-rolagem"><p-table appTabelaPadrao
             [value]="pessoasDisponiveis()"
             [paginator]="true"
             [rows]="10"
@@ -113,41 +113,37 @@
           >
             <ng-template #header>
               <tr>
-                <th>Nome</th>
-                <th>Tipo</th>
-                <th class="text-center">Ação</th>
+                <th class="app-col-texto">Nome</th>
+                <th class="app-col-centro">Tipo</th>
+                <th class="app-col-acoes app-col-centro">Ações</th>
               </tr>
             </ng-template>
             <ng-template #body let-pessoa>
               <tr>
-                <td>{{ pessoa.nome }}</td>
-                <td>
+                <td class="app-col-texto">{{ pessoa.nome }}</td>
+                <td class="app-col-centro">
                   <p-tag
                     [value]="rotuloPapel(pessoa.tipoPessoa)"
                     [severity]="severidadePapel(pessoa.tipoPessoa)"
                   />
                 </td>
-                <td class="text-center">
-                  <p-button
-                    label="Criar conta"
+                <td class="app-col-acoes app-col-centro">
+                  <app-acao-tabela severity="primary" [ariaLabel]="'Criar conta ' + pessoa.id"
                     icon="pi pi-user-plus"
-                    size="small"
-                    [outlined]="true"
-                    (onClick)="abrirConta(pessoa)"
+                    (acionar)="abrirConta(pessoa)"
                   />
                 </td>
               </tr>
             </ng-template>
             <ng-template #emptymessage>
               <tr>
-                <td colspan="3" class="text-center p-5 text-color-secondary">
+                <td colspan="3" class=" p-5 text-color-secondary">
                   Todas as pessoas já possuem conta.
                 </td>
               </tr>
             </ng-template>
-          </p-table>
-        </div>
-      </div>
+          </p-table></div>
+        </section>
     </div>
   }
 </section>

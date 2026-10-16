@@ -1,0 +1,47 @@
+/* Padrão de listagens, extraído da referência de Contas a pagar. Escopo explícito, sem afetar formulários. */
+.app-listagem { display:grid; gap:1rem; min-width:0; color:var(--p-text-color); }
+.app-cabecalho,.app-tabela-ferramentas { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; }
+.app-cabecalho h1 { margin:.25rem 0; font-size:clamp(1.5rem,3vw,2rem); font-weight:700; }
+.app-cabecalho p { margin:.5rem 0; color:var(--p-text-muted-color); line-height:1.6; }
+.app-acoes { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:.75rem; }
+.app-tabela-painel { min-width:0; padding:1.15rem; border:1px solid var(--p-content-border-color); border-radius:1rem; background:var(--p-content-background); }
+.app-tabela-painel > h2 { margin:0 0 1rem; font-size:1.15rem; font-weight:650; }
+.app-tabela-ferramentas { margin-bottom:1rem; }
+.app-campo-pesquisa { display:flex; flex-direction:column; gap:.5rem; min-width:min(100%,18rem); }
+.app-campo-pesquisa label { font-weight:600; font-size:.9rem; }
+.app-campo-pesquisa input { width:100%; min-width:0; }
+.app-tabela-rolagem { overflow-x:auto; min-width:0; }
+.app-tabela { display:block; min-width:0; }
+.app-tabela .p-datatable-table-container { max-width:100%; overflow-x:auto; }
+.app-tabela table,.app-tabela-nativa { width:100%; border-collapse:collapse; color:var(--p-text-color); }
+.app-tabela .p-datatable-thead > tr > th,.app-tabela-nativa th { font-weight:600; color:var(--p-text-color); background:var(--p-content-background); }
+.app-tabela .p-datatable-thead > tr > th,.app-tabela .p-datatable-tbody > tr > td,.app-tabela-nativa :is(th,td) { padding:1rem; border:0; border-bottom:1px solid var(--p-content-border-color); vertical-align:middle; }
+.app-tabela .p-datatable-tbody > tr:not(.p-datatable-row-selected),.app-tabela-nativa tbody tr { background:var(--p-content-background); color:var(--p-text-color); }
+.app-tabela .p-datatable-tbody > tr:not(.p-datatable-row-selected):hover,.app-tabela-nativa tbody tr:hover { background:var(--p-content-hover-background); }
+.app-tabela .p-datatable-tbody > tr:last-child > td,.app-tabela-nativa tbody tr:last-child > :is(td,th) { border-bottom:0; }
+.app-tabela :is(.valor,.app-valor),.app-tabela-nativa .app-valor { white-space:nowrap; font-variant-numeric:tabular-nums; }
+:is(.app-tabela,.app-tabela-nativa) .app-col-texto { text-align:left; }
+:is(.app-tabela,.app-tabela-nativa) .app-col-centro { text-align:center; }
+.app-tabela .app-dado-compacto { white-space:nowrap; }
+.app-titulo-coluna { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; vertical-align:middle; }
+.app-titulo-coluna p-sorticon,.app-titulo-coluna .p-datatable-sort-icon { margin:0; flex-shrink:0; }
+.app-tabela :is(th,td).app-selecao { width:3rem; text-align:center; }
+.app-tabela :is(th,td).app-col-acoes { width:1%; white-space:nowrap; }
+.app-acoes-linha { display:flex; flex-wrap:nowrap; align-items:center; justify-content:center; gap:.4rem; }
+.app-tabela .app-col-centro > .app-grupo-celula { justify-content:center; }
+.app-tabela .app-col-centro > .aviso-linha { margin-inline:auto; }
+.app-tabela :is(.descricao,.app-descricao) { min-width:10rem; max-width:26rem; white-space:normal; overflow-wrap:anywhere; }
+.app-tabela .p-datatable-emptymessage td { padding:2rem 1rem; text-align:center; color:var(--p-text-muted-color); }
+.app-tabela .p-paginator { gap:.35rem; border:0; background:transparent; padding:1rem 0 0; flex-wrap:wrap; }
+.app-tabela .p-paginator-current { color:var(--p-text-muted-color); font-size:.9rem; }
+.app-tabela-nativa caption { text-align:left; padding:0 0 .75rem; font-weight:600; }
+.app-tabela-nativa { min-width:28rem; }
+.app-tabela-nativa thead th { font-size:inherit; }
+.app-erro { color:var(--p-red-500); margin:.75rem 0; }
+.app-listagem :is(input,button):focus-visible { outline:2px solid var(--p-primary-color); outline-offset:3px; }
+@media(max-width:700px) {
+  .app-tabela-painel { padding:1rem; }
+  .app-cabecalho,.app-tabela-ferramentas { align-items:stretch; }
+  .app-acoes { justify-content:flex-start; }
+  .app-campo-pesquisa { width:100%; min-width:0; }
+}

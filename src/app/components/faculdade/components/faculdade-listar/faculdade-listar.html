@@ -1,8 +1,6 @@
-<div class="card">
+<div class="app-listagem">
   <p-toast />
-  <p-toolbar class="mb-6">
-    <ng-template #start>
-      <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+  <header class="app-cabecalho"><div><h1>Faculdades</h1><p>Cadastros e destinos atendidos pela associação.</p></div><div class="app-acoes"><p-button label="Novo" icon="pi pi-plus" (onClick)="openNew()" />
       <p-button
         severity="danger"
         label="Excluir"
@@ -11,9 +9,7 @@
         (onClick)="deleteSelectedFaculdades()"
         [disabled]="!selectedFaculdades || !selectedFaculdades.length"
       />
-    </ng-template>
-    <ng-template #end>
-      <p-fileUpload
+<p-fileUpload
         mode="basic"
         accept="image/*"
         [maxFileSize]="1000000"
@@ -22,90 +18,73 @@
         auto
         customUpload
         class="mr-2 inline-block"
-        [chooseButtonProps]="{ severity: 'secondary' }"
+        [chooseButtonProps]="{ severity: 'secondary', outlined: true }"
       />
-      <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
-    </ng-template>
-  </p-toolbar>
+      <p-button [outlined]="true" label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" /></div></header>
 
-  <p-table
+  <section class="app-tabela-painel"><div class="app-tabela-ferramentas"><div class="app-campo-pesquisa"><label for="pesquisa-faculdade">Pesquisar registros</label><p-iconfield>
+          <p-inputicon class="pi pi-search" />
+          <input id="pesquisa-faculdade"
+            pInputText
+            type="search"
+            (input)="dt.filterGlobal($event.target.value, 'contains')"
+            placeholder="Pesquisar..."
+          />
+        </p-iconfield></div></div>@if (estadoLista.erro()) { <div role="alert"><p class="app-erro">{{ estadoLista.erro() }}</p><p-button label="Tentar novamente" icon="pi pi-refresh" severity="secondary" [outlined]="true" [disabled]="estadoLista.carregando()" (onClick)="carregarFaculdades()" /></div> }
+<div class="app-tabela-rolagem"><p-table appTabelaPadrao [loading]="estadoLista.carregando()"
     #dt
     [value]="faculdades"
     [rows]="10"
     [columns]="cols"
     [paginator]="true"
     [globalFilterFields]="['id', 'nome', 'endereco']"
-    [tableStyle]="{ 'min-width': '75rem' }"
+    [tableStyle]="{ 'min-width': '38rem' }"
     [(selection)]="selectedFaculdades"
     [rowHover]="true"
     dataKey="id"
-    currentPageReportTemplate="Exibindo {first} a {last} de {totalRecords} registros"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
     [showCurrentPageReport]="true"
   >
-    <ng-template #caption>
-      <div class="flex items-center justify-between">
-        <h5 class="m-0">Gerenciar Faculdades</h5>
-        <p-iconfield>
-          <p-inputicon class="pi pi-search" />
-          <input
-            pInputText
-            type="text"
-            (input)="dt.filterGlobal($event.target.value, 'contains')"
-            placeholder="Pesquisar..."
-          />
-        </p-iconfield>
-      </div>
-    </ng-template>
 
     <ng-template #header>
       <tr>
-        <th style="width: 3rem">
-          <p-tableHeaderCheckbox />
-        </th>
-        <th pSortableColumn="id" style="min-width: 5rem" class="text-center">
-          Id
-          <p-sortIcon field="id" />
-        </th>
-        <th style="min-width: 16rem" class="text-center">
+        <th class="app-selecao app-col-centro"><p-tableHeaderCheckbox /></th>
+        <th pSortableColumn="id" class="app-col-centro"><span class="app-titulo-coluna">Id
+          <p-sortIcon field="id" /></span></th>
+        <th class="app-col-texto">
           Nome
         </th>
-        <th style="min-width: 12rem" class="text-center">
+        <th class="app-col-texto">
           Endereço
         </th>
-        <th style="min-width: 10rem" class="text-center">Ações</th>
+        <th class="app-col-acoes app-col-centro">Ações</th>
       </tr>
     </ng-template>
 
     <ng-template #body let-faculdade>
       <tr>
-        <td style="width: 3rem">
-          <p-tableCheckbox [value]="faculdade" />
-        </td>
-        <td style="min-width: 5rem" class="text-center">{{ faculdade.id }}</td>
-        <td style="min-width: 16rem" class="text-center">{{ faculdade.nome }}</td>
-        <td style="min-width: 12rem" class="text-center">{{ faculdade.endereco }}</td>
-        
-        <td class="text-center">
-          <div class="flex justify-center">
-            <p-button
+        <td class="app-selecao app-col-centro"><p-tableCheckbox [value]="faculdade" /></td>
+        <td class="app-col-centro app-dado-compacto">{{ faculdade.id }}</td>
+        <td class="app-col-texto">{{ faculdade.nome }}</td>
+        <td class="app-col-texto">{{ faculdade.endereco }}</td>
+
+        <td class="app-col-acoes app-col-centro">
+          <div class="app-acoes-linha">
+            <app-acao-tabela severity="primary" [ariaLabel]="'Editar faculdade ' + faculdade.id"
               icon="pi pi-pencil"
-              class="mr-2"
-              [rounded]="true"
-              [outlined]="true"
-              (click)="editFaculdade(faculdade)"
+              (acionar)="editFaculdade(faculdade)"
             />
-            <p-button
+            <app-acao-tabela severity="danger" [ariaLabel]="'Excluir faculdade ' + faculdade.id"
               icon="pi pi-trash"
-              severity="danger"
-              [rounded]="true"
-              [outlined]="true"
-              (click)="deleteFaculdade(faculdade)"
+
+              (acionar)="deleteFaculdade(faculdade)"
             />
           </div>
         </td>
       </tr>
     </ng-template>
-  </p-table>
+  <ng-template #emptymessage><tr><td [attr.colspan]="5">{{ estadoLista.carregando() ? 'Carregando registros…' : estadoLista.erro() ? 'Não foi possível carregar os registros.' : 'Nenhum registro encontrado para esta seleção.' }}</td></tr></ng-template>
+</p-table></div></section>
 
   <p-dialog
     [(visible)]="faculdadeDialog"

@@ -1,3 +1,5 @@
+import { TabelaPadrao } from '../../../../shared/ui/tabelas/tabela-padrao';
+import { AcaoTabela } from '../../../../shared/ui/tabelas/acao-tabela';
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -11,7 +13,6 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
 import { InputTextModule } from 'primeng/inputtext';
-import { ToolbarModule } from 'primeng/toolbar';
 import { TagModule } from 'primeng/tag';
 import { ManutencaoService } from '../../service/manutencao.service';
 import { ChamadoManutencao, OnibusChamado } from '../../models/manutencao.models';
@@ -22,8 +23,8 @@ import { ChamadoDetalhe } from '../chamado-detalhe/chamado-detalhe';
 @Component({
   standalone: true,
   selector: 'app-meus-chamados',
-  imports: [DatePipe, ReactiveFormsModule, ButtonModule, DialogModule, SelectModule, TableModule,
-    TextareaModule, InputTextModule, ToolbarModule, TagModule, ChamadoDetalhe],
+  imports: [TabelaPadrao, AcaoTabela, DatePipe, ReactiveFormsModule, ButtonModule, DialogModule, SelectModule, TableModule,
+    TextareaModule, InputTextModule, TagModule, ChamadoDetalhe],
   templateUrl: './meus-chamados.html',
   styleUrl: '../../styles/manutencao.css',
 })

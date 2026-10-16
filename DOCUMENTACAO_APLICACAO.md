@@ -12,6 +12,8 @@ O sistema possui autenticação JWT e três papéis:
 
 Além da autenticação, o frontend oferece os cadastros de transporte, contas a pagar/receber e chamados de manutenção com atendimento administrativo e alteração explícita do estado do ônibus.
 
+Em 16/10/2026, as 24 tabelas do sistema foram padronizadas pelo modelo de Contas a pagar, com camada visual compartilhada, ações de registro por ícones e remoção de notas técnicas fixas. A revisão seguinte alinhou títulos e dados por tipo: textos à esquerda; informações compactas, valores e ações no centro. Contratos, convenções e validação estão em [PADRAO_TABELAS_FRONTEND.md](PADRAO_TABELAS_FRONTEND.md). Depois disso, Usuários e Perfil receberam refinamento visual local, sem alteração do padrão global. A suíte atual possui 576 testes aprovados em 71 specs; os resultados anteriores abaixo permanecem como registro histórico de cada entrega.
+
 Em 14/10/2026 foi implementada a **programação geral por e-mail**, exclusiva de ADMIN, na branch `codex/integracao-email`, baseada na principal `master`. A tela consulta a escala por faculdade, solicita envio/correção, controla o automático e acompanha lotes. Não inclui PDF ou seleção individual de destinatários. A integração WhatsApp ficou isolada em sua própria branch e não foi mesclada. A tela foi conferida com ADMIN e dados reais, em desktop/celular no modo escuro; SMTP real e modo claro permanecem pendentes.
 
 Também em 14/10/2026, o frontend de **arquivamento de alunos e exclusão protegida** foi implementado em `/alunos`, com filtros, arquivamento individual/em lote, restauração sem reativação automática e consulta de vínculos antes da exclusão definitiva. A leitura do backend local ainda não encontrou os novos endpoints/campo; a interface bloqueia as novas ações diante de contrato antigo/incompatível, sem simular sucesso. Nenhum aluno real foi alterado. Homologação integrada e visual permanece pendente de implementação do guia no backend.
@@ -208,6 +210,7 @@ Uma URL interna de retorno é preservada quando o usuário é enviado ao login. 
 | `/onibus` | `ADMIN` | CRUD de ônibus |
 | `/motoristas` | `ADMIN` | CRUD de motoristas |
 | `/contapagar` | `ADMIN` | Contas, pagamentos e recibos |
+| `/relatorios` | `ADMIN` | Inadimplência, fluxo de caixa, acerto de motoristas e PDFs |
 | `/contas-receber` | `ADMIN` | Consulta de todas as mensalidades dos alunos |
 | `/rotas` | `ADMIN`, `ALUNO` | Rotas e itinerários |
 | `/pontosembarque` | `ADMIN`, `ALUNO` | Pontos de embarque |
@@ -282,17 +285,17 @@ Documento detalhado: `PLANO_IMPLEMENTACAO_DASHBOARD_FRONTEND.md`.
 
 ### Minhas matrículas
 
-A página `/minhas-matriculas` chama `GET /contareceber/minhas` e mostra somente as cobranças do aluno identificado pelo JWT. A interface separa cobranças em aberto do histórico, oferece pesquisa, paginação e atualização manual e apresenta valor, vencimento e status `PENDENTE`, `ATRASADO` ou `PAGO`.
+A página `/minhas-matriculas` chama `GET /contareceber/minhas` e mostra somente as cobranças do aluno identificado pelo JWT. A interface separa cobranças em aberto do histórico, oferece pesquisa, paginação e atualização manual e apresenta competência, original, recebido, saldo restante, vencimento, avisos e status `PENDENTE`, `ATRASADO` ou `PAGO`, com indicação complementar de parcial.
 
-O aluno pode pagar cobranças pendentes ou atrasadas escolhendo apenas a forma de pagamento. O diálogo mostra o valor integral sem permitir edição e chama `POST /recebimentos/realizar/{contaId}` com corpo `null` e somente o query param `formaPagamento`. O frontend nunca envia `alunoId`, `pessoaId` ou valor do pagamento.
+O aluno pode registrar pagamento integral ou parcial a partir do saldo restante calculado pelo servidor. O diálogo começa com esse saldo e permite valor positivo, até duas casas e limitado ao saldo. Antes da confirmação, a posição é consultada novamente. O POST `/recebimentos/realizar/{contaId}` recebe corpo `null`, query params `formaPagamento`/`valorPago` e `Idempotency-Key`; nunca recebe `alunoId` ou `pessoaId`.
 
-Após sucesso, a lista é recarregada e o recibo retornado é aberto. Cobranças pagas oferecem `GET /recebimentos/recibo/conta/{contaId}`. O botão é bloqueado durante a requisição; um `409` fecha o diálogo e atualiza os dados, enquanto `400` mantém a confirmação aberta com a mensagem de validação.
+Após sucesso, o recibo da parcela é aberto e lista/dashboard, histórico e perfil são reconsultados; nenhuma matrícula é ativada localmente. O histórico completo usa `GET /recebimentos/conta/{contaId}`, inclusive para cobranças parciais, mantendo a ordem do servidor. `buscarRecibo` continua disponível como consulta do mais recente. Histórico vazio não significa conta excluída. Não se apresenta parcela como quitação.
 
-O pagamento/recibo agora é concentrado em `conta-receber/components/pagamento-matricula/`, compartilhado com o início do aluno. Usa `CobrancaParaPagamento`, formulário reativo de forma de pagamento e seleção copiada para o recibo. A instância permanece montada durante a atualização. Em resposta de rede incerta não há repetição automática: solicita revisão das cobranças antes de novo envio. O sucesso continua válido mesmo se a reconsulta falhar, preservando o recibo e informando o erro da atualização. É registro interno, sem gateway bancário.
+O pagamento/histórico/recibo é concentrado em `conta-receber/components/pagamento-matricula/`, compartilhado com o início do aluno. Antes do POST, persiste somente intenção, chave, usuário, conta, forma e valor em `sessionStorage`, na chave `integrador.recebimento.pendente.{usuarioId}`. Rede/500/409 conservam a intenção e oferecem repetição explícita com os parâmetros originais; jamais repetem automaticamente. A omissão legada de `valorPago` é preservada. Uma intenção incerta só pode ser abandonada após reconsulta e confirmação explícita; isso não cancela uma operação já recebida no servidor. Sucesso com falha de atualização mantém estado REGISTRADA e permite somente GET, nunca reenvio. É registro interno, sem gateway bancário.
 
 A primeira cobrança, o vencimento em 30 dias e as próximas cobranças mensais são controlados pelo backend. O Angular apenas consulta novamente os dados; ele não possui agendador nem cria contas localmente.
 
-As telas de contas a receber seguem o mesmo padrão visual de Contas a pagar: barra de alternância, tabelas separadas para pendências e histórico, valores em vermelho/verde e os mesmos cards de confirmação e recibo. No recebimento, o valor aparece bloqueado porque deve vir integralmente da cobrança.
+Contas a receber e Minhas matrículas seguem o mesmo padrão visual de Contas a pagar: título/descrição, painel com alternância entre aberto e histórico, pesquisa identificada, tabela PrimeNG sem zebra, valores à direita e paginação. Ações por linha usam ícones circulares com tooltip e nome acessível. Formulários/fechamento ficam bloqueados durante confirmação. O ADMIN administra cobranças, mas não recebe permissão de pagar ou consultar recibos dos alunos.
 
 ---
 
@@ -322,11 +325,21 @@ Detalhamento: `PLANO_IMPLEMENTACAO_ARQUIVAMENTO_ALUNOS_FRONTEND.md`. Contrato pa
 
 ### Contas a pagar
 
-A interface lista contas, separa pagas das pendentes/atrasadas, realiza pagamento e consulta recibo. O serviço possui atualização de conta, mas a tela não oferece CRUD completo de contas.
+A interface oferece cadastro, edição e exclusão protegida, com competência/classificação e beneficiário genérico para despesas. Mostra valor original, total pago, saldo restante, parcial e avisos; usa a posição calculada pelo backend, sem recalcular saldos. Qualquer comprovante ou quitação histórica impede excluir e alterar valor/beneficiário, inclusive comprovantes zero/negativos. Não há alteração manual do status financeiro.
+
+Pagamento admite valor parcial, preenche pelo saldo restante, reconsulta antes de confirmar e utiliza UUID em `Idempotency-Key`. Intenção pendente é isolada pelo administrador em sessionStorage. Resultado incerto exige conferência ou repetição explícita com a mesma chave/parâmetros; sucesso com falha de atualização permite apenas atualizar consultas, sem repetir pagamento. Histórico lista todos os comprovantes de contas parciais ou quitadas, abrindo cada recibo individualmente.
+
+### Relatórios financeiros
+
+ADMIN acessa `/relatorios` no menu Financeiro. Três opções: Inadimplência de alunos (inclui arquivados), Fluxo de caixa (datas reais de movimentação e saldo acumulado na ordem do servidor) e Acerto de motoristas (competência dos lançamentos). Consultas são explícitas; PDFs usam os mesmos filtros via HttpClient autenticado e são gerados pelo backend. Filtros alterados limpam os resultados; avisos e totais do servidor permanecem visíveis. PDF sem linhas é permitido.
+
+Saldo base tem GET/PUT, primeiro cadastro por 404 específico e edição com versão. Conflitos exigem recarga/revisão sem repetição automática. Alterações financeiras invalidam os relatórios em memória e o dashboard ADMIN. Detalhamento de contratos, recuperação e homologação: `PLANO_IMPLEMENTACAO_RELATORIOS_FRONTEND.md`.
 
 ### Contas a receber da matrícula
 
-O módulo mantém contratos tipados para conta, status financeiro, forma de pagamento e recibo. Para o ADMIN, `/contas-receber` consulta todas as mensalidades em modo somente leitura, separando contas abertas do histórico e permitindo pesquisa por aluno, descrição e status. Para o ALUNO, `/minhas-matriculas` mostra somente as próprias cobranças e oferece pagamento e recibo.
+O módulo mantém contratos tipados para conta, status financeiro, forma, posição financeira e recibo. Para o ADMIN, `/contas-receber` permite cadastro, edição e exclusão protegida: descrição, valor original, aluno, competência e vencimento; não edita status financeiro. A edição consulta a conta atual e preserva valor/aluno quando há recebimento ou quitação histórica. Novos vínculos usam alunos não arquivados, preservando o vínculo atual para manutenção. A exclusão consulta a posição e exige confirmação; conflito recarrega sem repetir DELETE. O contrato ADMIN não expõe contagem/histórico de recibos: recebimentos cuja soma seja zero ainda são protegidos pelo backend, com conflito compreensível. Nunca são apagados recebimentos para liberar a cobrança.
+
+Documento da entrega: `IMPLEMENTACAO_CONTAS_RECEBER_FRONTEND.md`. O guia fornecido pelo backend foi preservado e suas permissões continuam válidas.
 
 `ContaReceberService` mantém separadas as consultas `/listar` e `/minhas`. `RecebimentoService` registra o pagamento ou busca o recibo apenas no fluxo do aluno. A identidade e o valor são sempre validados pelo backend; a consulta administrativa não oferece ações financeiras.
 
@@ -432,8 +445,13 @@ A base é obtida de `environment.apiUrl`, atualmente `http://localhost:8080`.
 | GET | `/pagamentos/recibo/conta/{contaId}` | Consulta recibo |
 | GET | `/contareceber/listar` | Lista todas as contas para consulta do ADMIN |
 | GET | `/contareceber/minhas` | Lista somente as cobranças do aluno autenticado |
-| POST | `/recebimentos/realizar/{contaId}` | Corpo `null`; query param `formaPagamento`; não recebe valor ou aluno |
+| GET | `/contareceber/buscar-contareceber/{id}` | ADMIN; posição atual antes da manutenção |
+| POST | `/contareceber/salvar-contareceber` | ADMIN; nova cobrança com competência |
+| PUT | `/contareceber/atualizar-contareceber/{id}` | ADMIN; edição protegida |
+| DELETE | `/contareceber/deletar-contareceber/{id}` | ADMIN; exclusão sem recebimentos/quitação histórica |
+| POST | `/recebimentos/realizar/{contaId}` | ALUNO; corpo `null`, `formaPagamento`, `valorPago` opcional e `Idempotency-Key`; sem identidade do aluno |
 | GET | `/recebimentos/recibo/conta/{contaId}` | Consulta recibo protegido da matrícula |
+| GET | `/recebimentos/conta/{contaId}` | ALUNO; histórico completo da própria cobrança |
 
 ### Chamados de manutenção
 
@@ -500,7 +518,42 @@ Credenciais administrativas não devem ser registradas no código, documentaçã
 
 ## 11. Testes automatizados
 
-Atualização de 14/10/2026, refinamento visual dos modais (estado mais recente):
+### Refinamento de Usuários e Perfil — 16/10/2026
+
+Usuários limita o conteúdo a 80rem e usa dois painéis na proporção 3:2 quando há pelo menos 70rem de largura disponível no componente; abaixo disso, os painéis ficam empilhados e alinhados pelo topo, sem alturas artificiais. Cabeçalhos recebem ícones e contagens das listas carregadas; nomes/e-mails quebram com segurança, tabelas mantêm rolagem interna e paginação. Formulários, confirmações, menu de ações e proteções da própria conta foram preservados. Não foram adicionados filtros nem novos endpoints.
+
+Perfil limita a largura a 60rem, com identificação destacada, avatar por ícone, nome/e-mail/papel e cartões de dados pessoais/acadêmicos/profissionais conforme os dados existentes. Rótulos ficam acima dos valores. Um único cartão ocupa a largura disponível; no desktop, seus três campos pessoais ficam em colunas, e no celular ficam empilhados. Perfis com mais de um cartão usam grade adaptável. Campos, regras de formatação, valores ausentes e estados de consulta foram preservados; não há novas ações de edição.
+
+Validação: **576/576 testes aprovados, em 71 specs**. Foram acrescentados 12 testes de Perfil (três papéis, dados completos/ausentes, valores zero, carregamento, erro, texto seguro e compactação responsiva) e seis testes de Usuários (contagens, vazios, textos longos, proporção/empilhamento, carregamento e erro). Os testes anteriores de criação, edição, exclusão, status e bloqueio da própria conta continuam na suíte. TypeScript da aplicação/testes e build de produção aprovados, sem aumentar budgets.
+
+Conferência real com sessão ADMIN feita pelo usuário: Usuários e Perfil em 1440px e 360px, no modo escuro. Verificados proporção 3:2, alturas independentes, contagens, cartões compactos, campos ausentes, menu da própria conta com desativação/exclusão bloqueadas, empilhamento e paginação no celular. Documento e main sem overflow horizontal; somente tabelas largas têm rolagem interna. Nenhuma ação do menu foi executada, nenhum formulário foi enviado e nenhum dado real foi alterado.
+
+Modo claro, Perfil de ALUNO/MOTORISTA com sessão real e grandes volumes de usuários ainda requerem homologação visual. Esses perfis e nomes/e-mails longos foram validados com dados simulados; os testes não equivalem à conferência integrada. Mudanças de execução limitadas aos templates/CSS locais das duas telas; nenhuma mudança em APIs, serviços, segurança ou CSS compartilhado. Sem commit/push.
+
+### Registros das entregas anteriores
+
+Atualização de 16/10/2026, mensalidades/Contas a receber (estado mais recente):
+
+- **532/532 testes aprovados**, 65 specs. Pagamentos parciais, intenção por usuário, retentativas idempotentes, falhas após sucesso, histórico parcial, CRUD protegido, saldo no dashboard e inadimplência cobertos com dados simulados.
+- TypeScript aprovado e build de produção sem avisos (inicial 1,10 MB, transferência estimada 197,54 kB).
+- ADMIN: listagem e formulário conferidos com backend real em desktop/360px, modo escuro. Nenhuma gravação financeira, exclusão ou migração foi executada. Fluxo autenticado do ALUNO e modo claro permanecem pendentes de homologação real.
+
+Entrega anterior de 16/10/2026, padronização das tabelas:
+
+- **467/467 testes aprovados**, 62 specs. Sete novos testes e reforço da cobertura do fluxo conferem ausência de zebra, ícones acessíveis, abertura da confirmação sem pagar, filtros e retorno à primeira página. TypeScript dos testes aprovado e build de produção sem avisos (inicial 1,10 MB, transferência estimada 197,57 kB).
+- Tabelas financeiras compartilham layout e estilos. Fluxo de caixa usa `p-table` com chave composta tipo/ID e mantém a ordem contábil. As classes antigas de zebra nas grades também foram removidas.
+- Conferência autenticada de Contas a pagar/receber em modo escuro: 1440 px e 360 px, página sem transbordamento horizontal (rolagem restrita à tabela), sem alteração de registros. Minhas matrículas e fluxo conferidos por testes simulados. Modo claro e tela pessoal com login ALUNO continuam pendentes de homologação visual.
+
+Histórico de 16/10/2026, relatórios e Contas a pagar:
+
+- Primeira execução após a ampliação: 442/445 testes aprovados; locale dos testes antigos e preservação de mensagem de conflito corrigidos.
+- Execução final: **460/460 aprovados**, 62 specs, com HTTP simulado — 99 testes líquidos sobre a baseline de 361. TypeScript da aplicação/testes aprovado; build de produção aprovado sem avisos (inicial 1,10 MB / transferência estimada 197,46 kB).
+- Conferência autenticada em modo escuro: inadimplência com dados reais, acerto vazio da competência atual, contas abertas/quitadas, comprovantes e recibo existente; edição de conta paga bloqueia valor/beneficiário. Filtros e modal de saldo base conferidos em 360 px, tela também em 1440 px.
+- PDF autenticado de inadimplência baixado para `C:/Users/melhe/Downloads/inadimplencia.pdf` (39.017 bytes). Os demais PDFs e o fluxo completo permanecem cobertos por testes simulados, sem homologação real nesta entrega.
+- GET real de saldo base retornou ausência de cadastro e abriu o formulário correto; nada foi preenchido/salvo. Fluxo depende do cadastro real pelo administrador. Modo claro e concorrência entre dois administradores ainda pendentes.
+- Nenhum pagamento, alteração de saldo base, criação/edição/exclusão de conta ou migração real executado. Sem commit/push.
+
+Histórico de 14/10/2026, refinamento visual dos modais:
 
 - Itinerário: identificação do ônibus destacada, cards de motorista/rota/veículo/grade, pontos numerados na ordem recebida, faculdades separadas e botão de fechamento no rodapé.
 - Atendimento: resumo do chamado com prioridade/andamento, ônibus e solicitante em cards, relato separado do formulário e ações no rodapé fora da área de rolagem.
@@ -664,9 +717,11 @@ location / {
 | CRUDs administrativos existentes | Mantidos para `ADMIN` |
 | Arquivamento de alunos | Frontend implementado; filtros, lote real, restauração e exclusão protegida dependem das novas APIs do backend |
 | Leitura de rotas, pontos e grades | Disponível para `ALUNO` |
-| Pagamento de matrícula | Implementado para `ALUNO` com conta, recebimento e recibo |
-| Consulta de contas a receber | Implementada para `ADMIN` em modo somente leitura |
+| Pagamento de matrícula | Integral/parcial para `ALUNO`, recuperação idempotente, histórico e recibos |
+| Contas a receber | CRUD protegido para `ADMIN`, competência e posição financeira do servidor |
 | Chamados de manutenção | Abertura/acompanhamento para ALUNO/MOTORISTA e atendimento para ADMIN |
+| Relatórios financeiros | Três consultas e PDFs, saldo base versionado; homologação real pendente |
+| Contas a pagar | CRUD protegido, parciais, recuperação idempotente e histórico completo de comprovantes |
 | Estado operacional do ônibus | Alteração explícita no atendimento; sem liberação/cancelamento automático |
 | Compatibilidade de grades | Novas viagens somente OPERANDO; vínculos/IDs existentes preservados |
 | Início por papel | Implementado em `/inicio`, preservando `/perfil` |
@@ -676,7 +731,8 @@ location / {
 | Programação geral por e-mail | Tela ADMIN em `/programacao-email`, cards por faculdade, envio/correção, automático e histórico |
 | Envio SMTP real | Pendente de configuração externa e homologação; nenhuma entrega real afirmada |
 | Geração mensal da cobrança | Responsabilidade do backend; validação integrada pendente |
-| Testes automatizados | 361 aprovados, em 55 specs |
+| Tabelas padronizadas | 23 PrimeNG e uma HTML; tema compartilhado, sem zebra e ações por ícones |
+| Testes automatizados | 576 aprovados, em 71 specs |
 | Build de produção | Aprovado |
 | Teste integrado dos três papéis | Dashboards conferidos com login real; demais fluxos completos ainda pendentes |
 | Dashboards com backend real | Três perfis conferidos em desktop/360px no modo escuro; ADMIN inclui mês, posição atual e atalhos |
@@ -685,8 +741,12 @@ location / {
 
 ---
 
-**Última revisão:** 14 de outubro de 2026
+**Última revisão:** 16 de outubro de 2026
 
 **Versão do pacote:** 0.0.0
 
-**Status:** autenticação, matrícula, manutenção, dashboards e administração da programação geral por e-mail implementados. Três dashboards e tela ADMIN de e-mail conferidos com dados reais em modo escuro. SMTP real, pagamento integrado, modo claro e demais fluxos de homologação ainda pendentes. Backend/guia/diagrama preservados; WhatsApp permanece em branch separada.
+**Status:** autenticação, matrícula, manutenção, dashboards, e-mail, relatórios financeiros e CRUD protegido de Contas a pagar/receber implementados. Mensalidades incluem parcelas, recuperação idempotente e histórico de recibos do aluno. Consultas administrativas, formulário de cobrança, recibo e PDF de inadimplência conferidos com backend real em modo escuro; o fluxo novo do ALUNO foi validado automaticamente com dados simulados. Saldo base não cadastrado; pagamentos reais, demais PDFs, modo claro e homologações concorrentes permanecem pendentes. Backend/guias/diagrama preservados; WhatsApp permanece separado.
+
+**Padronização visual:** todas as tabelas receberam o padrão compartilhado de Contas a pagar e alinhamento consistente entre títulos e células. Conferência real feita com ADMIN, desktop/celular e modo escuro, sem alterações de dados; a revisão de alinhamento foi conferida em Alunos e Contas a pagar. Modo claro, demais papéis com sessão real e cenários sem dados no ambiente permanecem pendentes; build de produção e 558 testes aprovados. Nenhum commit/push realizado.
+
+**Usuários e Perfil:** refinamento local implementado e conferido com ADMIN em desktop/celular no modo escuro, mantendo regras e operações existentes. Suíte atual de 576 testes e build aprovados; homologação visual dos outros perfis e modo claro pendente.

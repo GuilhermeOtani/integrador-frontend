@@ -15,6 +15,7 @@ describe('app routes', () => {
   for (const [path, papeis] of [
     ['inicio', ['ADMIN', 'ALUNO', 'MOTORISTA']],
     ['programacao-email', ['ADMIN']],
+    ['relatorios', ['ADMIN']], ['contapagar', ['ADMIN']],
     ['alunos', ['ADMIN']],
     ['manutencao', ['ADMIN']], ['meus-chamados', ['ALUNO', 'MOTORISTA']],
   ] as [string, Papel[]][]) {

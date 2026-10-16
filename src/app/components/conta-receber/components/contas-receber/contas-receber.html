@@ -1,183 +1,40 @@
-<div class="card">
-  <p-toolbar class="mb-6">
-    <ng-template #start>
-      <p-button
-        label="A Receber (Pendentes)"
-        icon="pi pi-clock"
-        class="mr-2"
-        [severity]="!mostrarPagas() ? 'primary' : 'secondary'"
-        [outlined]="mostrarPagas()"
-        (onClick)="selecionarHistorico(false)"
-      />
-
-      <p-button
-        label="Histórico (Pagas)"
-        icon="pi pi-check-circle"
-        [severity]="mostrarPagas() ? 'success' : 'secondary'"
-        [outlined]="!mostrarPagas()"
-        (onClick)="selecionarHistorico(true)"
-      />
-    </ng-template>
-
-    <ng-template #end>
-      <p-button
-        label="Atualizar"
-        icon="pi pi-refresh"
-        severity="secondary"
-        [outlined]="true"
-        [loading]="carregando()"
-        (onClick)="carregar()"
-      />
-    </ng-template>
-  </p-toolbar>
-
-  @if (carregando()) {
-    <div class="flex justify-center p-8">
-      <p-progressSpinner ariaLabel="Carregando contas a receber" />
+<section class="financeiro app-listagem">
+  <header class="app-cabecalho"><div><h1>Contas a receber</h1><p class="muted">Consulte as mensalidades dos alunos e o histórico de contas pagas.</p></div>
+    <div class="acoes"><p-button label="Nova cobrança" icon="pi pi-plus" (onClick)="abrirEditor(null)" [disabled]="operando()" /><p-button label="Atualizar" icon="pi pi-refresh" severity="secondary" [outlined]="true" [loading]="carregando()" (onClick)="carregar()" /></div>
+  </header>
+  @if (erro()) { <p-message severity="error" role="alert">{{ erro() }}</p-message><div><p-button label="Tentar novamente" icon="pi pi-refresh" (onClick)="carregar()" /></div> }
+  @if (avisoOperacao()) { <p-message severity="warn" role="alert">{{ avisoOperacao() }}</p-message> }
+  <section class="app-tabela-painel">
+    <div class="app-tabela-ferramentas">
+      <div class="acoes"><p-button label="Em aberto" icon="pi pi-clock" [severity]="mostrarPagas() ? 'secondary' : 'primary'" [outlined]="mostrarPagas()" (onClick)="selecionarHistorico(false)" />
+        <p-button label="Histórico / pagas" icon="pi pi-check-circle" [severity]="mostrarPagas() ? 'primary' : 'secondary'" [outlined]="!mostrarPagas()" (onClick)="selecionarHistorico(true)" /></div>
+      <div class="app-campo-pesquisa"><label for="pesquisa-receber">Pesquisar lançamentos</label><input pInputText id="pesquisa-receber" type="search" placeholder="Descrição, aluno ou situação" [value]="pesquisa()" (input)="pesquisar($any($event.target).value)" /></div>
     </div>
-  } @else if (erro()) {
-    <div class="flex flex-col gap-3 items-start p-4">
-      <p-message severity="error" [text]="erro()!" />
-      <p-button label="Tentar novamente" icon="pi pi-refresh" (onClick)="carregar()" />
-    </div>
-  } @else {
-    <p-table
-      *ngIf="!mostrarPagas()"
-      #dtPendentes
-      [value]="contasEmAberto()"
-      [rows]="10"
-      [paginator]="true"
-      [globalFilterFields]="['descricao', 'nomeAluno', 'status']"
-      [tableStyle]="{ 'min-width': '75rem' }"
-      [rowHover]="true"
-      dataKey="id"
-      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} contas"
-      [showCurrentPageReport]="true"
-    >
-      <ng-template #caption>
-        <div class="flex items-center justify-between">
-          <h5 class="m-0 text-xl font-bold text-color">Contas a Receber</h5>
-          <p-iconfield>
-            <p-inputicon class="pi pi-search" />
-            <input
-              pInputText
-              type="text"
-              (input)="dtPendentes.filterGlobal($any($event.target).value, 'contains')"
-              placeholder="Pesquisar..."
-            />
-          </p-iconfield>
-        </div>
-      </ng-template>
+    @if (carregando()) { <div class="vazio"><p-progressSpinner ariaLabel="Carregando contas a receber" /></div> }
+    @else if (!erro()) {
+      <div class="app-tabela-rolagem"><p-table appTabelaPadrao [value]="contasVisiveis()" dataKey="id" [rows]="10" [first]="primeiraLinha()" (onPage)="primeiraLinha.set($event.first)" [paginator]="true" [rowHover]="true" [tableStyle]="{'min-width':'68rem'}" [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+        <ng-template #header><tr>
+          <th pSortableColumn="descricao" class="app-col-texto"><span class="app-titulo-coluna">Conta / descrição <p-sortIcon field="descricao" /></span></th>
+          <th pSortableColumn="nomeAluno" class="app-col-texto"><span class="app-titulo-coluna">Aluno <p-sortIcon field="nomeAluno" /></span></th>
+          <th pSortableColumn="competencia" class="app-col-centro"><span class="app-titulo-coluna">Competência <p-sortIcon field="competencia" /></span></th>
+          <th pSortableColumn="dataVencimento" class="app-col-centro"><span class="app-titulo-coluna">Vencimento <p-sortIcon field="dataVencimento" /></span></th>
+          <th pSortableColumn="valor" class="valor app-col-centro"><span class="app-titulo-coluna">Original <p-sortIcon field="valor" /></span></th><th pSortableColumn="valorRecebido" class="valor app-col-centro"><span class="app-titulo-coluna">Recebido <p-sortIcon field="valorRecebido" /></span></th><th pSortableColumn="saldoRestante" class="valor app-col-centro"><span class="app-titulo-coluna">Em aberto <p-sortIcon field="saldoRestante" /></span></th><th class="app-col-centro">Situação</th><th class="app-col-acoes app-col-centro">Ações</th>
+        </tr></ng-template>
+        <ng-template #body let-conta><tr>
+          <td class="descricao app-col-texto"><strong>#{{ conta.id }} · {{ conta.descricao ?? 'Não informado' }}</strong><ul class="lista-avisos">@for (a of conta.avisos; track $index) { <li>{{ avisoConta(a) }}</li> }</ul></td><td class="app-col-texto">{{ conta.nomeAluno || 'Não vinculado' }}</td>
+          <td class="app-col-centro app-dado-compacto">{{ conta.competencia ?? 'Não informado' }}</td><td class="app-col-centro app-dado-compacto">{{ dia(conta.dataVencimento) }}</td>
+          <td class="valor app-col-centro app-dado-compacto">{{ moeda(conta.valor) }}</td><td class="valor app-col-centro app-dado-compacto">{{ moeda(conta.valorRecebido) }}</td><td class="valor app-col-centro"><strong>{{ moeda(conta.saldoRestante) }}</strong></td>
+          <td class="app-col-centro"><p-tag [value]="rotuloStatus(conta.status)" [severity]="getSeverity(conta.status)" /> @if (conta.recebimentoParcial) { <p-tag value="Parcial" severity="info" /> }</td>
+          <td class="app-col-centro app-col-acoes"><div class="app-acoes-linha"><app-acao-tabela severity="primary" icon="pi pi-pencil" [ariaLabel]="'Editar cobrança ' + conta.id" tooltip="Editar cobrança" [disabled]="operando()" (acionar)="abrirEditor(conta.id)" /><app-acao-tabela severity="danger" icon="pi pi-trash" [ariaLabel]="'Excluir cobrança ' + conta.id" tooltip="Verificar exclusão" [disabled]="operando()" (acionar)="prepararExclusao(conta)" /></div></td>
+        </tr></ng-template>
+        <ng-template #emptymessage><tr><td colspan="9" class="vazio">{{ pesquisa().trim() ? 'Nenhuma conta encontrada para a pesquisa.' : mostrarPagas() ? 'Nenhum histórico de conta paga encontrado.' : 'Nenhuma conta pendente. Tudo em dia!' }}</td></tr></ng-template>
+      </p-table></div>
+    }
 
-      <ng-template #header>
-        <tr>
-          <th pSortableColumn="descricao" style="min-width: 16rem" class="text-center">
-            Descrição <p-sortIcon field="descricao" />
-          </th>
-          <th pSortableColumn="nomeAluno" style="min-width: 16rem" class="text-center">
-            Aluno <p-sortIcon field="nomeAluno" />
-          </th>
-          <th pSortableColumn="valor" style="min-width: 12rem" class="text-center">
-            Valor <p-sortIcon field="valor" />
-          </th>
-          <th pSortableColumn="dataVencimento" style="min-width: 12rem" class="text-center">
-            Vencimento <p-sortIcon field="dataVencimento" />
-          </th>
-          <th style="min-width: 10rem" class="text-center">Status</th>
-        </tr>
-      </ng-template>
-
-      <ng-template #body let-conta>
-        <tr>
-          <td class="font-medium text-color text-center">{{ conta.descricao }}</td>
-          <td class="text-center">{{ conta.nomeAluno || 'Não vinculado' }}</td>
-          <td class="text-center font-bold text-red-500">
-            {{ conta.valor | currency: 'BRL' : 'symbol' }}
-          </td>
-          <td class="text-center">{{ conta.dataVencimento | date: 'dd/MM/yyyy' : 'UTC' }}</td>
-          <td class="text-center">
-            <p-tag [value]="rotuloStatus(conta.status)" [severity]="getSeverity(conta.status)" />
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template #emptymessage>
-        <tr>
-          <td colspan="5" class="text-center p-8 text-gray-500">
-            <i class="pi pi-check-circle text-4xl block mb-2 text-green-500/70"></i>
-            Nenhuma conta pendente. Tudo em dia!
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-
-    <p-table
-      *ngIf="mostrarPagas()"
-      #dtPagas
-      [value]="contasPagas()"
-      [rows]="10"
-      [paginator]="true"
-      [globalFilterFields]="['descricao', 'nomeAluno', 'status']"
-      [tableStyle]="{ 'min-width': '75rem' }"
-      [rowHover]="true"
-      dataKey="id"
-      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} contas"
-      [showCurrentPageReport]="true"
-    >
-      <ng-template #caption>
-        <div class="flex items-center justify-between">
-          <h5 class="m-0 text-xl font-bold text-color">Histórico de Recebimentos</h5>
-          <p-iconfield>
-            <p-inputicon class="pi pi-search" />
-            <input
-              pInputText
-              type="text"
-              (input)="dtPagas.filterGlobal($any($event.target).value, 'contains')"
-              placeholder="Pesquisar..."
-            />
-          </p-iconfield>
-        </div>
-      </ng-template>
-
-      <ng-template #header>
-        <tr>
-          <th pSortableColumn="descricao" style="min-width: 16rem" class="text-center">
-            Descrição <p-sortIcon field="descricao" />
-          </th>
-          <th pSortableColumn="nomeAluno" style="min-width: 16rem" class="text-center">
-            Aluno <p-sortIcon field="nomeAluno" />
-          </th>
-          <th pSortableColumn="valor" style="min-width: 12rem" class="text-center">
-            Valor Recebido <p-sortIcon field="valor" />
-          </th>
-          <th pSortableColumn="dataVencimento" style="min-width: 12rem" class="text-center">
-            Vencimento <p-sortIcon field="dataVencimento" />
-          </th>
-          <th style="min-width: 10rem" class="text-center">Status</th>
-        </tr>
-      </ng-template>
-
-      <ng-template #body let-conta>
-        <tr>
-          <td class="font-medium text-color text-center">{{ conta.descricao }}</td>
-          <td class="text-center">{{ conta.nomeAluno || 'Não vinculado' }}</td>
-          <td class="text-center font-bold text-green-500">
-            {{ conta.valor | currency: 'BRL' : 'symbol' }}
-          </td>
-          <td class="text-center">{{ conta.dataVencimento | date: 'dd/MM/yyyy' : 'UTC' }}</td>
-          <td class="text-center">
-            <p-tag [value]="rotuloStatus(conta.status)" [severity]="getSeverity(conta.status)" />
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template #emptymessage>
-        <tr>
-          <td colspan="5" class="text-center p-8 text-gray-500">
-            Nenhum histórico de conta paga encontrado.
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  }
-</div>
+  </section>
+</section>
+@if (editor(); as e) { <app-cobranca-editor [contaId]="e.id" (fechado)="editor.set(null)" (salvo)="aposSalvar()" /> }
+<p-dialog header="Excluir cobrança" [visible]="exclusao() !== null" (visibleChange)="!$event && !operando() && exclusao.set(null)" [modal]="true" [draggable]="false" [resizable]="false" [closable]="!operando()" [closeOnEscape]="!operando()" [style]="{width:'min(95vw, 32rem)'}">
+  @if (exclusao(); as c) { <p>Excluir definitivamente a cobrança #{{ c.id }} · {{ c.descricao }} de {{ c.nomeAluno }}?</p><p-message severity="warn">Esta ação não pode ser desfeita. Qualquer recebimento ou quitação histórica impedirá a exclusão no servidor.</p-message> }
+  <ng-template #footer><p-button label="Cancelar" icon="pi pi-times" severity="secondary" [text]="true" [disabled]="operando()" (onClick)="exclusao.set(null)" /><p-button label="Excluir cobrança" icon="pi pi-trash" severity="danger" [loading]="operando()" [disabled]="operando()" (onClick)="confirmarExclusao()" /></ng-template>
+</p-dialog>

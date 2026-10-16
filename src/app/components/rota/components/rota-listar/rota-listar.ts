@@ -1,3 +1,6 @@
+import { EstadoLista } from '../../../../shared/ui/tabelas/estado-lista';
+import { TabelaPadrao } from '../../../../shared/ui/tabelas/tabela-padrao';
+import { AcaoTabela } from '../../../../shared/ui/tabelas/acao-tabela';
 import { Component, computed, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,8 +16,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { ToolbarModule } from 'primeng/toolbar';
-
 import rota from '../../models/rota';
 import { RotaService } from '../../service/rota-service';
 import { RotaCadastro } from '../rota-cadastro/rota-cadastro';
@@ -23,7 +24,7 @@ import { AuthService } from '../../../../core/auth/service/auth.service';
 @Component({
   standalone: true,
   selector: 'app-rota-listar',
-  imports: [
+  imports: [TabelaPadrao, AcaoTabela,
     CommonModule,
     ButtonModule,
     ConfirmDialogModule,
@@ -35,7 +36,7 @@ import { AuthService } from '../../../../core/auth/service/auth.service';
     TableModule,
     TagModule,
     ToastModule,
-    ToolbarModule,
+
     InputTextModule,
     FormsModule,
     RotaCadastro,
@@ -45,6 +46,7 @@ import { AuthService } from '../../../../core/auth/service/auth.service';
   styleUrl: './rota-listar.css',
 })
 export class RotaListar implements OnInit {
+  readonly estadoLista = new EstadoLista();
   private rotaService = inject(RotaService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
@@ -94,7 +96,7 @@ export class RotaListar implements OnInit {
   }
 
   carregarRotas() {
-    this.rotaService.listarTodasRotas().subscribe({
+    this.estadoLista.acompanhar(this.rotaService.listarTodasRotas()).subscribe({
       next: (data) => {
         this.rotas = data;
       },

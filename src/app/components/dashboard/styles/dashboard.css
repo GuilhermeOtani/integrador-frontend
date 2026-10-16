@@ -36,11 +36,7 @@ dd { margin: .25rem 0 0; overflow-wrap: anywhere; }
 .botoes-linha { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 .atalhos { display: flex; flex-wrap: wrap; gap: .65rem; }
 .atalhos a { display: inline-flex; align-items: center; gap: .5rem; padding: .75rem 1rem; border: 1px solid var(--p-content-border-color); border-radius: .75rem; background: var(--p-content-background); text-decoration: none; }
-.tabela { overflow-x: auto; }
-table { width: 100%; min-width: 28rem; border-collapse: collapse; text-align: left; }
 caption { text-align: left; color: var(--p-text-muted-color); padding: .75rem 0; }
-th, td { padding: .65rem; border-bottom: 1px solid var(--p-content-border-color); vertical-align: top; }
-th { font-size: .875rem; }
 .texto { white-space: pre-line; }
 .campo-mes { display: flex; flex-direction: column; gap: .25rem; font-size: .85rem; }
 a { display: inline-block; color: var(--p-primary-color); text-decoration: underline; text-underline-offset: 3px; }

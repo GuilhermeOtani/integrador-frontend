@@ -11,6 +11,7 @@ import { PagamentoMatricula } from '../../../conta-receber/components/pagamento-
 import { DashboardService } from '../../service/dashboard-service';
 import { ConsultaDashboard } from '../../utils/consulta-dashboard';
 import { geradoEm, moeda, prazoCobranca, severidadeSituacao } from '../../utils/dashboard.utils';
+import { avisoFinanceiro } from '../../../../core/financeiro/financeiro.utils';
 @Component({
   selector: 'app-dashboard-aluno', standalone: true,
   imports: [CommonModule, RouterLink, ButtonModule, DialogModule, MessageModule, SkeletonModule, TagModule, AgendaTransporte, PagamentoMatricula],
@@ -24,6 +25,7 @@ export class DashboardAluno implements OnInit {
   readonly resumoVisivel = signal(false);
   readonly consulta = new ConsultaDashboard(() => this.service.aluno(), () => this.pagamentoRegistrado.set(false));
   readonly moeda = moeda;
+  readonly avisoConta = avisoFinanceiro;
   readonly geradoEm = geradoEm;
   readonly prazo = prazoCobranca;
   readonly severidade = severidadeSituacao;

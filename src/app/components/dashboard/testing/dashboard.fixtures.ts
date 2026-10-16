@@ -15,6 +15,7 @@ export const alunoFixture: AlunoDashboard = {
   faculdade: { id: 1, nome: 'Faculdade A', endereco: 'Rua A' },
   transporte: { viagensHoje: [viagemFixture], agendaSemanal: [viagemFixture], programacaoSemGrade: [], rotas: [viagemFixture.rota!] },
   financeiro: { mensalidadeCadastro: 250, cobrancaPrincipal: { id: 42, descricao: 'Mensalidade Ana', valor: 230,
+    competencia: '2026-10', valorRecebido: 0, saldoRestante: 230, recebimentoParcial: false, avisos: [],
     dataVencimento: '2026-10-12', status: 'PENDENTE', situacao: 'VENCE_HOJE', diasParaVencimento: 0 },
     emAberto: { quantidade: 1, valor: 230 }, vencidas: { quantidade: 0, valor: 0 } }, avisos: [],
 };

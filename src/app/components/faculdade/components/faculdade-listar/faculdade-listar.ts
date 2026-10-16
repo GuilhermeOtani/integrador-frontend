@@ -1,8 +1,10 @@
+import { EstadoLista } from '../../../../shared/ui/tabelas/estado-lista';
+import { TabelaPadrao } from '../../../../shared/ui/tabelas/tabela-padrao';
+import { AcaoTabela } from '../../../../shared/ui/tabelas/acao-tabela';
 import { Component, inject, ViewChild } from '@angular/core';
 import { FaculdadeCadastro } from '../faculdade-cadastro/faculdade-cadastro';
 import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
-import { ToolbarModule } from 'primeng/toolbar';
 import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
 import { Table, TableModule } from 'primeng/table';
@@ -24,7 +26,7 @@ import faculdade from '../../models/faculdade';
 @Component({
   standalone: true,
   selector: 'app-faculdade-listar',
-  imports: [
+  imports: [TabelaPadrao, AcaoTabela,
     CommonModule,
     ButtonModule,
     ConfirmDialogModule,
@@ -39,7 +41,7 @@ import faculdade from '../../models/faculdade';
     TableModule,
     TagModule,
     ToastModule,
-    ToolbarModule,
+
     InputTextModule,
     FormsModule,
     FaculdadeCadastro
@@ -49,13 +51,14 @@ import faculdade from '../../models/faculdade';
   styleUrl: './faculdade-listar.css',
 })
 export class FaculdadeListar {
+  readonly estadoLista = new EstadoLista();
 
   private faculdadeService = inject(FaculdadeService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   faculdadeDialog: boolean = false;
- faculdades: faculdade[] = []; 
-  faculdade: faculdade = {} as faculdade; 
+ faculdades: faculdade[] = [];
+  faculdade: faculdade = {} as faculdade;
   selectedFaculdades: faculdade[] | null = null;
   submitted: boolean = false;
   statuses!: any[];
@@ -70,7 +73,7 @@ export class FaculdadeListar {
   aoSalvarFaculdade() {
       this.faculdadeDialog = false;
       this.faculdade = {} as faculdade;
-      this.carregarFaculdades(); 
+      this.carregarFaculdades();
   }
 
   ngOnInit() {
@@ -90,7 +93,7 @@ export class FaculdadeListar {
   }
 
   carregarFaculdades() {
-    this.faculdadeService.listarFaculdades().subscribe({
+    this.estadoLista.acompanhar(this.faculdadeService.listarFaculdades()).subscribe({
       next: (data) => {
       this.faculdades = data;
       },
@@ -159,7 +162,7 @@ export class FaculdadeListar {
   findIndexById(id: number): number {
     let index = -1;
     for (let i = 0; i < this.faculdades.length; i++) {
-      if (this.faculdades[i].id == id) { 
+      if (this.faculdades[i].id == id) {
         index = i;
         break;
       }

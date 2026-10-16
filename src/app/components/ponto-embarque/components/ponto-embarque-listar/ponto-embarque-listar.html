@@ -1,10 +1,8 @@
-<div class="card">
+<div class="app-listagem">
   <p-toast />
-  
-  <p-toolbar class="mb-6">
-    <ng-template #start>
-      @if (podeEditar()) {
-        <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+
+  <header class="app-cabecalho"><div><h1>Pontos de embarque</h1><p>Pontos e ordem de parada das rotas.</p></div><div class="app-acoes">@if (podeEditar()) {
+        <p-button label="Novo" icon="pi pi-plus" (onClick)="openNew()" />
         <p-button
           severity="danger"
           label="Excluir"
@@ -14,87 +12,67 @@
           [disabled]="!selectedPontosEmbarque || !selectedPontosEmbarque.length"
         />
       }
-    </ng-template>
+<p-button [outlined]="true" label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" /></div></header>
 
-    <ng-template #end>
-      <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
-    </ng-template>
-  </p-toolbar>
-
-  <p-table
+  <section class="app-tabela-painel"><div class="app-tabela-ferramentas"><div class="app-campo-pesquisa"><label for="pesquisa-ponto-embarque">Pesquisar registros</label><p-iconfield>
+          <p-inputicon class="pi pi-search" />
+          <input id="pesquisa-ponto-embarque"
+            pInputText
+            type="search"
+            (input)="dt.filterGlobal($event.target.value, 'contains')"
+            placeholder="Pesquisar..."
+          />
+        </p-iconfield></div></div>@if (estadoLista.erro()) { <div role="alert"><p class="app-erro">{{ estadoLista.erro() }}</p><p-button label="Tentar novamente" icon="pi pi-refresh" severity="secondary" [outlined]="true" [disabled]="estadoLista.carregando()" (onClick)="carregarPontosEmbarque()" /></div> }
+<div class="app-tabela-rolagem"><p-table appTabelaPadrao [loading]="estadoLista.carregando()"
     #dt
     [value]="pontosEmbarque"
     [rows]="10"
     [paginator]="true"
     [globalFilterFields]="['id', 'descricao', 'ordemParada']"
-    [tableStyle]="{ 'min-width': '75rem' }"
+    [tableStyle]="{ 'min-width': '34rem' }"
     [(selection)]="selectedPontosEmbarque"
     [rowHover]="true"
     dataKey="id"
-    currentPageReportTemplate="Mostrando {first} até {last} de {totalRecords} registros"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
     [showCurrentPageReport]="true"
   >
-    <ng-template #caption>
-      <div class="flex items-center justify-between">
-        <h5 class="m-0">Gerenciar Pontos de Embarque</h5>
-        <p-iconfield>
-          <p-inputicon class="pi pi-search" />
-          <input
-            pInputText
-            type="text"
-            (input)="dt.filterGlobal($event.target.value, 'contains')"
-            placeholder="Pesquisar..."
-          />
-        </p-iconfield>
-      </div>
-    </ng-template>
 
     <ng-template #header>
       <tr>
-        @if (podeEditar()) { <th style="width: 3rem"><p-tableHeaderCheckbox /></th> }
-        <th pSortableColumn="id" style="min-width: 5rem" class="text-center">
-          Id <p-sortIcon field="id" />
-        </th>
-        <th pSortableColumn="descricao" style="min-width: 16rem" class="text-center">
-          Descrição <p-sortIcon field="descricao" />
-        </th>
-        <th pSortableColumn="ordemParada" style="min-width: 12rem" class="text-center">
-          Ordem <p-sortIcon field="ordemParada" />
-        </th>
-        @if (podeEditar()) { <th style="min-width: 10rem" class="text-center">Ações</th> }
+        @if (podeEditar()) { <th class="app-selecao app-col-centro"><p-tableHeaderCheckbox /></th> }
+        <th pSortableColumn="id" class="app-col-centro"><span class="app-titulo-coluna">Id <p-sortIcon field="id" /></span></th>
+        <th pSortableColumn="descricao" class="app-col-texto"><span class="app-titulo-coluna">Descrição <p-sortIcon field="descricao" /></span></th>
+        <th pSortableColumn="ordemParada" class="app-col-centro"><span class="app-titulo-coluna">Ordem <p-sortIcon field="ordemParada" /></span></th>
+        @if (podeEditar()) { <th class="app-col-acoes app-col-centro">Ações</th> }
       </tr>
     </ng-template>
 
     <ng-template #body let-ponto>
       <tr>
-        @if (podeEditar()) { <td style="width: 3rem"><p-tableCheckbox [value]="ponto" /></td> }
-        <td style="min-width: 5rem" class="text-center">{{ ponto.id }}</td>
-        <td style="min-width: 16rem" class="text-center">{{ ponto.descricao }}</td>
-        <td style="min-width: 12rem" class="text-center">{{ ponto.ordemParada }}º</td>
-        
+        @if (podeEditar()) { <td class="app-selecao app-col-centro"><p-tableCheckbox [value]="ponto" /></td> }
+        <td class="app-col-centro app-dado-compacto">{{ ponto.id }}</td>
+        <td class="app-col-texto">{{ ponto.descricao }}</td>
+        <td class="app-col-centro app-dado-compacto">{{ ponto.ordemParada }}º</td>
+
         @if (podeEditar()) {
-          <td class="text-center">
-            <div class="flex justify-center">
-              <p-button
+          <td class="app-col-acoes app-col-centro">
+            <div class="app-acoes-linha">
+              <app-acao-tabela severity="primary" [ariaLabel]="'Editar ponto de embarque ' + ponto.id"
                 icon="pi pi-pencil"
-                class="mr-2"
-                [rounded]="true"
-                [outlined]="true"
-                (click)="editPontoEmbarque(ponto)"
+                (acionar)="editPontoEmbarque(ponto)"
               />
-              <p-button
+              <app-acao-tabela severity="danger" [ariaLabel]="'Excluir ponto de embarque ' + ponto.id"
                 icon="pi pi-trash"
-                severity="danger"
-                [rounded]="true"
-                [outlined]="true"
-                (click)="deletePontoEmbarque(ponto)"
+
+                (acionar)="deletePontoEmbarque(ponto)"
               />
             </div>
           </td>
         }
       </tr>
     </ng-template>
-  </p-table>
+  <ng-template #emptymessage><tr><td [attr.colspan]="podeEditar() ? 5 : 3">{{ estadoLista.carregando() ? 'Carregando registros…' : estadoLista.erro() ? 'Não foi possível carregar os registros.' : 'Nenhum registro encontrado para esta seleção.' }}</td></tr></ng-template>
+</p-table></div></section>
 
   <p-dialog
     [(visible)]="pontoEmbarqueDialog"

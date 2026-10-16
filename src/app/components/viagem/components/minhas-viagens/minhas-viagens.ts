@@ -1,3 +1,4 @@
+import { TabelaPadrao } from '../../../../shared/ui/tabelas/tabela-padrao';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit, signal } from '@angular/core';
@@ -13,7 +14,7 @@ import { ViagemService } from '../../service/viagem-service';
 @Component({
   selector: 'app-minhas-viagens',
   standalone: true,
-  imports: [CommonModule, MessageModule, ProgressSpinnerModule, TableModule, TagModule],
+  imports: [TabelaPadrao, CommonModule, MessageModule, ProgressSpinnerModule, TableModule, TagModule],
   templateUrl: './minhas-viagens.html',
   styleUrl: './minhas-viagens.css',
 })

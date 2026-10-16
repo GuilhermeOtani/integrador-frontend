@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import { Menu } from 'primeng/menu';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { UsuarioResumo } from '../../../../core/auth/models/auth.models';
 import { PessoaDisponivelResponse } from '../../models/usuario.models';
 import { AuthService } from '../../../../core/auth/service/auth.service';
@@ -83,6 +83,53 @@ describe('Usuarios', () => {
     expect(component.usuarios()).toEqual([admin, aluno]);
     expect(component.usuarios().every((usuario) => typeof usuario.ativo === 'boolean')).toBeTrue();
     expect(component.pessoasDisponiveis()).toEqual([pessoa]);
+  });
+
+  it('identifica os dois painéis e mostra as contagens das listas sem alterar a paginação', () => {
+    expect([...fixture.nativeElement.querySelectorAll('.usuarios-quantidade')].map((e: unknown) => (e as HTMLElement).textContent?.trim())).toEqual(['2', '1']);
+    expect(fixture.nativeElement.querySelectorAll('section[aria-labelledby]').length).toBe(2);
+    expect(fixture.nativeElement.querySelectorAll('p-paginator').length).toBe(2);
+    expect(fixture.nativeElement.textContent).toContain('Sua conta');
+  });
+
+  it('preserva as duas listas vazias e suas contagens', () => {
+    component.usuarios.set([]); component.pessoasDisponiveis.set([]); fixture.detectChanges();
+    expect([...fixture.nativeElement.querySelectorAll('.usuarios-quantidade')].map((e: unknown) => (e as HTMLElement).textContent?.trim())).toEqual(['0', '0']);
+    expect(fixture.nativeElement.textContent).toContain('Nenhuma conta encontrada.');
+    expect(fixture.nativeElement.textContent).toContain('Todas as pessoas já possuem conta.');
+  });
+
+  it('mantém nomes e e-mails longos como texto seguro nas células', () => {
+    const nome = '<img src=x>' + 'Nome'.repeat(40); const email = 'email'.repeat(30) + '@teste.com';
+    component.usuarios.set([{ ...admin, nome, email }]); fixture.detectChanges();
+    const celulas = [...fixture.nativeElement.querySelectorAll('tbody td.app-col-texto')] as HTMLElement[];
+    expect(celulas[0].textContent).toContain(nome); expect(celulas[1].textContent).toBe(email);
+    expect(celulas[0].querySelector('img')).toBeNull();
+    for (const c of celulas) expect(getComputedStyle(c).overflowWrap).toBe('anywhere');
+  });
+
+  it('usa proporção 3:2 somente quando o conteúdo comporta dois painéis', () => {
+    const host = fixture.nativeElement as HTMLElement; host.style.width = '1200px';
+    const layout = host.querySelector('.usuarios-layout')!;
+    const paineis = [...layout.children] as HTMLElement[];
+    expect(paineis[0].getBoundingClientRect().top).toBe(paineis[1].getBoundingClientRect().top);
+    expect(paineis[0].getBoundingClientRect().width / paineis[1].getBoundingClientRect().width).toBeCloseTo(1.5, 1);
+    host.style.width = '600px';
+    expect(paineis[1].getBoundingClientRect().top).toBeGreaterThan(paineis[0].getBoundingClientRect().bottom);
+    expect(getComputedStyle(layout).alignItems).toBe('start');
+  });
+
+  it('preserva carregamento sem exibir contagens parciais', () => {
+    const resposta = new Subject<UsuarioResumo[]>(); service.listar.and.returnValue(resposta); component.carregarDados(); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('p-progressspinner')).not.toBeNull(); expect(fixture.nativeElement.querySelector('.usuarios-layout')).toBeNull();
+    resposta.next([admin]); resposta.complete(); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.usuarios-quantidade')?.textContent).toContain('1');
+  });
+
+  it('preserva erro de listagem e a atualização manual', () => {
+    service.listar.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 }))); component.carregarDados(); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.usuarios-layout')).toBeNull(); expect(fixture.nativeElement.querySelector('p-message')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Tentar novamente');
   });
 
   it('desabilita desativação e exclusão da própria conta no menu', () => {

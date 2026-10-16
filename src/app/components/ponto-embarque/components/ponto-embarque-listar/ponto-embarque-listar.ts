@@ -1,7 +1,9 @@
+import { EstadoLista } from '../../../../shared/ui/tabelas/estado-lista';
+import { TabelaPadrao } from '../../../../shared/ui/tabelas/tabela-padrao';
+import { AcaoTabela } from '../../../../shared/ui/tabelas/acao-tabela';
 import { Component, computed, inject, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
-import { ToolbarModule } from 'primeng/toolbar';
 import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
 import { Table, TableModule } from 'primeng/table';
@@ -25,7 +27,7 @@ import { AuthService } from '../../../../core/auth/service/auth.service';
 @Component({
   standalone: true,
   selector: 'app-ponto-embarque-listar',
-  imports: [
+  imports: [TabelaPadrao, AcaoTabela,
     CommonModule,
     ButtonModule,
     ConfirmDialogModule,
@@ -40,7 +42,7 @@ import { AuthService } from '../../../../core/auth/service/auth.service';
     TableModule,
     TagModule,
     ToastModule,
-    ToolbarModule,
+
     InputTextModule,
     FormsModule,
     PontoEmbarqueCadastro
@@ -50,22 +52,23 @@ import { AuthService } from '../../../../core/auth/service/auth.service';
   styleUrl: './ponto-embarque-listar.css',
 })
 export class PontoEmbarqueListar {
+  readonly estadoLista = new EstadoLista();
 
   private pontoEmbarqueService = inject(PontoEmbarqueService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   private readonly auth = inject(AuthService);
   readonly podeEditar = computed(() => this.auth.temPapel('ADMIN'));
-  
+
   pontoEmbarqueDialog: boolean = false;
-  pontosEmbarque: PontoEmbarque[] = []; 
-  pontoEmbarque: PontoEmbarque = {} as PontoEmbarque; 
+  pontosEmbarque: PontoEmbarque[] = [];
+  pontoEmbarque: PontoEmbarque = {} as PontoEmbarque;
   selectedPontosEmbarque: PontoEmbarque[] | null = null;
   submitted: boolean = false;
   statuses!: any[];
   cols!: Column[];
   exportColumns!: ExportColumn[];
-  
+
   @ViewChild('dt') dt!: Table;
 
   exportCSV() {
@@ -75,7 +78,7 @@ export class PontoEmbarqueListar {
   aoSalvarPontoEmbarque() {
       this.pontoEmbarqueDialog = false;
       this.pontoEmbarque = {} as PontoEmbarque;
-      this.carregarPontosEmbarque(); 
+      this.carregarPontosEmbarque();
   }
 
   ngOnInit() {
@@ -95,7 +98,7 @@ export class PontoEmbarqueListar {
   }
 
   carregarPontosEmbarque() {
-    this.pontoEmbarqueService.listarPontoEmbarque().subscribe({
+    this.estadoLista.acompanhar(this.pontoEmbarqueService.listarPontoEmbarque()).subscribe({
       next: (data) => {
         this.pontosEmbarque = data;
       },
@@ -165,7 +168,7 @@ export class PontoEmbarqueListar {
   findIndexById(id: number): number {
     let index = -1;
     for (let i = 0; i < this.pontosEmbarque.length; i++) {
-      if (this.pontosEmbarque[i].id == id) { 
+      if (this.pontosEmbarque[i].id == id) {
         index = i;
         break;
       }

@@ -1,67 +1,57 @@
-<div class="card">
+<div class="app-listagem">
   <p-toast />
-  
-  <p-toolbar class="mb-6">
-    <ng-template #start>
-      @if (podeEditar()) {
-        <a pButton routerLink="/programacao-email" class="mr-2"><i class="pi pi-envelope" aria-hidden="true"></i> Enviar programação de hoje</a>
-        <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+
+  <header class="app-cabecalho"><div><h1>Grades diárias</h1><p>Programação das viagens por dia da semana.</p></div><div class="app-acoes">@if (podeEditar()) {
+        <a pButton routerLink="/programacao-email"><i class="pi pi-envelope" aria-hidden="true"></i> Enviar programação de hoje</a>
+        <p-button label="Novo" icon="pi pi-plus" (onClick)="openNew()" />
         <p-button severity="danger" label="Excluir" icon="pi pi-trash" outlined (onClick)="deleteSelectedGrades()" [disabled]="!selectedGrade || !selectedGrade.length" />
       }
-    </ng-template>
-    <ng-template #end>
-      @if (podeEditar()) {
-        <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Importar" chooseLabel="Importar" auto customUpload class="mr-2 inline-block" [chooseButtonProps]="{ severity: 'secondary' }" />
+@if (podeEditar()) {
+        <p-fileUpload mode="basic" accept="image/*" [maxFileSize]="1000000" label="Importar" chooseLabel="Importar" auto customUpload class="mr-2 inline-block" [chooseButtonProps]="{ severity: 'secondary', outlined: true }" />
       }
-      <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
-    </ng-template>
-  </p-toolbar>
+      <p-button [outlined]="true" label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" /></div></header>
 
-  <p-table #dt [value]="grades" [rows]="10" [columns]="cols" [paginator]="true" [globalFilterFields]="['diaSemana', 'descricao']" [tableStyle]="{ 'min-width': '75rem' }" [(selection)]="selectedGrade" [rowHover]="true" dataKey="id" currentPageReportTemplate="Exibindo {first} a {last} de {totalRecords} registros" [showCurrentPageReport]="true">
-    <ng-template #caption>
-      <div class="flex flex-wrap gap-2 items-center justify-between">
-        <h4 class="m-0 font-bold text-lg text-color">Gerenciar Grades Diárias</h4>
-        <p-iconField iconPosition="left">
+  <section class="app-tabela-painel"><div class="app-tabela-ferramentas"><div class="app-campo-pesquisa"><label for="pesquisa-grade-diaria">Pesquisar registros</label><p-iconField iconPosition="left">
           <p-inputIcon styleClass="pi pi-search" />
-          <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Pesquisar..." />
-        </p-iconField>
-      </div>
-    </ng-template>
+          <input id="pesquisa-grade-diaria" pInputText type="search" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Pesquisar..." />
+        </p-iconField></div></div>@if (estadoLista.erro()) { <div role="alert"><p class="app-erro">{{ estadoLista.erro() }}</p><p-button label="Tentar novamente" icon="pi pi-refresh" severity="secondary" [outlined]="true" [disabled]="estadoLista.carregando()" (onClick)="carregarGrades()" /></div> }
+<div class="app-tabela-rolagem"><p-table appTabelaPadrao [loading]="estadoLista.carregando()" #dt [value]="grades" [rows]="10" [columns]="cols" [paginator]="true" [globalFilterFields]="['diaSemana', 'descricao']" [tableStyle]="{ 'min-width': '42rem' }" [(selection)]="selectedGrade" [rowHover]="true" dataKey="id" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros" [showCurrentPageReport]="true">
 
     <ng-template #header>
       <tr>
-        @if (podeEditar()) { <th style="width: 3rem"><p-tableHeaderCheckbox /></th> }
-        <th pSortableColumn="id" class="text-center">Id <p-sortIcon field="id" /></th>
-        <th pSortableColumn="diaSemana" class="text-center">Dia da Semana <p-sortIcon field="diaSemana" /></th>
-        
-        <th class="text-center">Descrição</th>
-        
-        <th class="text-center">Qtd. Viagens</th>
-        <th class="text-center w-[140px]">Ações</th>
+        @if (podeEditar()) { <th class="app-selecao app-col-centro"><p-tableHeaderCheckbox /></th> }
+        <th pSortableColumn="id" class="app-col-centro"><span class="app-titulo-coluna">Id <p-sortIcon field="id" /></span></th>
+        <th pSortableColumn="diaSemana" class="app-col-centro"><span class="app-titulo-coluna">Dia da Semana <p-sortIcon field="diaSemana" /></span></th>
+
+        <th class="app-col-texto">Descrição</th>
+
+        <th class="app-col-centro">Qtd. Viagens</th>
+        <th class="app-col-acoes app-col-centro">Ações</th>
       </tr>
     </ng-template>
 
     <ng-template #body let-grade>
       <tr>
-        @if (podeEditar()) { <td><p-tableCheckbox [value]="grade" /></td> }
-        <td class="text-center">{{ grade.id }}</td>
-        <td class="text-center"><p-tag [value]="grade.diaSemana" severity="info"></p-tag></td>
-        
-        <td class="text-center">{{ grade.descricao || 'Sem Descrição' }}</td>
-        
-        <td class="text-center"><span class="font-bold">{{ grade.viagens?.length || 0 }}</span></td>
-        <td class="text-center">
-          <div class="flex items-center justify-center gap-2">
-            <p-button icon="pi pi-search" severity="info" [rounded]="true" [outlined]="true" (click)="abrirDetalhes(grade)" />
+        @if (podeEditar()) { <td class="app-selecao app-col-centro"><p-tableCheckbox [value]="grade" /></td> }
+        <td class="app-col-centro app-dado-compacto">{{ grade.id }}</td>
+        <td class="app-col-centro"><p-tag [value]="grade.diaSemana" severity="info"></p-tag></td>
+
+        <td class="app-col-texto">{{ grade.descricao || 'Sem Descrição' }}</td>
+
+        <td class="app-col-centro"><span class="font-bold">{{ grade.viagens?.length || 0 }}</span></td>
+        <td class="app-col-acoes app-col-centro">
+          <div class="app-acoes-linha">
+            <app-acao-tabela severity="info" [ariaLabel]="'Ver detalhes grade ' + grade.id" icon="pi pi-eye" (acionar)="abrirDetalhes(grade)" />
             @if (podeEditar()) {
-              <p-button icon="pi pi-pencil" severity="success" [rounded]="true" [outlined]="true" (click)="editGrade(grade)" />
-              <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteGrade(grade)" />
+              <app-acao-tabela severity="primary" [ariaLabel]="'Editar grade ' + grade.id" icon="pi pi-pencil" (acionar)="editGrade(grade)" />
+              <app-acao-tabela severity="danger" [ariaLabel]="'Excluir grade ' + grade.id" icon="pi pi-trash" (acionar)="deleteGrade(grade)" />
             }
           </div>
         </td>
       </tr>
     </ng-template>
-  </p-table>
+  <ng-template #emptymessage><tr><td [attr.colspan]="podeEditar() ? 6 : 5">{{ estadoLista.carregando() ? 'Carregando registros…' : estadoLista.erro() ? 'Não foi possível carregar os registros.' : 'Nenhum registro encontrado para esta seleção.' }}</td></tr></ng-template>
+</p-table></div></section>
 
   <p-dialog [(visible)]="gradeDialog" [style]="{ width: '900px' }" header="Gerenciar Grade Diária" [modal]="true">
     <ng-template #content>
@@ -73,10 +63,10 @@
   <p-dialog [(visible)]="detalhesDialog" [style]="{ width: '850px' }" header="Visão Geral da Grade" [modal]="true" [dismissableMask]="true">
     <ng-template #content>
       <div *ngIf="gradeSelecionadaParaDetalhes" class="flex flex-col gap-5 pt-2">
-        
+
         <!-- Mini Dashboard nos Detalhes -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
-          
+
           <!-- Card: Dia da Semana -->
           <div class="p-4 rounded-xl border border-gray-700 flex items-center gap-4">
             <div class="bg-blue-900/40 p-3 rounded-lg text-blue-400">
@@ -116,25 +106,25 @@
           <h3 class="text-lg font-bold text-color mb-3 flex items-center gap-2">
             <i class="pi pi-list"></i> Veículos e Motoristas Escalados
           </h3>
-          <p-table [value]="gradeSelecionadaParaDetalhes.viagens" styleClass="p-datatable-striped" responsiveLayout="scroll">
+          <div class="app-tabela-rolagem"><p-table appTabelaPadrao [value]="gradeSelecionadaParaDetalhes.viagens" responsiveLayout="scroll">
             <ng-template pTemplate="header">
               <tr>
-                <th class="text-left">Rota</th>
-                <th class="text-left">Veículo</th>
-                <th class="text-left">Motorista</th>
-                <th class="text-left">Faculdades</th>
+                <th class="app-col-texto">Rota</th>
+                <th class="app-col-centro">Veículo</th>
+                <th class="app-col-texto">Motorista</th>
+                <th class="app-col-texto">Faculdades</th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-viagem>
               <tr>
-                <td class="font-semibold text-color text-left">{{ viagem.rotaNome }}</td>
-                <td class="text-color text-left">
+                <td class="font-semibold text-color app-col-texto">{{ viagem.rotaNome }}</td>
+                <td class="text-color app-col-centro">
                   <i class="pi pi-car text-gray-400 mr-2 text-sm"></i>{{ viagem.onibusPlaca || viagem.numeroIdentificacao }}
                 </td>
-                <td class="text-color text-left">
+                <td class="text-color app-col-texto">
                   <i class="pi pi-id-card text-gray-400 mr-2 text-sm"></i>{{ viagem.motoristaNome }}
                 </td>
-                <td class="text-left">
+                <td class="app-col-texto">
                   <div class="flex gap-1 flex-wrap items-center">
                     <ng-container *ngIf="viagem.faculdades && viagem.faculdades.length > 0; else semFaculListar">
                       <p-tag *ngFor="let faculdade of viagem.faculdades" [value]="extrairNomeFaculdade(faculdade)" severity="info" [rounded]="true"></p-tag>
@@ -147,9 +137,9 @@
               </tr>
             </ng-template>
             <ng-template pTemplate="emptymessage">
-              <tr><td colspan="4" class="text-center p-4 text-color">Nenhuma viagem cadastrada nesta grade.</td></tr>
+              <tr><td colspan="4" class=" p-4 text-color">Nenhuma viagem cadastrada nesta grade.</td></tr>
             </ng-template>
-          </p-table>
+          </p-table></div>
         </div>
       </div>
     </ng-template>

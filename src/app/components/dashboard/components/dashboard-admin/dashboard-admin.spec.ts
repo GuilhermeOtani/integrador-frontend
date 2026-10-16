@@ -6,6 +6,7 @@ import { provideRouter } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 import { adminFixture } from '../../testing/dashboard.fixtures';
 import { DashboardAdmin } from './dashboard-admin';
+import { FinanceiroEventos } from '../../../../core/financeiro/financeiro-eventos.service';
 
 describe('DashboardAdmin', () => {
   let fixture: ComponentFixture<DashboardAdmin>;
@@ -16,6 +17,10 @@ describe('DashboardAdmin', () => {
     http = TestBed.inject(HttpTestingController); fixture = TestBed.createComponent(DashboardAdmin); fixture.detectChanges();
   });
   afterEach(() => http.verify());
+  it('invalidação financeira recarrega o painel sem reutilizar valores antigos', () => {
+    http.expectOne(url).flush(adminFixture); TestBed.inject(FinanceiroEventos).invalidar();
+    expect(fixture.componentInstance.consulta.dados()).toBeNull(); http.expectOne(r => r.url === url).flush(adminFixture);
+  });
   it('diálogos destacam totais reais, preservam zeros e oferecem acesso ao módulo', () => {
     http.expectOne(url).flush(adminFixture); fixture.detectChanges();
     const casos = [

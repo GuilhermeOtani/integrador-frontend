@@ -49,6 +49,15 @@ describe('Sidebar', () => {
     expect(component).toBeTruthy();
   });
 
+  it('relatórios aparecem apenas no financeiro ADMIN', () => {
+    for (const atual of ['ADMIN', 'ALUNO', 'MOTORISTA'] as Papel[]) {
+      papel.set(atual);
+      const rotas = component.secoes().flatMap(s => s.itens.map(i => i.rota));
+      expect(rotas.includes('/relatorios')).toBe(atual === 'ADMIN');
+      if (atual === 'ADMIN') expect(component.secoes().find(s => s.titulo === 'Financeiro')?.itens.some(i => i.rota === '/relatorios')).toBeTrue();
+    }
+  });
+
   it('programação por e-mail aparece somente para ADMIN, sem WhatsApp', () => {
     for (const atual of ['ADMIN', 'ALUNO', 'MOTORISTA'] as Papel[]) {
       papel.set(atual);

@@ -1,10 +1,8 @@
-<div class="card">
+<div class="app-listagem">
   <p-toast />
-  
-  <p-toolbar class="mb-6">
-    <ng-template #start>
-      @if (podeEditar()) {
-        <p-button label="Novo" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+
+  <header class="app-cabecalho"><div><h1>Rotas</h1><p>Itinerários e faculdades atendidas.</p></div><div class="app-acoes">@if (podeEditar()) {
+        <p-button label="Novo" icon="pi pi-plus" (onClick)="openNew()" />
         <p-button
           severity="danger"
           label="Excluir"
@@ -14,9 +12,7 @@
           [disabled]="!selectedRotas || !selectedRotas.length"
         />
       }
-    </ng-template>
-    <ng-template #end>
-      @if (podeEditar()) {
+@if (podeEditar()) {
         <p-fileUpload
           mode="basic"
           accept="image/*"
@@ -26,105 +22,87 @@
           auto
           customUpload
           class="mr-2 inline-block"
-          [chooseButtonProps]="{ severity: 'secondary' }"
+          [chooseButtonProps]="{ severity: 'secondary', outlined: true }"
         />
       }
-      <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
-    </ng-template>
-  </p-toolbar>
+      <p-button [outlined]="true" label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" /></div></header>
 
-  <p-table
+  <section class="app-tabela-painel"><div class="app-tabela-ferramentas"><div class="app-campo-pesquisa"><label for="pesquisa-rota">Pesquisar registros</label><p-iconfield>
+          <p-inputicon class="pi pi-search" />
+          <input id="pesquisa-rota"
+            pInputText
+            type="search"
+            (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+            placeholder="Pesquisar..."
+          />
+        </p-iconfield></div></div>@if (estadoLista.erro()) { <div role="alert"><p class="app-erro">{{ estadoLista.erro() }}</p><p-button label="Tentar novamente" icon="pi pi-refresh" severity="secondary" [outlined]="true" [disabled]="estadoLista.carregando()" (onClick)="carregarRotas()" /></div> }
+<div class="app-tabela-rolagem"><p-table appTabelaPadrao [loading]="estadoLista.carregando()"
     #dt
     [value]="rotas"
     [rows]="10"
     [paginator]="true"
     [globalFilterFields]="['nome', 'descricao', 'faculdade.nome']"
-    [tableStyle]="{ 'min-width': '75rem' }"
+    [tableStyle]="{ 'min-width': '48rem' }"
     [(selection)]="selectedRotas"
     [rowHover]="true"
     dataKey="id"
-    currentPageReportTemplate="Exibindo {first} a {last} de {totalRecords} registros"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
     [showCurrentPageReport]="true"
   >
-    <ng-template #caption>
-      <div class="flex items-center justify-between">
-        <h5 class="m-0 font-bold text-lg text-color">Gerenciar Rotas</h5>
-        <p-iconfield>
-          <p-inputicon class="pi pi-search" />
-          <input
-            pInputText
-            type="text"
-            (input)="dt.filterGlobal($any($event.target).value, 'contains')"
-            placeholder="Pesquisar..."
-          />
-        </p-iconfield>
-      </div>
-    </ng-template>
 
     <ng-template #header>
       <tr>
         @if (podeEditar()) {
-          <th style="width: 3rem"><p-tableHeaderCheckbox /></th>
+          <th class="app-selecao app-col-centro"><p-tableHeaderCheckbox /></th>
         }
-        <th pSortableColumn="id" style="min-width: 5rem" class="text-center">
-          Id
-          <p-sortIcon field="id" />
-        </th>
-        <th pSortableColumn="nome" style="min-width: 16rem" class="text-center">
-          Nome da Rota
-          <p-sortIcon field="nome" />
-        </th>
-        <th style="min-width: 16rem" class="text-center">Descrição</th>
-        <th pSortableColumn="faculdade.nome" style="min-width: 16rem" class="text-center">
-          Faculdade Destino
-          <p-sortIcon field="faculdade.nome" />
-        </th>
-        <th style="min-width: 10rem" class="text-center">Ações</th>
+        <th pSortableColumn="id" class="app-col-centro"><span class="app-titulo-coluna">Id
+          <p-sortIcon field="id" /></span></th>
+        <th pSortableColumn="nome" class="app-col-texto"><span class="app-titulo-coluna">Nome da Rota
+          <p-sortIcon field="nome" /></span></th>
+        <th class="app-col-texto">Descrição</th>
+        <th pSortableColumn="faculdade.nome" class="app-col-texto"><span class="app-titulo-coluna">Faculdade Destino
+          <p-sortIcon field="faculdade.nome" /></span></th>
+        <th class="app-col-acoes app-col-centro">Ações</th>
       </tr>
     </ng-template>
 
     <ng-template #body let-rota>
       <tr>
         @if (podeEditar()) {
-          <td style="width: 3rem"><p-tableCheckbox [value]="rota" /></td>
+          <td class="app-selecao app-col-centro"><p-tableCheckbox [value]="rota" /></td>
         }
-        <td class="text-center">{{ rota.id }}</td>
-        <td class="text-center font-medium">{{ rota.nome }}</td>
-        <td class="text-center">{{ rota.descricao || 'Sem Descrição' }}</td>
-        <td class="text-center">
+        <td class="app-col-centro app-dado-compacto">{{ rota.id }}</td>
+        <td class="font-medium app-col-texto">{{ rota.nome }}</td>
+        <td class="app-col-texto">{{ rota.descricao || 'Sem Descrição' }}</td>
+        <td class="app-col-texto">
           <p-tag [value]="rota.faculdade?.nome || 'Sem Destino'" [severity]="rota.faculdade?.nome ? 'info' : 'secondary'" />
         </td>
 
-        <td class="text-center">
-          <div class="flex items-center justify-center gap-2">
-            <p-button
-              icon="pi pi-search"
-              [rounded]="true"
-              [outlined]="true"
-              severity="info"
-              (onClick)="verDetalhes(rota)"
+        <td class="app-col-acoes app-col-centro">
+          <div class="app-acoes-linha">
+            <app-acao-tabela severity="info" [ariaLabel]="'Ver detalhes rota ' + rota.id"
+              icon="pi pi-eye"
+
+              (acionar)="verDetalhes(rota)"
             />
             @if (podeEditar()) {
-              <p-button
+              <app-acao-tabela severity="primary" [ariaLabel]="'Editar rota ' + rota.id"
                 icon="pi pi-pencil"
-                [rounded]="true"
-                [outlined]="true"
-                severity="success"
-                (click)="editRota(rota)"
+
+                (acionar)="editRota(rota)"
               />
-              <p-button
+              <app-acao-tabela severity="danger" [ariaLabel]="'Excluir rota ' + rota.id"
                 icon="pi pi-trash"
-                severity="danger"
-                [rounded]="true"
-                [outlined]="true"
-                (click)="deleteRota(rota)"
+
+                (acionar)="deleteRota(rota)"
               />
             }
           </div>
         </td>
       </tr>
     </ng-template>
-  </p-table>
+  <ng-template #emptymessage><tr><td [attr.colspan]="podeEditar() ? 6 : 5">{{ estadoLista.carregando() ? 'Carregando registros…' : estadoLista.erro() ? 'Não foi possível carregar os registros.' : 'Nenhum registro encontrado para esta seleção.' }}</td></tr></ng-template>
+</p-table></div></section>
 
   <p-dialog
     [(visible)]="rotaDialog"
@@ -154,10 +132,10 @@
   >
     <ng-template pTemplate="content">
       <div class="flex flex-col gap-5 pt-2" *ngIf="rotaDetalhe">
-        
+
         <!-- Mini Dashboard nos Detalhes -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-          
+
           <!-- Card: Nome da Rota -->
           <div class="p-4 rounded-xl border border-gray-700 flex items-center gap-4">
             <div class="bg-blue-900/40 p-3 rounded-lg text-blue-400">
@@ -197,7 +175,7 @@
           <h3 class="text-lg font-bold text-color mb-3 flex items-center gap-2">
             <i class="pi pi-directions text-primary"></i> Itinerário (Pontos de Embarque)
           </h3>
-          
+
           <div class="bg-gray-800/30 border border-gray-700 rounded-xl p-5">
             <ng-container
               *ngIf="rotaDetalhe.pontosEmbarque && rotaDetalhe.pontosEmbarque.length > 0; else semPontos"
@@ -250,7 +228,7 @@
         (onClick)="detalhesDialog = false"
       />
     </ng-template>
-    
+
   </p-dialog>
 
   <p-confirmdialog [style]="{ width: '450px' }" />
