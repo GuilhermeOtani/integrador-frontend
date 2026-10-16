@@ -1,0 +1,10 @@
+:host { display: block; min-width: 0; }
+.chamado-tags { display: flex; flex-direction: column; gap: .5rem; align-items: flex-start; }
+.chamado-onibus dd { font-size: 1.6rem; color: var(--p-primary-color); }
+.chamado-detalhe .detalhe-campo p { color: var(--p-text-muted-color); }
+.texto { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
+.relato-original { padding-left: .85rem; border-left: 3px solid var(--p-primary-color); }
+@media (max-width: 540px) {
+  .chamado-tags { flex-direction: row; flex-wrap: wrap; width: 100%; }
+  .chamado-tags p-tag { margin-left: 0; }
+}

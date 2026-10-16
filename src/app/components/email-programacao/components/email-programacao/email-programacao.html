@@ -88,12 +88,52 @@
       <div class="tabela"><p-table [value]="l.entregas" [paginator]="l.entregas.length > 10" [rows]="10" [tableStyle]="{ 'min-width': '42rem' }"><ng-template #header><tr><th>Destinatário</th><th>Estado</th><th>Revisão / tentativas</th><th>Erro / aceite SMTP</th></tr></ng-template><ng-template #body let-e><tr><td>{{ e.email }}</td><td><p-tag [value]="rotulo(e.estado)" [severity]="severidade(e.estado)" /></td><td>{{ e.revisao }} / {{ e.tentativas }}</td><td>{{ e.erro || '—' }}<small>{{ instante(e.aceitoEm) }}</small></td></tr></ng-template><ng-template #emptymessage><tr><td colspan="4">Nenhuma entrega registrada neste lote. Confira os ignorados.</td></tr></ng-template></p-table></div>
       @if (l.mensagem; as m) { <details><summary>Mensagem efetivamente enfileirada</summary><h3>{{ m.assunto }}</h3><pre class="mensagem">{{ m.texto }}</pre></details> }
     }
-  </div><ng-template #footer><p-button label="Fechar" [text]="true" (onClick)="fecharDetalhe()" /><p-button label="Atualizar resultado" icon="pi pi-refresh" [disabled]="detalhe.carregando()" (onClick)="atualizarDetalhe()" /></ng-template>
+  </div><ng-template #footer><p-button label="Fechar" icon="pi pi-times" severity="secondary" [text]="true" (onClick)="fecharDetalhe()" /><p-button label="Atualizar resultado" icon="pi pi-refresh" [disabled]="detalhe.carregando()" (onClick)="atualizarDetalhe()" /></ng-template>
 </p-dialog>
 <p-dialog closeAriaLabel="Fechar itinerário" header="Itinerário e detalhes" [visible]="!!viagemDetalhe()" (visibleChange)="!$event && viagemDetalhe.set(null)" [modal]="true" [draggable]="false" [style]="{ width: 'min(95vw, 48rem)' }">
-  @if (viagemDetalhe(); as v) { <div class="dialogo"><div class="hero"><i class="pi pi-truck" aria-hidden="true"></i><div><strong>Ônibus {{ texto(v.onibus?.numeroIdentificacao) }}</strong><p>{{ texto(v.motorista?.nome) }} · {{ dia(v.dataOcorrencia) }}</p></div></div>@for (a of avisosViagem(v); track $index) { <p-message severity="warn">{{ a }}</p-message> }
-    <dl><div><dt>Rota</dt><dd>{{ texto(v.rota?.nome) }}</dd></div><div><dt>Grade</dt><dd>{{ texto(v.grade?.descricao) }}</dd></div><div><dt>Placa / modelo</dt><dd>{{ texto(v.onibus?.placa) }} / {{ texto(v.onibus?.modelo) }}</dd></div><div><dt>Capacidade / estado</dt><dd>{{ v.onibus?.capacidade ?? 'Não informado' }} / {{ estadoOnibus(v.onibus?.statusOnibus) }}</dd></div></dl>
-    <h3>Itinerário</h3><p class="texto">{{ texto(v.rota?.descricao) }}</p><ol>@for (p of v.rota?.pontosEmbarque || []; track $index) { <li>{{ texto(p.descricao) }}</li> } @empty { <li>Pontos não informados</li> }</ol><h3>Faculdades atendidas</h3>@for (f of v.faculdades; track $index) { <p><strong>{{ texto(f.nome) }}</strong><small>{{ texto(f.endereco) }}</small></p> } @empty { <p>Destino não informado</p> }
-  </div> }
+  @if (viagemDetalhe(); as v) {
+    <div class="dialog-dashboard itinerario-dialog">
+      <div class="detalhe-destaque">
+        <span class="detalhe-icone grande"><i class="pi pi-truck" aria-hidden="true"></i></span>
+        <div class="detalhe-principal">
+          <span class="detalhe-label">Transporte da programação</span>
+          <strong class="detalhe-valor">Ônibus {{ texto(v.onibus?.numeroIdentificacao) }}</strong>
+          <div class="detalhe-metadados"><span><i class="pi pi-calendar" aria-hidden="true"></i> {{ dia(v.dataOcorrencia) }}</span><span>Viagem #{{ v.id }}</span></div>
+        </div>
+        <p-tag [value]="estadoOnibus(v.onibus?.statusOnibus)" [severity]="!v.onibus ? 'secondary' : v.onibusDisponivel ? 'success' : 'warn'" />
+      </div>
+      @for (a of avisosViagem(v); track $index) { <p-message severity="warn">{{ a }}</p-message> }
+
+      <dl class="detalhe-grid">
+        <div class="detalhe-campo principal-transporte"><span class="detalhe-icone"><i class="pi pi-user" aria-hidden="true"></i></span><div><dt>Motorista</dt><dd>{{ texto(v.motorista?.nome) }}</dd></div></div>
+        <div class="detalhe-campo principal-transporte"><span class="detalhe-icone"><i class="pi pi-map" aria-hidden="true"></i></span><div><dt>Rota</dt><dd>{{ texto(v.rota?.nome) }}</dd></div></div>
+        <div class="detalhe-campo"><span class="detalhe-icone"><i class="pi pi-id-card" aria-hidden="true"></i></span><div><dt>Placa</dt><dd>{{ texto(v.onibus?.placa) }}</dd></div></div>
+        <div class="detalhe-campo"><span class="detalhe-icone"><i class="pi pi-car" aria-hidden="true"></i></span><div><dt>Modelo</dt><dd>{{ texto(v.onibus?.modelo) }}</dd></div></div>
+        <div class="detalhe-campo capacidade-transporte"><span class="detalhe-icone"><i class="pi pi-users" aria-hidden="true"></i></span><div><dt>Capacidade</dt><dd>{{ v.onibus?.capacidade != null ? v.onibus?.capacidade + ' lugares' : 'Não informado' }}</dd></div></div>
+        <div class="detalhe-campo"><span class="detalhe-icone"><i class="pi pi-calendar" aria-hidden="true"></i></span><div><dt>Grade</dt><dd>{{ texto(v.grade?.descricao) }}</dd>@if (v.grade?.diaSemana) { <p class="muted">{{ v.grade?.diaSemana | titlecase }}</p> }</div></div>
+      </dl>
+
+      <section class="detalhe-secao" aria-label="Pontos do itinerário">
+        <h3 class="detalhe-titulo"><i class="pi pi-map-marker" aria-hidden="true"></i> Itinerário <small>{{ v.rota?.pontosEmbarque?.length ?? 0 }} ponto(s)</small></h3>
+        <p class="texto descricao-itinerario">{{ texto(v.rota?.descricao) }}</p>
+        @if (v.rota?.pontosEmbarque?.length) {
+          <ol class="detalhe-timeline">
+            @for (p of v.rota?.pontosEmbarque || []; track $index) {
+              <li><span class="detalhe-parada" aria-hidden="true">{{ $index + 1 }}</span><div><strong>{{ texto(p.descricao) }}</strong></div></li>
+            }
+          </ol>
+        } @else { <p class="detalhe-nota">Pontos não informados.</p> }
+      </section>
+
+      <section class="detalhe-secao" aria-label="Destinos atendidos">
+        <h3 class="detalhe-titulo"><i class="pi pi-building" aria-hidden="true"></i> Faculdades atendidas <small>{{ v.faculdades.length }} destino(s)</small></h3>
+        <ul class="detalhe-destinos">
+          @for (f of v.faculdades; track $index) { <li><strong>{{ texto(f.nome) }}</strong><span>{{ texto(f.endereco) }}</span></li> }
+        </ul>
+        @if (!v.faculdades.length) { <p class="detalhe-nota">Destino não informado.</p> }
+      </section>
+    </div>
+  }
+  <ng-template #footer><p-button label="Fechar" icon="pi pi-times" severity="secondary" [text]="true" (onClick)="viagemDetalhe.set(null)" /></ng-template>
 </p-dialog>
 <p-dialog header="Resolver pendência de outro dia" [visible]="resolucaoVisivel()" (visibleChange)="resolucaoVisivel.set($event)" [modal]="true" [draggable]="false" [style]="{ width: 'min(95vw, 36rem)' }"><p>O identificador de {{ dia(intencao()?.dataReferencia) }} não foi localizado após consulta. Confira também o histórico. Encerrar esta pendência não cancela nenhuma mensagem no servidor.</p><p>Uma nova solicitação será uma ação separada, com a programação de hoje.</p><ng-template #footer><p-button label="Voltar" [text]="true" (onClick)="resolucaoVisivel.set(false)" /><p-button label="Confirmar encerramento local" severity="warn" [disabled]="!podeResolverAntiga() || enviando()" (onClick)="resolverAntiga()" /></ng-template></p-dialog>

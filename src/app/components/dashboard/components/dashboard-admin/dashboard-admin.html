@@ -63,7 +63,7 @@
           <div class="detalhe-nota"><i class="pi pi-info-circle" aria-hidden="true"></i><p>Referência {{ painel.dataReferencia | date:'dd/MM/yyyy':'UTC' }} · independente do mês das movimentações.</p></div>
         </div>
       }
-      <ng-template #footer><div class="detalhe-rodape">@if (resumoOperacao(); as resumo) { <a [routerLink]="resumo.rota">{{ resumo.acao }} <i class="pi pi-arrow-up-right" aria-hidden="true"></i></a> }<p-button label="Fechar" severity="secondary" [outlined]="true" (onClick)="detalheOperacao.set(null)" /></div></ng-template>
+      <ng-template #footer><div class="detalhe-rodape">@if (resumoOperacao(); as resumo) { <a [routerLink]="resumo.rota">{{ resumo.acao }} <i class="pi pi-arrow-up-right" aria-hidden="true"></i></a> }<p-button label="Fechar" icon="pi pi-times" severity="secondary" [text]="true" (onClick)="detalheOperacao.set(null)" /></div></ng-template>
     </p-dialog>
   }
 </div>

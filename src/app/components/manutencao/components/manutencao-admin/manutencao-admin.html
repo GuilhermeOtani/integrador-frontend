@@ -30,31 +30,60 @@
   </p-table>
 </div>
 
-<p-dialog header="Atender chamado" [(visible)]="dialogoAberto" [modal]="true" [closable]="!salvando() && !abrindo()" [closeOnEscape]="!salvando() && !abrindo()" [style]="{width:'min(95vw, 760px)'}">
+<p-dialog header="Atender chamado" closeAriaLabel="Fechar atendimento" [(visible)]="dialogoAberto" [modal]="true" [draggable]="false"
+  [closable]="!salvando() && !abrindo()" [closeOnEscape]="!salvando() && !abrindo()" [style]="{width:'min(95vw, 52rem)'}">
   @if (abrindo()) { <p role="status">Carregando dados atuais do chamado...</p> }
   @if (selecionado(); as c) {
-    <app-chamado-detalhe [chamado]="c" [mostrarResposta]="false" />
-    <form [formGroup]="form" (ngSubmit)="salvar()" class="formulario mt-5 pt-4 border-t border-surface">
-      <label for="atendimentoPrioridade">Prioridade</label>
-      <p-select inputId="atendimentoPrioridade" formControlName="urgencia" [options]="prioridades" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
-      @if (form.controls.urgencia.touched && form.controls.urgencia.invalid) { <small class="erro">{{ form.controls.urgencia.getError('servidor') || 'Selecione uma prioridade.' }}</small> }
-      <label for="atendimentoStatus">Andamento</label>
-      <p-select inputId="atendimentoStatus" formControlName="status" [options]="estados" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
-      @if (form.controls.status.touched && form.controls.status.invalid) { <small class="erro">{{ form.controls.status.getError('servidor') || 'Selecione um andamento.' }}</small> }
-      <label for="observacaoAdmin">Resposta / justificativa</label>
-      <textarea pTextarea id="observacaoAdmin" formControlName="observacaoAdmin" rows="5" maxlength="2000"></textarea>
-      <small>{{ form.controls.observacaoAdmin.value.length }}/2000 caracteres. Obrigatória ao resolver.</small>
-      @if (form.controls.observacaoAdmin.touched && form.controls.observacaoAdmin.invalid) { <small class="erro">{{ form.controls.observacaoAdmin.getError('servidor') || 'Para resolver, informe uma justificativa não vazia, com até 2.000 caracteres.' }}</small> }
-      <p class="text-sm text-muted-color">Esta resposta substitui a anterior. Apagar o texto limpa a resposta; não há histórico de mensagens.</p>
-      <div class="flex gap-2 items-center"><p-checkbox inputId="alterarOnibus" formControlName="alterarOnibus" [binary]="true" /><label for="alterarOnibus">Alterar também o estado do ônibus</label></div>
-      @if (form.controls.alterarOnibus.value) {
-        <label for="atendimentoOnibus">Novo estado do ônibus</label>
-        <p-select inputId="atendimentoOnibus" formControlName="statusOnibus" [options]="estadosOnibus" optionLabel="label" optionValue="value" placeholder="Selecione o estado" [fluid]="true" appendTo="body" />
-        @if (form.controls.statusOnibus.touched && form.controls.statusOnibus.invalid) { <small class="erro">{{ form.controls.statusOnibus.getError('servidor') || 'Selecione o estado do ônibus.' }}</small> }
-      }
-      <p class="text-sm text-muted-color">Resolver ou reabrir não altera o ônibus automaticamente e não cancela viagens existentes.</p>
-      @if (erroForm()) { <p class="erro" role="alert">{{ erroForm() }}</p> }
-      <div class="flex justify-end gap-2 mt-3"><p-button type="button" label="Cancelar" [text]="true" [disabled]="salvando()" (onClick)="dialogoAberto = false" /><p-button type="submit" label="Salvar atendimento" icon="pi pi-check" [loading]="salvando()" [disabled]="form.invalid || salvando()" /></div>
-    </form>
+    <div class="atendimento-dialog">
+      <app-chamado-detalhe [chamado]="c" [mostrarResposta]="false" />
+      <form id="form-atendimento" [formGroup]="form" (ngSubmit)="salvar()" class="formulario atendimento-form">
+        <section class="atendimento-secao" aria-label="Atualização do atendimento">
+          <h2 class="atendimento-titulo"><i class="pi pi-sliders-h" aria-hidden="true"></i> Atualizar atendimento</h2>
+          <div class="atendimento-grid">
+            <div class="campo-atendimento">
+              <label for="atendimentoPrioridade">Prioridade</label>
+              <p-select inputId="atendimentoPrioridade" formControlName="urgencia" [options]="prioridades" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
+              @if (form.controls.urgencia.touched && form.controls.urgencia.invalid) { <small class="erro">{{ form.controls.urgencia.getError('servidor') || 'Selecione uma prioridade.' }}</small> }
+            </div>
+            <div class="campo-atendimento">
+              <label for="atendimentoStatus">Andamento</label>
+              <p-select inputId="atendimentoStatus" formControlName="status" [options]="estados" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
+              @if (form.controls.status.touched && form.controls.status.invalid) { <small class="erro">{{ form.controls.status.getError('servidor') || 'Selecione um andamento.' }}</small> }
+            </div>
+          </div>
+          <div class="campo-atendimento resposta-atendimento">
+            <label for="observacaoAdmin">Resposta / justificativa</label>
+            <textarea pTextarea id="observacaoAdmin" formControlName="observacaoAdmin" rows="4" maxlength="2000" aria-describedby="resposta-limite resposta-ajuda"></textarea>
+            <small id="resposta-limite">{{ form.controls.observacaoAdmin.value.length }}/2000 caracteres · obrigatória ao resolver</small>
+            @if (form.controls.observacaoAdmin.touched && form.controls.observacaoAdmin.invalid) { <small class="erro" role="alert">{{ form.controls.observacaoAdmin.getError('servidor') || 'Para resolver, informe uma justificativa não vazia, com até 2.000 caracteres.' }}</small> }
+            <p id="resposta-ajuda" class="atendimento-nota">Esta resposta substitui a anterior. Apagar o texto limpa a resposta; não há histórico de mensagens.</p>
+          </div>
+        </section>
+
+        <section class="atendimento-secao controle-onibus" aria-label="Controle do estado do ônibus">
+          <h2 class="atendimento-titulo"><i class="pi pi-truck" aria-hidden="true"></i> Controle do ônibus</h2>
+          <div class="alteracao-onibus"><p-checkbox inputId="alterarOnibus" formControlName="alterarOnibus" [binary]="true" /><label for="alterarOnibus">Alterar também o estado do ônibus</label></div>
+          @if (form.controls.alterarOnibus.value) {
+            <div class="campo-atendimento novo-estado">
+              <label for="atendimentoOnibus">Novo estado do ônibus</label>
+              <p-select inputId="atendimentoOnibus" formControlName="statusOnibus" [options]="estadosOnibus" optionLabel="label" optionValue="value" placeholder="Selecione o estado" [fluid]="true" appendTo="body" />
+              @if (form.controls.statusOnibus.touched && form.controls.statusOnibus.invalid) { <small class="erro">{{ form.controls.statusOnibus.getError('servidor') || 'Selecione o estado do ônibus.' }}</small> }
+            </div>
+          }
+          <p class="atendimento-nota"><i class="pi pi-info-circle" aria-hidden="true"></i> Resolver ou reabrir não altera o ônibus automaticamente e não cancela viagens existentes.</p>
+        </section>
+        @if (erroForm()) { <p class="erro atendimento-erro" role="alert">{{ erroForm() }}</p> }
+      </form>
+    </div>
   }
+  <ng-template #footer>
+    <div class="atendimento-rodape">
+      <span class="atendimento-nota">{{ salvando() ? 'Salvando atendimento…' : 'As alterações serão aplicadas ao salvar.' }}</span>
+      <div class="atendimento-acoes">
+        <p-button type="button" label="Cancelar" severity="secondary" [text]="true" [disabled]="salvando() || abrindo()" (onClick)="dialogoAberto = false" />
+        <p-button type="button" label="Salvar atendimento" icon="pi pi-check" [loading]="salvando()"
+          [disabled]="form.invalid || salvando() || abrindo() || !selecionado()" (onClick)="salvar()" />
+      </div>
+    </div>
+  </ng-template>
 </p-dialog>

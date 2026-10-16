@@ -57,9 +57,54 @@ describe('EmailProgramacao', () => {
   it('detalhes preservam ordem dos pontos, destinos e zero de capacidade', () => {
     const p = previaEmailFixture(); p.viagens[0].onibus!.capacidade = 0; inicializar(configEmailFixture, p);
     c.viagemDetalhe.set(p.viagens[0]); fixture.detectChanges(); const texto = fixture.nativeElement.textContent;
-    expect(texto.indexOf('Praça')).toBeLessThan(texto.indexOf('Terminal')); expect(texto).toContain('Rua A'); expect(texto).toContain('Rua B'); expect(texto).toContain('0 /');
+    expect(texto.indexOf('Praça')).toBeLessThan(texto.indexOf('Terminal')); expect(texto).toContain('Rua A'); expect(texto).toContain('Rua B'); expect(fixture.nativeElement.querySelector('.capacidade-transporte dd').textContent).toContain('0 lugares');
     const fechar = fixture.nativeElement.querySelector('button[aria-label="Fechar itinerário"]') as HTMLButtonElement;
     expect(fechar).not.toBeNull(); fechar.click(); fixture.detectChanges(); expect(c.viagemDetalhe()).toBeNull();
+  });
+  it('itinerário destaca motorista/rota e separa placa, modelo e destinos', () => {
+    const p = previaEmailFixture(); inicializar(configEmailFixture, p);
+    c.viagemDetalhe.set(p.viagens[0]); fixture.detectChanges();
+    const dialogo = fixture.nativeElement.querySelector('.itinerario-dialog') as HTMLElement;
+    expect(dialogo.querySelector('.detalhe-valor')!.textContent).toContain(p.viagens[0].onibus!.numeroIdentificacao!);
+    expect(dialogo.querySelectorAll('.principal-transporte').length).toBe(2);
+    expect(dialogo.querySelectorAll('.detalhe-campo').length).toBe(6);
+    expect(dialogo.textContent).toContain(p.viagens[0].motorista!.nome!);
+    expect(dialogo.textContent).toContain(p.viagens[0].rota!.nome!);
+    expect(dialogo.querySelectorAll('.detalhe-destinos li').length).toBe(2);
+    expect([...dialogo.querySelectorAll('.detalhe-parada')].map(n => n.textContent?.trim())).toEqual(['1', '2']);
+    http.expectNone(r => r.method !== 'GET');
+  });
+  it('dados ausentes não fabricam motorista, ponto ou faculdade no diálogo', () => {
+    const p = previaEmailFixture(); p.viagens[0] = { ...p.viagens[0], motorista: null, rota: null, onibus: null, grade: null, faculdades: [], dataOcorrencia: null };
+    inicializar(configEmailFixture, p); c.viagemDetalhe.set(p.viagens[0]); fixture.detectChanges();
+    const dialogo = fixture.nativeElement.querySelector('.itinerario-dialog') as HTMLElement;
+    expect(dialogo.textContent).toContain('Não informado');
+    expect(dialogo.textContent).toContain('Pontos não informados');
+    expect(dialogo.textContent).toContain('Destino não informado');
+    expect(dialogo.querySelectorAll('.detalhe-parada').length).toBe(0);
+  });
+  it('diálogo de itinerário conserva avisos e não interpreta textos como HTML', () => {
+    const p = previaEmailFixture(); p.viagens[0].rota!.descricao = '<img src=x onerror=alert(1)>\nRota completa';
+    p.viagens[0].avisos = ['Confirme o transporte com a administração.']; p.viagens[0].onibusDisponivel = false;
+    inicializar(configEmailFixture, p); c.viagemDetalhe.set(p.viagens[0]); fixture.detectChanges();
+    const dialogo = fixture.nativeElement.querySelector('.itinerario-dialog') as HTMLElement;
+    expect(dialogo.textContent).toContain('Confirme o transporte com a administração.');
+    expect(dialogo.textContent).toContain('<img src=x onerror=alert(1)>');
+    expect(dialogo.querySelector('img')).toBeNull();
+  });
+  it('fechar no rodapé do itinerário não modifica programação ou envia mensagens', () => {
+    const p = previaEmailFixture(); inicializar(configEmailFixture, p);
+    c.viagemDetalhe.set(p.viagens[0]); fixture.detectChanges();
+    const dialogo = fixture.nativeElement.querySelector('.itinerario-dialog')!.closest('.p-dialog') as HTMLElement;
+    const fechar = [...dialogo.querySelectorAll<HTMLButtonElement>('.p-dialog-footer button')].find(b => b.textContent?.trim() === 'Fechar')!;
+    expect(fechar).toBeDefined();
+    expect(fechar.querySelector('.pi-times')).not.toBeNull();
+    expect(fechar.classList.contains('p-button-secondary')).toBeTrue();
+    expect(fechar.classList.contains('p-button-text')).toBeTrue();
+    expect(fechar.classList.contains('p-button-outlined')).toBeFalse();
+    fechar.click(); fixture.detectChanges();
+    expect(c.viagemDetalhe()).toBeNull(); expect(c.previa.dados()).toEqual(p);
+    http.expectNone(r => r.method !== 'GET');
   });
   it('sem viagens é vazio real e não permite POST', () => {
     inicializar(configEmailFixture, { ...previaEmailFixture(), viagens: [] }); expect(c.podeEnviar()).toBeFalse(); c.abrirEnvio(false); c.confirmarEnvio(); http.expectNone(r => r.method === 'POST'); expect(fixture.nativeElement.textContent).toContain('Não há programação para hoje');

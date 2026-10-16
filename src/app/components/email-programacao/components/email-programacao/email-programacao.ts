@@ -24,7 +24,8 @@ import { IntencaoEmail, SolicitacaoPendente } from '../../utils/solicitacao-pend
 @Component({
   selector: 'app-email-programacao', standalone: true,
   imports: [CommonModule, ReactiveFormsModule, ButtonModule, DialogModule, InputTextModule, MessageModule, TableModule, TagModule, TextareaModule],
-  templateUrl: './email-programacao.html', styleUrl: './email-programacao.css',
+  templateUrl: './email-programacao.html',
+  styleUrls: ['./email-programacao.css', '../../../dashboard/styles/dialog-dashboard.css'],
 })
 export class EmailProgramacao implements OnInit {
   private readonly api = inject(EmailProgramacaoService);

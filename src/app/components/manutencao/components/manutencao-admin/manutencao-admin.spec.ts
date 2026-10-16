@@ -62,6 +62,31 @@ describe('ManutencaoAdmin', () => {
     expect(component.form.controls.alterarOnibus.value).toBeFalse();
     expect(component.form.controls.statusOnibus.disabled).toBeTrue();
   });
+  it('organiza relato, formulário e controle do ônibus sem repetir resposta anterior', () => {
+    component.atender(4); fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.atendimento-grid')!.querySelectorAll('.campo-atendimento').length).toBe(2);
+    expect(el.querySelector('.relato-original')!.textContent).toContain('Ar-condicionado');
+    expect(el.querySelector('.atendimento-dialog app-chamado-detalhe [aria-label="Resposta da administração"]')).toBeNull();
+    expect(el.querySelector<HTMLTextAreaElement>('#observacaoAdmin')!.value).toBe('Resposta anterior');
+    expect(el.querySelector('.controle-onibus')!.textContent).toContain('não altera o ônibus automaticamente');
+    expect(el.querySelector('button[aria-label="Fechar atendimento"]')).not.toBeNull();
+  });
+  it('salva pelo rodapé persistente com o mesmo payload e sem alterar o ônibus implicitamente', () => {
+    component.atender(4); fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const salvar = [...el.querySelectorAll<HTMLButtonElement>('.atendimento-acoes button')].find(b => b.textContent?.trim() === 'Salvar atendimento')!;
+    expect(salvar.closest('.p-dialog-footer')).not.toBeNull();
+    salvar.click();
+    expect(api.atender).toHaveBeenCalledOnceWith(4, { status: 'ABERTO', urgencia: 'MEDIA', observacaoAdmin: 'Resposta anterior' });
+  });
+  it('cancelar pelo rodapé não salva alterações', () => {
+    component.atender(4); fixture.detectChanges();
+    const cancelar = [...fixture.nativeElement.querySelectorAll('.atendimento-acoes button') as NodeListOf<HTMLButtonElement>]
+      .find(b => b.textContent?.trim() === 'Cancelar')!;
+    cancelar.click(); expect(component.dialogoAberto).toBeFalse();
+    expect(api.atender).not.toHaveBeenCalled();
+  });
   it('exige justificativa não vazia ao resolver', () => {
     component.atender(4);
     component.form.patchValue({ status: 'RESOLVIDO', observacaoAdmin: ' \n ' });

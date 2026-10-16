@@ -3,6 +3,37 @@ import { ChamadoDetalhe } from './chamado-detalhe';
 import { CHAMADO_TESTE } from '../../testing/manutencao.fixtures';
 
 describe('ChamadoDetalhe', () => {
+  it('destaca chamado, ônibus, solicitante, prioridade e estado em blocos separados', () => {
+    TestBed.configureTestingModule({ imports: [ChamadoDetalhe] });
+    const fixture = TestBed.createComponent(ChamadoDetalhe);
+    fixture.componentRef.setInput('chamado', CHAMADO_TESTE); fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.detalhe-valor')!.textContent).toContain('Chamado #4');
+    expect(el.querySelector('.chamado-onibus dd')!.textContent).toContain('101');
+    expect(el.querySelector('.chamado-tags')!.textContent).toContain('Prioridade Média');
+    expect(el.querySelector('.chamado-tags')!.textContent).toContain('Aberto');
+    expect(el.textContent).toContain('ABC1D23'); expect(el.textContent).toContain('Modelo teste');
+    expect(el.textContent).toContain('Aluno Teste'); expect(el.textContent).toContain('Quebrado');
+  });
+  it('oculta resposta anterior no atendimento sem ocultar relato ou autor', () => {
+    TestBed.configureTestingModule({ imports: [ChamadoDetalhe] });
+    const fixture = TestBed.createComponent(ChamadoDetalhe);
+    fixture.componentRef.setInput('chamado', CHAMADO_TESTE);
+    fixture.componentRef.setInput('mostrarResposta', false); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Ar-condicionado');
+    expect(fixture.nativeElement.textContent).toContain('Aluno Teste');
+    expect(fixture.nativeElement.querySelector('[aria-label="Resposta da administração"]')).toBeNull();
+  });
+  it('preserva quebras de linha e textos longos do relato', () => {
+    TestBed.configureTestingModule({ imports: [ChamadoDetalhe] });
+    const fixture = TestBed.createComponent(ChamadoDetalhe);
+    const descricao = 'Primeira linha\n' + 'x'.repeat(2000);
+    fixture.componentRef.setInput('chamado', { ...CHAMADO_TESTE, descricao }); fixture.detectChanges();
+    const relato = fixture.nativeElement.querySelector('.relato-original') as HTMLElement;
+    expect(relato.textContent).toBe(descricao);
+    expect(getComputedStyle(relato).whiteSpace).toBe('pre-wrap');
+    expect(getComputedStyle(relato).overflowWrap).toBe('anywhere');
+  });
   it('renderiza relato e resposta como texto, sem interpretar HTML', () => {
     TestBed.configureTestingModule({ imports: [ChamadoDetalhe] });
     const fixture = TestBed.createComponent(ChamadoDetalhe);

@@ -1,0 +1,42 @@
+@if (chamado(); as c) {
+  <div class="dialog-dashboard chamado-detalhe">
+    <div class="detalhe-destaque">
+      <span class="detalhe-icone grande"><i class="pi pi-wrench" aria-hidden="true"></i></span>
+      <div class="detalhe-principal">
+        <span class="detalhe-label">Atendimento de manutenção</span>
+        <strong class="detalhe-valor">Chamado #{{ c.id }}</strong>
+        <div class="detalhe-metadados"><span><i class="pi pi-calendar" aria-hidden="true"></i> Aberto em {{ c.dataAbertura | date:'dd/MM/yyyy':'UTC' }}</span></div>
+      </div>
+      <div class="chamado-tags" aria-label="Situação atual do chamado">
+        <p-tag [value]="'Prioridade ' + prioridade(c.urgencia)" [severity]="corPrioridade(c.urgencia)" />
+        <p-tag [value]="andamento(c.status)" [severity]="corAndamento(c.status)" />
+      </div>
+    </div>
+
+    <dl class="detalhe-grid">
+      <div class="detalhe-campo chamado-onibus"><span class="detalhe-icone"><i class="pi pi-truck" aria-hidden="true"></i></span><div>
+        <dt>Ônibus</dt><dd>{{ c.onibus.numeroIdentificacao?.trim() || 'Não informado' }}</dd>
+        <p>Placa: {{ c.onibus.placa?.trim() || 'Não informado' }}</p>
+        <p>Modelo: {{ c.onibus.modelo?.trim() || 'Não informado' }}</p>
+      </div></div>
+      <div class="detalhe-campo"><span class="detalhe-icone"><i class="pi pi-user" aria-hidden="true"></i></span><div>
+        <dt>Solicitante</dt><dd>{{ c.solicitante.nome }}</dd><p>{{ papel(c.solicitante.tipoPessoa) }}</p>
+      </div></div>
+      <div class="detalhe-campo amplo"><span class="detalhe-icone"><i class="pi pi-info-circle" aria-hidden="true"></i></span><div>
+        <dt>Estado atual do ônibus</dt><dd><p-tag [value]="estado(c.onibus.statusOnibus)"
+          [severity]="!c.onibus.statusOnibus ? 'secondary' : c.onibus.statusOnibus === 'OPERANDO' ? 'success' : 'warn'" /></dd>
+      </div></div>
+    </dl>
+
+    <section class="detalhe-secao" aria-label="Relato original do solicitante">
+      <h3 class="detalhe-titulo"><i class="pi pi-comment" aria-hidden="true"></i> Relato original</h3>
+      <p class="texto relato-original">{{ c.descricao }}</p>
+    </section>
+    @if (mostrarResposta()) {
+      <section class="detalhe-secao" aria-label="Resposta da administração">
+        <h3 class="detalhe-titulo"><i class="pi pi-reply" aria-hidden="true"></i> Resposta da administração</h3>
+        <p class="texto">{{ c.observacaoAdmin || 'Aguardando resposta' }}</p>
+      </section>
+    }
+  </div>
+}

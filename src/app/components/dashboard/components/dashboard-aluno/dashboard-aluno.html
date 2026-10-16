@@ -54,7 +54,7 @@
         </section>
         <div class="detalhe-nota"><i class="pi pi-info-circle" aria-hidden="true"></i><p>O vencimento é da cobrança, não uma expiração automática da matrícula. As vencidas já fazem parte do total em aberto.</p></div>
       </div>
-      <ng-template #footer><div class="detalhe-rodape"><a routerLink="/minhas-matriculas">Ver todas as cobranças</a><p-button label="Fechar" severity="secondary" [outlined]="true" (onClick)="resumoVisivel.set(false)" /></div></ng-template>
+      <ng-template #footer><div class="detalhe-rodape"><a routerLink="/minhas-matriculas">Ver todas as cobranças</a><p-button label="Fechar" icon="pi pi-times" severity="secondary" [text]="true" (onClick)="resumoVisivel.set(false)" /></div></ng-template>
     </p-dialog>
   }
 </div>

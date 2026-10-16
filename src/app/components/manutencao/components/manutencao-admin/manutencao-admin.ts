@@ -29,7 +29,7 @@ import { ChamadoDetalhe } from '../chamado-detalhe/chamado-detalhe';
   imports: [DatePipe, ReactiveFormsModule, ButtonModule, CheckboxModule, DialogModule, SelectModule,
     TableModule, TextareaModule, InputTextModule, ToolbarModule, TagModule, ChamadoDetalhe],
   templateUrl: './manutencao-admin.html',
-  styleUrl: '../../styles/manutencao.css',
+  styleUrls: ['../../styles/manutencao.css', './manutencao-admin.css'],
 })
 export class ManutencaoAdmin implements OnInit {
   private readonly api = inject(ManutencaoService);

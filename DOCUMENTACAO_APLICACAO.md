@@ -500,7 +500,17 @@ Credenciais administrativas não devem ser registradas no código, documentaçã
 
 ## 11. Testes automatizados
 
-Atualização de 14/10/2026, arquivamento de alunos (estado mais recente):
+Atualização de 14/10/2026, refinamento visual dos modais (estado mais recente):
+
+- Itinerário: identificação do ônibus destacada, cards de motorista/rota/veículo/grade, pontos numerados na ordem recebida, faculdades separadas e botão de fechamento no rodapé.
+- Atendimento: resumo do chamado com prioridade/andamento, ônibus e solicitante em cards, relato separado do formulário e ações no rodapé fora da área de rolagem.
+- Layouts adaptáveis a telas estreitas usando as cores do tema. O detalhe compartilhado de manutenção também melhora a consulta em Meus chamados.
+- Contratos HTTP, validações, avisos e regras de alteração do ônibus preservados. Nenhum chamado salvo ou e-mail enviado na validação desta entrega.
+- TypeScript da aplicação e dos testes aprovado; **361/361 testes aprovados**, em 55 specs; build de produção aprovado sem avisos de orçamento de CSS.
+- Dez testes adicionais cobrem apresentação, dados ausentes, textos longos/interpolação segura, fechamento/cancelamento e envio do mesmo payload pelo botão do rodapé.
+- Conferência visual integrada dos novos modais pendente de login na aplicação; os testes utilizam dados simulados, sem acesso a SMTP real.
+
+Histórico de 14/10/2026, arquivamento de alunos:
 
 | Verificação | Resultado |
 |---|---|
@@ -666,7 +676,7 @@ location / {
 | Programação geral por e-mail | Tela ADMIN em `/programacao-email`, cards por faculdade, envio/correção, automático e histórico |
 | Envio SMTP real | Pendente de configuração externa e homologação; nenhuma entrega real afirmada |
 | Geração mensal da cobrança | Responsabilidade do backend; validação integrada pendente |
-| Testes automatizados | 351 aprovados, em 55 specs |
+| Testes automatizados | 361 aprovados, em 55 specs |
 | Build de produção | Aprovado |
 | Teste integrado dos três papéis | Dashboards conferidos com login real; demais fluxos completos ainda pendentes |
 | Dashboards com backend real | Três perfis conferidos em desktop/360px no modo escuro; ADMIN inclui mês, posição atual e atalhos |

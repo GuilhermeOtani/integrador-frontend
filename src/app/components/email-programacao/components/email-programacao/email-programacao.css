@@ -37,3 +37,8 @@ ol { padding-left: 1.5rem; margin: 0; } li { padding: .35rem; } summary { cursor
 :is(button, input, textarea, summary):focus-visible { outline: 2px solid var(--p-primary-color); outline-offset: 3px; }
 @media (max-width: 1200px) { .resumos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .resumos, .faculdades, .impedimentos, dl { grid-template-columns: 1fr; } .painel { padding: 1rem; } .hero { align-items: flex-start; } }
+.itinerario-dialog .detalhe-valor { color: var(--p-primary-color); }
+.itinerario-dialog .principal-transporte dd { font-size: 1.15rem; line-height: 1.4; }
+.itinerario-dialog .descricao-itinerario { margin-bottom: 1rem; color: var(--p-text-muted-color); }
+.itinerario-dialog .detalhe-timeline li { padding-inline: 0; }
+.itinerario-dialog .detalhe-timeline strong { display: block; padding-top: .25rem; }

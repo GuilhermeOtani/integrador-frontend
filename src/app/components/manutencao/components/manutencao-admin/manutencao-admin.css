@@ -1,0 +1,28 @@
+.atendimento-dialog { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.atendimento-form { gap: 1rem; }
+.atendimento-secao { padding: 1.1rem; border: 1px solid var(--p-content-border-color); border-radius: .9rem; min-width: 0; }
+.atendimento-titulo { display: flex; align-items: center; gap: .6rem; font-size: 1rem; font-weight: 650; margin: 0 0 1rem; }
+.atendimento-titulo i { color: var(--p-primary-color); }
+.atendimento-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.campo-atendimento { display: flex; flex-direction: column; gap: .55rem; min-width: 0; }
+.resposta-atendimento { margin-top: 1rem; }
+.campo-atendimento small { color: var(--p-text-muted-color); }
+.campo-atendimento small.erro { color: var(--p-red-500, #dc2626); }
+.atendimento-nota { color: var(--p-text-muted-color); font-size: .85rem; line-height: 1.6; margin: 0; overflow-wrap: anywhere; }
+.controle-onibus { background: color-mix(in srgb, var(--p-primary-color) 4%, var(--p-content-background)); }
+.alteracao-onibus { display: flex; align-items: flex-start; gap: .65rem; }
+.alteracao-onibus label { cursor: pointer; }
+.controle-onibus .atendimento-nota { margin-top: .8rem; }
+.controle-onibus .atendimento-nota i { color: var(--p-primary-color); margin-right: .35rem; }
+.novo-estado { margin-top: 1rem; }
+.atendimento-erro { margin: 0; padding: .8rem; border: 1px solid var(--p-red-500, #dc2626); border-radius: .7rem; }
+.atendimento-rodape, .atendimento-acoes { display: flex; flex-wrap: wrap; gap: .7rem; align-items: center; }
+.atendimento-rodape { justify-content: space-between; width: 100%; }
+.atendimento-rodape > span { flex: 1; min-width: 12rem; }
+@media (max-width: 540px) {
+  .atendimento-grid { grid-template-columns: 1fr; }
+  .atendimento-secao { padding: .85rem; }
+  .atendimento-rodape { align-items: flex-start; }
+  .atendimento-rodape > span { flex-basis: 100%; }
+  .atendimento-acoes { width: 100%; justify-content: flex-end; }
+}
