@@ -73,7 +73,6 @@ export class RotaListar implements OnInit {
       { field: 'id', header: 'ID', customExportHeader: 'Rota ID' },
       { field: 'nome', header: 'Nome da Rota' },
       { field: 'descricao', header: 'Descrição' },
-      { field: 'faculdade.nome', header: 'Faculdade Destino' },
     ];
 
     this.exportColumns = this.cols.map((col) => ({ title: col.header, dataKey: col.field }));

@@ -24,4 +24,20 @@ describe('PontoEmbarqueCadastro', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('alinha descrição e ordem na mesma largura sem grid deslocado',()=>{
+    const raiz=fixture.nativeElement as HTMLElement;raiz.style.width='420px';
+    const descricao=raiz.querySelector<HTMLInputElement>('#descricao')!.getBoundingClientRect();
+    const ordem=raiz.querySelector<HTMLInputElement>('#ordemParada')!.getBoundingClientRect();
+    expect(Math.abs(descricao.left-ordem.left)).toBeLessThan(1);
+    expect(Math.abs(descricao.width-ordem.width)).toBeLessThan(1);
+    expect(raiz.querySelector('.grid')).toBeNull();
+  });
+  it('mantém as validações e o cancelamento sem salvar',()=>{
+    const cancelar=spyOn(component.aoCancelar,'emit');
+    component.confirmarSalvar();fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('A Descrição é obrigatória.');
+    expect(fixture.nativeElement.textContent).toContain('A Ordem de Parada é obrigatória.');
+    component.cancelar();expect(cancelar).toHaveBeenCalledTimes(1);
+  });
 });

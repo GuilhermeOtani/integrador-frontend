@@ -12,15 +12,11 @@ import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { MultiSelectModule } from 'primeng/multiselect';
 import { PickListModule } from 'primeng/picklist';
 import { PontoEmbarque } from '../../../ponto-embarque/models/ponto-embarque';
 import { RotaService } from '../../service/rota-service';
 import rota from '../../models/rota';
-import { FaculdadeService } from '../../../faculdade/service/faculdade-service';
 import { PontoEmbarqueService } from '../../../ponto-embarque/service/ponto-embarque-service';
-import { AlunoService } from '../../../aluno/service/aluno-service';
 
 @Component({
   standalone: true,
@@ -30,8 +26,6 @@ import { AlunoService } from '../../../aluno/service/aluno-service';
     FormsModule,
     InputTextModule,
     ButtonModule,
-    SelectModule,
-    MultiSelectModule,
     PickListModule,
   ],
   templateUrl: './rota-cadastro.html',
@@ -46,14 +40,10 @@ export class RotaCadastro implements OnChanges {
   private rotaService = inject(RotaService);
   private messageService = inject(MessageService);
 
-  private faculdadeService = inject(FaculdadeService);
   private pontoEmbarqueService = inject(PontoEmbarqueService);
-  private alunoService = inject(AlunoService);
 
   submitted: boolean = false;
 
-  faculdades: any[] = [];
-  alunos: any[] = [];
   pontosDisponiveis: PontoEmbarque[] = [];
   pontosSelecionados: PontoEmbarque[] = [];
 
@@ -73,8 +63,6 @@ export class RotaCadastro implements OnChanges {
   }
 
   carregarDadosAuxiliares() {
-    this.faculdadeService.listarFaculdades().subscribe((dados) => (this.faculdades = dados));
-    this.alunoService.listarAlunos().subscribe((dados) => (this.alunos = dados));
 
     this.pontoEmbarqueService.listarPontoEmbarque().subscribe({
       next: (dados: any) => {

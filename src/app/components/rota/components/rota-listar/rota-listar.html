@@ -1,7 +1,7 @@
 <div class="app-listagem">
   <p-toast />
 
-  <header class="app-cabecalho"><div><h1>Rotas</h1><p>Itinerários e faculdades atendidas.</p></div><div class="app-acoes">@if (podeEditar()) {
+  <header class="app-cabecalho"><div><h1>Rotas</h1><p>Percursos e pontos de embarque.</p></div><div class="app-acoes">@if (podeEditar()) {
         <p-button label="Novo" icon="pi pi-plus" (onClick)="openNew()" />
         <p-button
           severity="danger"
@@ -39,9 +39,10 @@
 <div class="app-tabela-rolagem"><p-table appTabelaPadrao [loading]="estadoLista.carregando()"
     #dt
     [value]="rotas"
+    [columns]="cols"
     [rows]="10"
     [paginator]="true"
-    [globalFilterFields]="['nome', 'descricao', 'faculdade.nome']"
+    [globalFilterFields]="['nome', 'descricao']"
     [tableStyle]="{ 'min-width': '48rem' }"
     [(selection)]="selectedRotas"
     [rowHover]="true"
@@ -57,11 +58,9 @@
         }
         <th pSortableColumn="id" class="app-col-centro"><span class="app-titulo-coluna">Id
           <p-sortIcon field="id" /></span></th>
-        <th pSortableColumn="nome" class="app-col-texto"><span class="app-titulo-coluna">Nome da Rota
+        <th pSortableColumn="nome" class="app-col-centro"><span class="app-titulo-coluna">Nome da Rota
           <p-sortIcon field="nome" /></span></th>
-        <th class="app-col-texto">Descrição</th>
-        <th pSortableColumn="faculdade.nome" class="app-col-texto"><span class="app-titulo-coluna">Faculdade Destino
-          <p-sortIcon field="faculdade.nome" /></span></th>
+        <th class="app-col-centro">Descrição</th>
         <th class="app-col-acoes app-col-centro">Ações</th>
       </tr>
     </ng-template>
@@ -72,11 +71,8 @@
           <td class="app-selecao app-col-centro"><p-tableCheckbox [value]="rota" /></td>
         }
         <td class="app-col-centro app-dado-compacto">{{ rota.id }}</td>
-        <td class="font-medium app-col-texto">{{ rota.nome }}</td>
-        <td class="app-col-texto">{{ rota.descricao || 'Sem Descrição' }}</td>
-        <td class="app-col-texto">
-          <p-tag [value]="rota.faculdade?.nome || 'Sem Destino'" [severity]="rota.faculdade?.nome ? 'info' : 'secondary'" />
-        </td>
+        <td class="font-medium app-col-centro">{{ rota.nome }}</td>
+        <td class="app-col-centro">{{ rota.descricao || 'Sem Descrição' }}</td>
 
         <td class="app-col-acoes app-col-centro">
           <div class="app-acoes-linha">
@@ -101,12 +97,12 @@
         </td>
       </tr>
     </ng-template>
-  <ng-template #emptymessage><tr><td [attr.colspan]="podeEditar() ? 6 : 5">{{ estadoLista.carregando() ? 'Carregando registros…' : estadoLista.erro() ? 'Não foi possível carregar os registros.' : 'Nenhum registro encontrado para esta seleção.' }}</td></tr></ng-template>
+  <ng-template #emptymessage><tr><td [attr.colspan]="podeEditar() ? 5 : 4">{{ estadoLista.carregando() ? 'Carregando registros…' : estadoLista.erro() ? 'Não foi possível carregar os registros.' : 'Nenhum registro encontrado para esta seleção.' }}</td></tr></ng-template>
 </p-table></div></section>
 
   <p-dialog
     [(visible)]="rotaDialog"
-    [style]="{ width: '800px' }"
+    [style]="{ width: '800px', maxWidth: 'calc(100vw - 2rem)' }"
     header="Detalhes da Rota"
     [modal]="true"
   >
@@ -124,7 +120,7 @@
   <!-- Modal de Detalhes Melhorado -->
   <p-dialog
     [(visible)]="detalhesDialog"
-    [style]="{ width: '700px' }"
+    [style]="{ width: '700px', maxWidth: 'calc(100vw - 2rem)' }"
     header="Visão Geral da Rota"
     [modal]="true"
     styleClass="p-fluid"
@@ -134,7 +130,7 @@
       <div class="flex flex-col gap-5 pt-2" *ngIf="rotaDetalhe">
 
         <!-- Mini Dashboard nos Detalhes -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+        <div class="rota-resumo">
 
           <!-- Card: Nome da Rota -->
           <div class="p-4 rounded-xl border border-gray-700 flex items-center gap-4">
@@ -147,19 +143,8 @@
             </div>
           </div>
 
-          <!-- Card: Faculdade Destino -->
-          <div class="p-4 rounded-xl border border-gray-700 flex items-center gap-4">
-            <div class="bg-green-900/40 p-3 rounded-lg text-green-400">
-              <i class="pi pi-building text-2xl"></i>
-            </div>
-            <div>
-              <span class="block text-xs uppercase font-bold text-gray-400 mb-1">Faculdade Destino</span>
-              <p-tag [value]="rotaDetalhe.faculdade?.nome || 'Não informada'" [severity]="rotaDetalhe.faculdade?.nome ? 'success' : 'secondary'"></p-tag>
-            </div>
-          </div>
-
           <!-- Card: Descrição -->
-          <div class="p-4 rounded-xl border border-gray-700 flex items-start gap-4 col-span-1 md:col-span-2">
+          <div class="p-4 rounded-xl border border-gray-700 flex items-start gap-4">
             <div class="bg-purple-900/40 p-3 rounded-lg text-purple-400">
               <i class="pi pi-align-left text-xl"></i>
             </div>

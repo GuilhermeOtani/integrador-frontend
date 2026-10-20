@@ -1,5 +1,32 @@
 # Padrão compartilhado de tabelas
 
+## Ajustes locais de modais, Rotas e Grade — 17/10/2026
+
+Esta entrega parte do commit `2e018b0` e não retoma as adaptações do DER. Os contratos HTTP e regras de negócio permanecem os do commit.
+
+- Faculdade e Ponto de Embarque: os dois campos têm a mesma largura e início horizontal. Foram retirados os wrappers `grid` que recebiam margens negativas do PrimeFlex. Espaçamentos e separadores são locais aos formulários.
+- Rotas: Faculdade Destino saiu do cadastro, da tabela, dos detalhes, da pesquisa e das colunas de CSV. O modelo e o corpo HTTP não foram redefinidos: a faculdade já vinculada é preservada ao editar. Cadastros novos não recebem um destino inventado. As consultas auxiliares de faculdades/alunos desse formulário foram retiradas.
+- O PickList continua em Rotas, com arrastar/transferir e reordenar, incluindo controles por teclado/botões. A ordem selecionada continua no corpo original de salvamento. Todos os cabeçalhos e dados da tabela principal de Rotas estão centralizados; esta é uma exceção local à convenção de textos à esquerda.
+- Grade Diária: formulário compacto, dois campos superiores proporcionais e inclusão em duas linhas no desktop (Rota/Ônibus/Motorista; Faculdades/Adicionar). No celular, os campos são empilhados. O modal tem largura máxima de viewport, a tabela mantém rolagem interna e existe indicação visível de grade vazia. Permanecem a seleção de faculdades nas viagens, restrição a ônibus OPERANDO, bloqueios de salvamento e alertas.
+- Na listagem principal de Grades, somente ID, Dia da Semana, Descrição e Qtd. Viagens receberam a centralização solicitada. Ações já eram centralizadas. As tabelas internas de cadastro e detalhes mantêm os alinhamentos anteriores.
+
+### Validação automática desta entrega
+
+- TypeScript de aplicação e testes (`tsc --noEmit`): aprovado.
+- Suíte Angular completa: **586/586 testes aprovados em 71 specs**, ChromeHeadless. Foram acrescentados dez testes e reforçadas as verificações das listagens reais. Cobrem alinhamento/largura dos campos, layout em 820px/320px, validações e cancelamento, preservação de faculdade no PUT, ausência de consultas auxiliares dispensadas, transferência/reordenação no PickList, payload original, erro HTTP sem perda do rascunho, pesquisa, ordenação, seleção, exportação configurada e ações da Grade. As regressões financeiras, de autenticação, e-mail e arquivamento continuam na suíte.
+- Build de produção: aprovado sem aumento de budgets. Bundle inicial 1,10 MB / 197,91 kB estimados para transferência.
+- `git diff --check`: aprovado.
+
+Os testes usam requisições simuladas. O erro HTTP 409 exercitado pelo teste de Rotas não representa gravação ou falha no backend real.
+
+### Conferência visual com sessão real
+
+Sessão ADMIN, tema escuro, desktop de 1440px e celular de 390px. Abertos e cancelados os formulários de Faculdade, Ponto, Rotas e Grade; conferidas as listagens centralizadas. Nome/Endereço e Descrição/Ordem apresentaram início horizontal e largura idênticos. No PickList, um ponto foi arrastado entre as listas somente no rascunho, descartado ao cancelar. A Grade foi conferida vazia e com a programação existente; no celular, sua tabela tem área visível de 302px e conteúdo de 640px com overflow interno `auto`, enquanto a largura do documento permanece em 390px. Os campos de inclusão ficam empilhados no celular e proporcionais no desktop.
+
+Pendências de homologação: tema claro, sessões reais ALUNO/MOTORISTA, textos excepcionalmente longos e erros reais de rede/servidor. Gravação/edição/exclusão reais não foram executadas; os contratos de salvamento foram verificados somente com HTTP simulado. A leitura com a sessão real não substitui esses cenários.
+
+Nenhum dado real foi salvo/excluído. Não houve alteração de backend, migração, pagamento, envio de e-mail, commit ou push. Os guias externos e o padrão global de tabelas permanecem intactos.
+
 ## Entrega de 16/10/2026
 
 As listagens seguem o modelo de Contas a pagar: cabeçalho com título e descrição curta, ações gerais, pesquisa/filtros acima da tabela e painel com bordas suaves. São 23 declarações PrimeNG em 18 templates e a tabela HTML da série mensal do dashboard, totalizando 24 tabelas. Inclui detalhes e históricos em diálogos.

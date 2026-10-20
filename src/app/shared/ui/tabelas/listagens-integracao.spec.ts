@@ -1,5 +1,5 @@
 import { Type } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
@@ -28,6 +28,19 @@ function preparar(componente: Type<unknown>, papel = 'ADMIN') {
   return { fixture, http };
 }
 describe('Padrão compartilhado nos cadastros reais', () => {
+  it('Rotas conserva ordenação, filtro e seleção após retirar a coluna de faculdade',fakeAsync(()=>{
+    const {fixture,http}=preparar(RotaListar);
+    http.expectOne(r=>r.url.endsWith('/rota/listar')).flush([{...exemplo,id:3,nome:'Zeta'},{...exemplo,id:4,nome:'Alfa'}]);fixture.detectChanges();
+    const raiz=fixture.nativeElement as HTMLElement;
+    raiz.querySelector<HTMLElement>('th[psortablecolumn="nome"]')!.click();fixture.detectChanges();
+    expect(raiz.querySelector('tbody tr')!.textContent).toContain('Alfa');
+    const pesquisa=raiz.querySelector<HTMLInputElement>('#pesquisa-rota')!;
+    pesquisa.value='Zeta';pesquisa.dispatchEvent(new Event('input'));tick(350);fixture.detectChanges();
+    expect(raiz.querySelectorAll('tbody tr').length).toBe(1);expect(raiz.querySelector('tbody')!.textContent).toContain('Zeta');
+    raiz.querySelector<HTMLInputElement>('tbody p-tablecheckbox input')!.click();fixture.detectChanges();
+    expect((fixture.componentInstance as RotaListar).selectedRotas?.map(r=>r.id)).toEqual([3]);
+    http.expectNone(r=>r.method!=='GET');fixture.destroy();http.verify();
+  }));
   for (const caso of casos) {
     it(`${caso.nome}: mantém GET, exportação e ações sem texto no painel compartilhado`, () => {
       const { fixture, http } = preparar(caso.componente);
@@ -41,6 +54,15 @@ describe('Padrão compartilhado nos cadastros reais', () => {
       const cabecalhos = [...fixture.nativeElement.querySelectorAll('thead th')] as HTMLElement[];
       const celulas = [...fixture.nativeElement.querySelector('tbody tr').children] as HTMLElement[];
       expect(celulas.length).toBe(cabecalhos.length);
+      if(caso.nome==='rotas'){
+        expect(cabecalhos.every(th=>th.classList.contains('app-col-centro'))).toBeTrue();
+        expect(cabecalhos.map(th=>th.textContent).join(' ')).not.toContain('Faculdade Destino');
+        expect(table.globalFilterFields).not.toContain('faculdade.nome');
+        expect(table.columns?.map((c:{field:string})=>c.field)).toEqual(['id','nome','descricao']);
+      }
+      if(caso.nome==='grades'){
+        expect(cabecalhos.filter(th=>/Id|Dia da Semana|Descrição|Qtd. Viagens/.test(th.textContent??'')).every(th=>th.classList.contains('app-col-centro'))).toBeTrue();
+      }
       cabecalhos.forEach((th, indice) => {
         const alinhamento = th.classList.contains('app-col-centro') ? 'center' : 'left';
         expect(th.classList.contains('app-col-centro') || th.classList.contains('app-col-texto')).toBeTrue();

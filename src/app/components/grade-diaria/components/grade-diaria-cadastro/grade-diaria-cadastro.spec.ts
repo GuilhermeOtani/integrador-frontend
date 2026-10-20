@@ -86,4 +86,32 @@ describe('GradeDiariaCadastro', () => {
     http.expectOne(`${environment.apiUrl}/onibus/listar`).flush([{ id: 4, statusOnibus: 'MANUTENCAO' }]);
     expect(component.listaOnibus[0].statusOnibus).toBe('MANUTENCAO'); http.verify();
   });
+
+  it('organiza campos em linhas proporcionais no desktop e uma coluna no celular',()=>{
+    const http=carregarListas();fixture.detectChanges();
+    const raiz=fixture.nativeElement as HTMLElement;raiz.style.width='820px';
+    const campos=Array.from(raiz.querySelectorAll<HTMLElement>('.grade-composicao > div'));
+    const posicoes=campos.map(c=>c.getBoundingClientRect());
+    expect(posicoes[0].top).toBe(posicoes[1].top);expect(posicoes[1].top).toBe(posicoes[2].top);
+    expect(posicoes[3].top).toBeGreaterThan(posicoes[0].top);expect(posicoes[3].top).toBeLessThanOrEqual(posicoes[4].top);
+    expect(Math.abs(posicoes[0].width-posicoes[1].width)).toBeLessThan(1);
+    raiz.style.width='320px';const celular=campos.map(c=>c.getBoundingClientRect());
+    celular.forEach((p,i)=>{expect(p.width).toBeLessThanOrEqual(320);if(i>0)expect(p.top).toBeGreaterThan(celular[i-1].top);});
+    expect(getComputedStyle(raiz.querySelector('.grade-dados')!).gridTemplateColumns.split(' ').length).toBe(1);
+    http.verify();
+  });
+  it('mostra vazio real e conserva inclusão, faculdades, remoção e bloqueio do botão',()=>{
+    const http=carregarListas();fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.grade-vazia')).not.toBeNull();
+    component.novaViagem={rotaId:1,onibusId:3,motoristaId:2,faculdadesIds:[6]};
+    component.adicionarViagem();fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.grade-vazia')).toBeNull();
+    expect(fixture.nativeElement.querySelector('tbody').textContent).toContain('Faculdade');
+    component.salvando=true;fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.grade-incluir button').disabled).toBeTrue();
+    component.salvando=false;fixture.detectChanges();
+    fixture.nativeElement.querySelector('button[aria-label="Remover viagem 1"]').click();fixture.detectChanges();
+    expect(component.grade.viagens).toEqual([]);expect(fixture.nativeElement.querySelector('.grade-vazia')).not.toBeNull();
+    http.expectNone(r=>r.method!=='GET');http.verify();
+  });
 });

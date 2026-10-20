@@ -1,8 +1,8 @@
-<div class="flex flex-col gap-6 pt-2 px-1">
-  <div class="grid grid-cols-12 gap-4">
+<div class="rota-formulario">
+  <div class="rota-campos">
     
-    <div class="col-span-12 md:col-span-6">
-      <label for="nome" class="block font-bold mb-3">Nome da Rota</label>
+    <div class="rota-campo">
+      <label for="nome" class="block font-bold">Nome da Rota</label>
       <input
         type="text"
         pInputText
@@ -17,8 +17,8 @@
       </small>
     </div>
 
-    <div class="col-span-12 md:col-span-6">
-      <label for="descricao" class="block font-bold mb-3">Descrição</label>
+    <div class="rota-campo">
+      <label for="descricao" class="block font-bold">Descrição</label>
       <input 
         type="text" 
         pInputText 
@@ -29,31 +29,16 @@
       />
     </div>
 
-    <div class="col-span-12 md:col-span-6">
-      <label for="faculdade" class="block font-bold mb-3">Faculdade Destino</label>
-      <p-select
-        id="faculdade"
-        [options]="faculdades"
-        [(ngModel)]="rota.faculdade"
-        optionLabel="nome"
-        placeholder="Selecione a Faculdade"
-        [filter]="true"
-        [showClear]="true"
-        [fluid]="true"
-        appendTo="body"
-      >
-      </p-select>
-      <small class="text-red-500" *ngIf="submitted && !rota.faculdade">
-        A Faculdade Destino é obrigatória.
-      </small>
-    </div>
-
-
-    <div class="col-span-12">
-      <label class="block font-bold mb-3">Itinerário (Pontos de Embarque)</label>
+    <div class="rota-itinerario">
+      <label class="block font-bold">Itinerário (Pontos de Embarque)</label>
       <p-pickList 
         [source]="pontosDisponiveis" 
         [target]="pontosSelecionados" 
+        dataKey="id"
+        sourceAriaLabel="Pontos disponíveis" targetAriaLabel="Pontos selecionados na rota"
+        rightButtonAriaLabel="Adicionar pontos à rota" leftButtonAriaLabel="Retirar pontos da rota"
+        upButtonAriaLabel="Mover ponto para cima" downButtonAriaLabel="Mover ponto para baixo"
+        breakpoint="640px"
         sourceHeader="Pontos Disponíveis" 
         targetHeader="Pontos Selecionados (Ordem da Rota)" 
         [dragdrop]="true" 
@@ -75,9 +60,9 @@
 
   </div>
 
-  <hr class="border-t border-gray-200 dark:border-gray-700 mt-2" />
+  <hr class="rota-separador" />
 
-  <div class="flex justify-end gap-2">
+  <div class="rota-acoes">
     <p-button label="Cancelar" icon="pi pi-times" text (onClick)="cancelar()" />
     <p-button label="Salvar" icon="pi pi-check" (onClick)="confirmarSalvar()" />
   </div>

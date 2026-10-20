@@ -1,19 +1,17 @@
-<div class="flex flex-col gap-6">
+<div class="faculdade-formulario">
     <div>
-        <label for="nome" class="block font-bold mb-3">Nome</label>
+        <label for="nome" class="block font-bold">Nome</label>
         <input type="text" pInputText id="nome" [(ngModel)]="faculdade.nome" required autofocus fluid />
         <small class="text-red-500" *ngIf="submitted && !faculdade.nome">O Nome é obrigatório.</small>
     </div>
 
-    <div class="grid grid-cols-12 gap-4">
-        <div class="col-span-6">
-            <label for="endereco" class="block font-bold mb-3">Endereço</label>
-            <input type="text" pInputText id="endereco" [(ngModel)]="faculdade.endereco" fluid />
-            <small class="text-red-500" *ngIf="submitted && !faculdade.endereco">O Endereço é obrigatório.</small>
-        </div>
+    <div>
+        <label for="endereco" class="block font-bold">Endereço</label>
+        <input type="text" pInputText id="endereco" [(ngModel)]="faculdade.endereco" fluid />
+        <small class="text-red-500" *ngIf="submitted && !faculdade.endereco">O Endereço é obrigatório.</small>
     </div>
 
-    <hr class="border-t border-gray-200 dark:border-gray-700 mt-2" />
+    <hr class="faculdade-separador" />
 
     <div class="flex justify-end gap-2">
         <p-button label="Cancelar" icon="pi pi-times" text (onClick)="cancelar()" />

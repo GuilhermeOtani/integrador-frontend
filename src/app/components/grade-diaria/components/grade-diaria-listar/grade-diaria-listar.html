@@ -23,7 +23,7 @@
         <th pSortableColumn="id" class="app-col-centro"><span class="app-titulo-coluna">Id <p-sortIcon field="id" /></span></th>
         <th pSortableColumn="diaSemana" class="app-col-centro"><span class="app-titulo-coluna">Dia da Semana <p-sortIcon field="diaSemana" /></span></th>
 
-        <th class="app-col-texto">Descrição</th>
+        <th class="app-col-centro">Descrição</th>
 
         <th class="app-col-centro">Qtd. Viagens</th>
         <th class="app-col-acoes app-col-centro">Ações</th>
@@ -36,7 +36,7 @@
         <td class="app-col-centro app-dado-compacto">{{ grade.id }}</td>
         <td class="app-col-centro"><p-tag [value]="grade.diaSemana" severity="info"></p-tag></td>
 
-        <td class="app-col-texto">{{ grade.descricao || 'Sem Descrição' }}</td>
+        <td class="app-col-centro">{{ grade.descricao || 'Sem Descrição' }}</td>
 
         <td class="app-col-centro"><span class="font-bold">{{ grade.viagens?.length || 0 }}</span></td>
         <td class="app-col-acoes app-col-centro">
@@ -53,7 +53,7 @@
   <ng-template #emptymessage><tr><td [attr.colspan]="podeEditar() ? 6 : 5">{{ estadoLista.carregando() ? 'Carregando registros…' : estadoLista.erro() ? 'Não foi possível carregar os registros.' : 'Nenhum registro encontrado para esta seleção.' }}</td></tr></ng-template>
 </p-table></div></section>
 
-  <p-dialog [(visible)]="gradeDialog" [style]="{ width: '900px' }" header="Gerenciar Grade Diária" [modal]="true">
+  <p-dialog [(visible)]="gradeDialog" [style]="{ width: '900px', maxWidth: 'calc(100vw - 2rem)' }" header="Gerenciar Grade Diária" [modal]="true">
     <ng-template #content>
       <app-grade-diaria-cadastro *ngIf="gradeDialog" [grade]="grade" (aoSalvar)="aoSalvarGrade()" (aoCancelar)="hideDialog()"></app-grade-diaria-cadastro>
     </ng-template>

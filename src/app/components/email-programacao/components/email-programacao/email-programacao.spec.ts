@@ -126,6 +126,20 @@ describe('EmailProgramacao', () => {
     const p = previaEmailFixture(); p.mensagem.texto = '<img src=x onerror="alert(1)">'; p.mensagem.html = '<script>alert(1)</script>';
     inicializar(configEmailFixture, p); c.mensagemVisivel.set(true); fixture.detectChanges(); expect(fixture.nativeElement.querySelector('.mensagem').textContent).toBe(p.mensagem.texto); expect(fixture.nativeElement.querySelector('.mensagem img')).toBeNull();
   });
+  for (const reenvio of [false, true]) it(`${reenvio ? 'reenvio' : 'envio'} não mostra aviso azul e preserva modo de teste`, () => {
+    inicializar({ ...configEmailFixture, modoTeste: true });
+    c.abrirEnvio(reenvio); fixture.detectChanges();
+    const dialogo = (fixture.nativeElement as HTMLElement).querySelector('.p-dialog')!;
+    expect(dialogo).not.toBeNull();
+    expect(dialogo.textContent).not.toContain('somente os endereços permitidos pelo backend');
+    expect(dialogo.querySelector('p-message[severity="info"]')).toBeNull();
+    expect(c.config.dados()?.modoTeste).toBeTrue();
+    if (reenvio) {
+      expect(dialogo.textContent).toContain('Outra mensagem poderá ser enviada');
+      expect(dialogo.querySelector('#email-motivo')).not.toBeNull();
+    }
+    http.expectNone(r => r.method === 'POST' || r.method === 'PUT');
+  });
   it('abrir confirmação não envia; duplo clique confirma somente um POST', () => {
     inicializar(); c.abrirEnvio(false); http.expectNone(r => r.method === 'POST'); c.confirmarEnvio(); c.confirmarEnvio();
     const r = http.expectOne(`${base}/envios`); expect(c.enviando()).toBeTrue(); expect(c.podeEnviar()).toBeFalse();
