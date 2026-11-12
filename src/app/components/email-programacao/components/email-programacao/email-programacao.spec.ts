@@ -119,6 +119,30 @@ describe('EmailProgramacao', () => {
     inicializar(); c.atualizar(); http.expectOne(`${base}/configuracao`).flush(configEmailFixture); http.expectOne(`${base}/previa`).flush({}, { status: 500, statusText: 'Erro' }); http.expectOne(`${base}/envios?pagina=0&tamanho=20`).flush(historicoEmailFixture); fixture.detectChanges();
     expect(c.previa.dados()?.viagens.length).toBe(1); expect(c.podeEnviar()).toBeFalse(); expect(fixture.nativeElement.textContent).toContain('desatualizada');
   });
+  it('não apresenta prévia vazia antiga como resultado atual durante consulta ou falha', () => {
+    inicializar(configEmailFixture, { ...previaEmailFixture(), viagens: [], destinatariosElegiveis: 0 });
+    expect(fixture.nativeElement.textContent).toContain('Não há programação para hoje');
+    expect(fixture.nativeElement.textContent).toContain('Nenhum destinatário elegível');
+    c.atualizar(); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Não há programação para hoje');
+    expect(fixture.nativeElement.textContent).not.toContain('Nenhum destinatário elegível');
+    http.expectOne(`${base}/configuracao`).flush(configEmailFixture);
+    http.expectOne(`${base}/previa`).flush({ detail: 'Falha ao consultar programação.' }, { status: 500, statusText: 'Erro' });
+    http.expectOne(`${base}/envios?pagina=0&tamanho=20`).flush(historicoEmailFixture);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Falha ao consultar programação.');
+    expect(fixture.nativeElement.textContent).toContain('desatualizada');
+    expect(fixture.nativeElement.textContent).not.toContain('Não há programação para hoje');
+    expect(fixture.nativeElement.textContent).not.toContain('Nenhum destinatário elegível');
+    expect(c.podeEnviar()).toBeFalse();
+    c.atualizar();
+    http.expectOne(`${base}/configuracao`).flush(configEmailFixture);
+    http.expectOne(`${base}/previa`).flush(previaEmailFixture());
+    http.expectOne(`${base}/envios?pagina=0&tamanho=20`).flush(historicoEmailFixture);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Faculdade A');
+    expect(c.podeEnviar()).toBeTrue();
+  });
   it('falha de histórico é independente da programação', () => {
     inicializar(); c.carregarHistorico(); http.expectOne(`${base}/envios?pagina=0&tamanho=20`).flush({}, { status: 500, statusText: 'Erro' }); expect(c.podeEnviar()).toBeTrue(); expect(c.historico.erro()).not.toBeNull();
   });
@@ -216,6 +240,36 @@ describe('EmailProgramacao', () => {
     inicializar(); const l = loteEmailFixture(); l.entregas = ESTADOS_EMAIL.map((e, n) => ({ ...l.entregas[0], id: `${n}`, estado: e.value, revisao: n, erro: n === 3 ? 'SMTP_FALHA' : null })); c.abrirDetalhe(EMAIL_ID); http.expectOne(`${base}/envios/${EMAIL_ID}`).flush(l); fixture.detectChanges();
     expect(c.detalhe.dados()?.mensagem?.texto).not.toBe(c.previa.dados()?.mensagem.texto); for (const e of ESTADOS_EMAIL) expect(fixture.nativeElement.textContent).toContain(e.label); expect(fixture.nativeElement.textContent).toContain('SMTP_FALHA');
   });
+  for (const estado of ['PENDENTE', 'FALHA'] as const) it(`orienta sobre CONEXAO_SMTP em ${estado}, preservando o estado da entrega`, () => {
+    inicializar();
+    const lote = loteEmailFixture();
+    lote.totais.ACEITA_SMTP = 0; lote.totais[estado] = 1;
+    lote.entregas[0] = { ...lote.entregas[0], estado, erro: 'CONEXAO_SMTP', aceitoEm: null, tentativas: estado === 'FALHA' ? 4 : 1 };
+    c.abrirDetalhe(EMAIL_ID);
+    http.expectOne(`${base}/envios/${EMAIL_ID}`).flush(lote); fixture.detectChanges();
+    const linha = (fixture.nativeElement as HTMLElement).querySelector('.p-dialog tbody tr')!;
+    expect(linha.textContent).toContain(c.rotulo(estado));
+    expect(linha.textContent).toContain('CONEXAO_SMTP');
+    expect(linha.textContent).toContain('Verifique a rede e a conexão com o servidor SMTP');
+    expect(linha.textContent).toContain('Esse erro não indica que o provedor recebeu a mensagem');
+    expect(c.detalhe.dados()?.entregas[0].estado).toBe(estado);
+    http.expectNone(req => req.method === 'POST');
+  });
+  it('resultado SMTP incerto antigo conserva estado e não recebe orientação de falha de conexão', fakeAsync(() => {
+    inicializar();
+    const lote = loteEmailFixture();
+    lote.totais.ACEITA_SMTP = 0; lote.totais.INCERTA = 1;
+    lote.entregas[0] = { ...lote.entregas[0], estado: 'INCERTA', erro: 'RESULTADO_SMTP_INCERTO', aceitoEm: null };
+    c.abrirDetalhe(EMAIL_ID);
+    http.expectOne(`${base}/envios/${EMAIL_ID}`).flush(lote); fixture.detectChanges();
+    const linha = (fixture.nativeElement as HTMLElement).querySelector('.p-dialog tbody tr')!;
+    expect(linha.textContent).toContain('Resultado incerto — conferir antes de reenviar');
+    expect(linha.textContent).toContain('RESULTADO_SMTP_INCERTO');
+    expect(linha.textContent).not.toContain('Verifique a rede');
+    expect(c.detalhe.dados()?.entregas[0].estado).toBe('INCERTA');
+    tick(10000);
+    http.expectNone(req => req.url.startsWith(base));
+  }));
   it('fechar detalhe cancela GET em andamento', () => { inicializar(); c.abrirDetalhe(EMAIL_ID); const r = http.expectOne(`${base}/envios/${EMAIL_ID}`); c.fecharDetalhe(); expect(r.cancelled).toBeTrue(); expect(c.detalheVisivel()).toBeFalse(); });
   it('polling só consulta GET sem sobreposição e para ao concluir', fakeAsync(() => {
     inicializar(); const l: LoteEmail = loteEmailFixture(); l.totais.PENDENTE = 1; c.abrirDetalhe(EMAIL_ID); http.expectOne(`${base}/envios/${EMAIL_ID}`).flush(l);

@@ -31,6 +31,7 @@ import {
   diaSaoPaulo,
   ESTADOS_EMAIL,
   instanteEmail,
+  orientacaoErroEmail,
   rotuloEmail,
   severidadeEmail,
   textoEmail,
@@ -123,6 +124,7 @@ export class EmailProgramacao implements OnInit {
   readonly estados = ESTADOS_EMAIL;
   readonly rotulo = rotuloEmail;
   readonly severidade = severidadeEmail;
+  readonly orientacaoErro = orientacaoErroEmail;
 
   constructor() {
     this.destroyRef.onDestroy(() => this.pararPolling());

@@ -13,6 +13,11 @@ export const ESTADOS_EMAIL: { value: EstadoEntrega; label: string; severity: 'se
 ];
 export const rotuloEmail = (estado: EstadoEntrega) => ESTADOS_EMAIL.find(e => e.value === estado)?.label ?? 'Estado não informado';
 export const severidadeEmail = (estado: EstadoEntrega) => ESTADOS_EMAIL.find(e => e.value === estado)?.severity ?? 'secondary';
+export function orientacaoErroEmail(erro: string | null | undefined): string | null {
+  return erro === 'CONEXAO_SMTP'
+    ? 'Falha de conexão com o servidor de e-mail. Verifique a rede e a conexão com o servidor SMTP. Esse erro não indica que o provedor recebeu a mensagem.'
+    : null;
+}
 export function textoObrigatorio(control: AbstractControl): ValidationErrors | null {
   return typeof control.value === 'string' && control.value.trim() ? null : { required: true };
 }

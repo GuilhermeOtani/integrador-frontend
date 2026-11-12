@@ -188,13 +188,13 @@
       @for (a of p.avisos; track $index) {
         <p-message severity="warn">{{ a }}</p-message>
       }
-      @if (!p.viagens.length) {
+      @if (!p.viagens.length && !previa.erro() && !previa.carregando()) {
         <div class="vazio">
           <i class="pi pi-calendar" aria-hidden="true"></i>
           <h3>Não há programação para hoje</h3>
           <p>Nenhum e-mail será enviado.</p>
         </div>
-      } @else {
+      } @else if (p.viagens.length) {
         <label class="pesquisa" for="email-pesquisa"
           ><span>Pesquisar faculdade, ônibus, motorista ou rota</span
           ><input
@@ -250,7 +250,7 @@
           }
         </div>
       }
-      @if (!p.destinatariosElegiveis) {
+      @if (!p.destinatariosElegiveis && !previa.erro() && !previa.carregando()) {
         <p-message severity="warn"
           >Nenhum destinatário elegível. Confira as contas ativas e a lista permitida no modo de
           teste.</p-message
@@ -591,7 +591,11 @@
               </td>
               <td class="app-col-centro app-dado-compacto">{{ e.revisao }} / {{ e.tentativas }}</td>
               <td class="app-col-texto">
-                {{ e.erro || '—' }}<small>{{ instante(e.aceitoEm) }}</small>
+                {{ e.erro || '—' }}
+                @if (orientacaoErro(e.erro); as orientacao) {
+                  <p class="alerta">{{ orientacao }}</p>
+                }
+                <small>{{ instante(e.aceitoEm) }}</small>
               </td>
             </tr></ng-template
           ><ng-template #emptymessage
